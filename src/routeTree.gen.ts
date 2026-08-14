@@ -10,11 +10,17 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ChecklistsRouteImport } from './routes/checklists'
 import { Route as ObrasRouteImport } from './routes/obras'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ChecklistsRoute = ChecklistsRouteImport.update({
+  id: '/checklists',
+  path: '/checklists',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ObrasRoute = ObrasRouteImport.update({
@@ -25,27 +31,31 @@ const ObrasRoute = ObrasRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/checklists': typeof ChecklistsRoute
   '/obras': typeof ObrasRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/checklists': typeof ChecklistsRoute
   '/obras': typeof ObrasRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/checklists': typeof ChecklistsRoute
   '/obras': typeof ObrasRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/obras'
+  fullPaths: '/' | '/checklists' | '/obras'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/obras'
-  id: '__root__' | '/' | '/obras'
+  to: '/' | '/checklists' | '/obras'
+  id: '__root__' | '/' | '/checklists' | '/obras'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ChecklistsRoute: typeof ChecklistsRoute
   ObrasRoute: typeof ObrasRoute
 }
 
@@ -56,6 +66,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/checklists': {
+      id: '/checklists'
+      path: '/checklists'
+      fullPath: '/checklists'
+      preLoaderRoute: typeof ChecklistsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/obras': {
@@ -70,6 +87,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ChecklistsRoute: ChecklistsRoute,
   ObrasRoute: ObrasRoute,
 }
 export const routeTree = rootRouteImport
