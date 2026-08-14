@@ -1,0 +1,262 @@
+// Dados demonstrativos usados apenas para visualizar a interface.
+// Nenhuma persistência real: serão substituídos por dados do backend depois.
+
+export type Severidade = "Baixa" | "Média" | "Alta" | "Crítica";
+
+export const obras = [
+  {
+    id: "OB-001",
+    nome: "Residencial Vista Verde",
+    empresa: "Construtora Andrade Ltda.",
+    endereco: "Av. das Palmeiras, 1200 — São Paulo/SP",
+    responsavel: "Eng. Carlos Menezes",
+    status: "Em andamento",
+    cadastro: "12/01/2026",
+  },
+  {
+    id: "OB-002",
+    nome: "Galpão Logístico Norte",
+    empresa: "Transporte Rio Claro S.A.",
+    endereco: "Rod. BR-116, km 42 — Guarulhos/SP",
+    responsavel: "Téc. Ana Paula Souza",
+    status: "Em andamento",
+    cadastro: "03/02/2026",
+  },
+  {
+    id: "OB-003",
+    nome: "Ampliação Fábrica Sul",
+    empresa: "Metalúrgica Bandeirante",
+    endereco: "Rua Industrial, 88 — Diadema/SP",
+    responsavel: "Eng. Rafael Lima",
+    status: "Paralisada",
+    cadastro: "22/11/2025",
+  },
+  {
+    id: "OB-004",
+    nome: "Reforma Sede Administrativa",
+    empresa: "Grupo Horizonte",
+    endereco: "Al. Santos, 401 — São Paulo/SP",
+    responsavel: "Téc. Juliana Reis",
+    status: "Concluída",
+    cadastro: "08/09/2025",
+  },
+];
+
+export const inspecoes = [
+  {
+    id: "INS-0042",
+    obra: "Residencial Vista Verde",
+    data: "12/08/2026",
+    hora: "08:30",
+    responsavel: "Téc. Ana Paula Souza",
+    local: "Torre B — 7º pavimento",
+    tipo: "Inspeção de rotina",
+    status: "Concluída",
+    fotos: 6,
+    ncs: 3,
+    observacoes:
+      "Frente de serviço com trabalho em altura na periferia da laje. Equipe orientada quanto ao uso de talabarte duplo. Linha de vida provisória sem certificação disponível no local.",
+  },
+  {
+    id: "INS-0041",
+    obra: "Galpão Logístico Norte",
+    data: "11/08/2026",
+    hora: "14:10",
+    responsavel: "Eng. Rafael Lima",
+    local: "Pátio de descarga",
+    tipo: "Inspeção de máquinas e equipamentos",
+    status: "Concluída",
+    fotos: 4,
+    ncs: 1,
+    observacoes:
+      "Empilhadeira com checklist diário em dia. Sinalização de circulação de pedestres apagada em parte do trecho.",
+  },
+  {
+    id: "INS-0040",
+    obra: "Ampliação Fábrica Sul",
+    data: "10/08/2026",
+    hora: "09:45",
+    responsavel: "Téc. Juliana Reis",
+    local: "Casa de máquinas",
+    tipo: "Inspeção elétrica",
+    status: "Em andamento",
+    fotos: 3,
+    ncs: 2,
+    observacoes: "Quadro elétrico sem identificação de circuitos e sem bloqueio.",
+  },
+  {
+    id: "INS-0039",
+    obra: "Residencial Vista Verde",
+    data: "07/08/2026",
+    hora: "16:00",
+    responsavel: "Téc. Ana Paula Souza",
+    local: "Canteiro — área de vivência",
+    tipo: "Inspeção de rotina",
+    status: "Concluída",
+    fotos: 5,
+    ncs: 0,
+    observacoes: "Área de vivência organizada, refeitório e sanitários em boas condições.",
+  },
+];
+
+export const naoConformidades = [
+  {
+    id: "NC-0118",
+    inspecao: "INS-0042",
+    obra: "Residencial Vista Verde",
+    data: "12/08/2026",
+    categoria: "Trabalho em altura",
+    descricao: "Linha de vida provisória sem certificação e sem projeto assinado.",
+    severidade: "Crítica" as Severidade,
+    status: "Aberta",
+    prazo: "15/08/2026",
+    fotos: 2,
+  },
+  {
+    id: "NC-0117",
+    inspecao: "INS-0042",
+    obra: "Residencial Vista Verde",
+    data: "12/08/2026",
+    categoria: "EPI",
+    descricao: "Colaborador utilizando capacete sem jugular.",
+    severidade: "Média" as Severidade,
+    status: "Em tratativa",
+    prazo: "18/08/2026",
+    fotos: 1,
+  },
+  {
+    id: "NC-0116",
+    inspecao: "INS-0042",
+    obra: "Residencial Vista Verde",
+    data: "12/08/2026",
+    categoria: "Organização e limpeza",
+    descricao: "Entulho acumulado na rota de fuga do pavimento.",
+    severidade: "Alta" as Severidade,
+    status: "Aberta",
+    prazo: "14/08/2026",
+    fotos: 2,
+  },
+  {
+    id: "NC-0115",
+    inspecao: "INS-0041",
+    obra: "Galpão Logístico Norte",
+    data: "11/08/2026",
+    categoria: "Sinalização",
+    descricao: "Faixa de circulação de pedestres apagada no pátio de descarga.",
+    severidade: "Baixa" as Severidade,
+    status: "Concluída",
+    prazo: "20/08/2026",
+    fotos: 1,
+  },
+  {
+    id: "NC-0114",
+    inspecao: "INS-0040",
+    obra: "Ampliação Fábrica Sul",
+    data: "10/08/2026",
+    categoria: "Instalações elétricas",
+    descricao: "Quadro elétrico sem identificação de circuitos e sem bloqueio.",
+    severidade: "Crítica" as Severidade,
+    status: "Atrasada",
+    prazo: "12/08/2026",
+    fotos: 2,
+  },
+];
+
+export const acoesCorretivas = [
+  {
+    id: "AC-0071",
+    nc: "NC-0118",
+    ncDescricao: "Linha de vida sem certificação",
+    acao: "Contratar projeto de linha de vida assinado por engenheiro e recertificar o sistema.",
+    responsavel: "Eng. Carlos Menezes",
+    prazo: "15/08/2026",
+    status: "Em andamento",
+  },
+  {
+    id: "AC-0070",
+    nc: "NC-0117",
+    ncDescricao: "Capacete sem jugular",
+    acao: "Substituir capacetes e realizar DDS sobre uso correto do EPI.",
+    responsavel: "Téc. Ana Paula Souza",
+    prazo: "18/08/2026",
+    status: "Aberta",
+  },
+  {
+    id: "AC-0069",
+    nc: "NC-0116",
+    ncDescricao: "Entulho na rota de fuga",
+    acao: "Remover entulho e programar coleta diária no pavimento.",
+    responsavel: "Encarregado Marcos Dias",
+    prazo: "14/08/2026",
+    status: "Aberta",
+  },
+  {
+    id: "AC-0068",
+    nc: "NC-0114",
+    ncDescricao: "Quadro elétrico sem identificação",
+    acao: "Identificar circuitos e implantar procedimento de bloqueio e etiquetagem.",
+    responsavel: "Eng. Rafael Lima",
+    prazo: "12/08/2026",
+    status: "Atrasada",
+  },
+  {
+    id: "AC-0067",
+    nc: "NC-0115",
+    ncDescricao: "Sinalização apagada",
+    acao: "Repintar faixas de circulação do pátio.",
+    responsavel: "Téc. Juliana Reis",
+    prazo: "20/08/2026",
+    status: "Concluída",
+  },
+];
+
+export const categoriasChecklist = [
+  "Trabalho em altura",
+  "EPI",
+  "Organização e limpeza",
+  "Máquinas e equipamentos",
+  "Instalações elétricas",
+  "Andaimes",
+  "Escadas",
+  "Sinalização",
+  "Proteção contra incêndio",
+];
+
+export const checklists = categoriasChecklist.map((categoria, i) => ({
+  id: `CL-${String(i + 1).padStart(3, "0")}`,
+  nome: `Checklist — ${categoria}`,
+  descricao: `Roteiro de verificação dos itens de segurança relacionados a ${categoria.toLowerCase()}.`,
+  categoria,
+  itens: 8 + ((i * 3) % 14),
+  status: i % 4 === 3 ? "Rascunho" : "Ativo",
+}));
+
+export const tiposInspecao = [
+  "Inspeção de rotina",
+  "Inspeção planejada",
+  "Inspeção de trabalho em altura",
+  "Inspeção de máquinas e equipamentos",
+  "Inspeção elétrica",
+  "Inspeção de andaimes",
+  "Inspeção de EPI",
+  "Inspeção pós-acidente",
+];
+
+export const indicadores = {
+  inspecoes: 42,
+  naoConformidades: 118,
+  conformes: 964,
+  pendentes: 37,
+  conformidade: 87,
+  acoesAbertas: 14,
+  acoesAtrasadas: 3,
+};
+
+export const conformidadeMensal = [
+  { mes: "Mar", conformidade: 74, ncs: 31 },
+  { mes: "Abr", conformidade: 78, ncs: 27 },
+  { mes: "Mai", conformidade: 81, ncs: 24 },
+  { mes: "Jun", conformidade: 79, ncs: 26 },
+  { mes: "Jul", conformidade: 85, ncs: 19 },
+  { mes: "Ago", conformidade: 87, ncs: 16 },
+];

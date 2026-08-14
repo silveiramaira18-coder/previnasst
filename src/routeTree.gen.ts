@@ -10,33 +10,128 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AcoesCorretivasRouteImport } from './routes/acoes-corretivas'
+import { Route as ChecklistsRouteImport } from './routes/checklists'
+import { Route as ConfiguracoesRouteImport } from './routes/configuracoes'
+import { Route as NaoConformidadesRouteImport } from './routes/nao-conformidades'
+import { Route as ObrasRouteImport } from './routes/obras'
+import { Route as RelatoriosRouteImport } from './routes/relatorios'
+import { Route as InspecoesIndexRouteImport } from './routes/inspecoes.index'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AcoesCorretivasRoute = AcoesCorretivasRouteImport.update({
+  id: '/acoes-corretivas',
+  path: '/acoes-corretivas',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ChecklistsRoute = ChecklistsRouteImport.update({
+  id: '/checklists',
+  path: '/checklists',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ConfiguracoesRoute = ConfiguracoesRouteImport.update({
+  id: '/configuracoes',
+  path: '/configuracoes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NaoConformidadesRoute = NaoConformidadesRouteImport.update({
+  id: '/nao-conformidades',
+  path: '/nao-conformidades',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ObrasRoute = ObrasRouteImport.update({
+  id: '/obras',
+  path: '/obras',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RelatoriosRoute = RelatoriosRouteImport.update({
+  id: '/relatorios',
+  path: '/relatorios',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InspecoesIndexRoute = InspecoesIndexRouteImport.update({
+  id: '/inspecoes/',
+  path: '/inspecoes/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/acoes-corretivas': typeof AcoesCorretivasRoute
+  '/checklists': typeof ChecklistsRoute
+  '/configuracoes': typeof ConfiguracoesRoute
+  '/nao-conformidades': typeof NaoConformidadesRoute
+  '/obras': typeof ObrasRoute
+  '/relatorios': typeof RelatoriosRoute
+  '/inspecoes/': typeof InspecoesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/acoes-corretivas': typeof AcoesCorretivasRoute
+  '/checklists': typeof ChecklistsRoute
+  '/configuracoes': typeof ConfiguracoesRoute
+  '/nao-conformidades': typeof NaoConformidadesRoute
+  '/obras': typeof ObrasRoute
+  '/relatorios': typeof RelatoriosRoute
+  '/inspecoes': typeof InspecoesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/acoes-corretivas': typeof AcoesCorretivasRoute
+  '/checklists': typeof ChecklistsRoute
+  '/configuracoes': typeof ConfiguracoesRoute
+  '/nao-conformidades': typeof NaoConformidadesRoute
+  '/obras': typeof ObrasRoute
+  '/relatorios': typeof RelatoriosRoute
+  '/inspecoes/': typeof InspecoesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/acoes-corretivas'
+    | '/checklists'
+    | '/configuracoes'
+    | '/nao-conformidades'
+    | '/obras'
+    | '/relatorios'
+    | '/inspecoes/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/acoes-corretivas'
+    | '/checklists'
+    | '/configuracoes'
+    | '/nao-conformidades'
+    | '/obras'
+    | '/relatorios'
+    | '/inspecoes'
+  id:
+    | '__root__'
+    | '/'
+    | '/acoes-corretivas'
+    | '/checklists'
+    | '/configuracoes'
+    | '/nao-conformidades'
+    | '/obras'
+    | '/relatorios'
+    | '/inspecoes/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AcoesCorretivasRoute: typeof AcoesCorretivasRoute
+  ChecklistsRoute: typeof ChecklistsRoute
+  ConfiguracoesRoute: typeof ConfiguracoesRoute
+  NaoConformidadesRoute: typeof NaoConformidadesRoute
+  ObrasRoute: typeof ObrasRoute
+  RelatoriosRoute: typeof RelatoriosRoute
+  InspecoesIndexRoute: typeof InspecoesIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +143,67 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/acoes-corretivas': {
+      id: '/acoes-corretivas'
+      path: '/acoes-corretivas'
+      fullPath: '/acoes-corretivas'
+      preLoaderRoute: typeof AcoesCorretivasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/checklists': {
+      id: '/checklists'
+      path: '/checklists'
+      fullPath: '/checklists'
+      preLoaderRoute: typeof ChecklistsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/configuracoes': {
+      id: '/configuracoes'
+      path: '/configuracoes'
+      fullPath: '/configuracoes'
+      preLoaderRoute: typeof ConfiguracoesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/nao-conformidades': {
+      id: '/nao-conformidades'
+      path: '/nao-conformidades'
+      fullPath: '/nao-conformidades'
+      preLoaderRoute: typeof NaoConformidadesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/obras': {
+      id: '/obras'
+      path: '/obras'
+      fullPath: '/obras'
+      preLoaderRoute: typeof ObrasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/relatorios': {
+      id: '/relatorios'
+      path: '/relatorios'
+      fullPath: '/relatorios'
+      preLoaderRoute: typeof RelatoriosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/inspecoes/': {
+      id: '/inspecoes/'
+      path: '/inspecoes'
+      fullPath: '/inspecoes/'
+      preLoaderRoute: typeof InspecoesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AcoesCorretivasRoute: AcoesCorretivasRoute,
+  ChecklistsRoute: ChecklistsRoute,
+  ConfiguracoesRoute: ConfiguracoesRoute,
+  NaoConformidadesRoute: NaoConformidadesRoute,
+  ObrasRoute: ObrasRoute,
+  RelatoriosRoute: RelatoriosRoute,
+  InspecoesIndexRoute: InspecoesIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
