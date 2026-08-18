@@ -17,6 +17,7 @@ import { Route as NaoConformidadesRouteImport } from './routes/nao-conformidades
 import { Route as ObrasRouteImport } from './routes/obras'
 import { Route as RelatoriosRouteImport } from './routes/relatorios'
 import { Route as InspecoesIndexRouteImport } from './routes/inspecoes.index'
+import { Route as InspecoesIdRouteImport } from './routes/inspecoes.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -58,6 +59,11 @@ const InspecoesIndexRoute = InspecoesIndexRouteImport.update({
   path: '/inspecoes/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const InspecoesIdRoute = InspecoesIdRouteImport.update({
+  id: '/inspecoes/$id',
+  path: '/inspecoes/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -67,6 +73,7 @@ export interface FileRoutesByFullPath {
   '/nao-conformidades': typeof NaoConformidadesRoute
   '/obras': typeof ObrasRoute
   '/relatorios': typeof RelatoriosRoute
+  '/inspecoes/$id': typeof InspecoesIdRoute
   '/inspecoes/': typeof InspecoesIndexRoute
 }
 export interface FileRoutesByTo {
@@ -77,6 +84,7 @@ export interface FileRoutesByTo {
   '/nao-conformidades': typeof NaoConformidadesRoute
   '/obras': typeof ObrasRoute
   '/relatorios': typeof RelatoriosRoute
+  '/inspecoes/$id': typeof InspecoesIdRoute
   '/inspecoes': typeof InspecoesIndexRoute
 }
 export interface FileRoutesById {
@@ -88,6 +96,7 @@ export interface FileRoutesById {
   '/nao-conformidades': typeof NaoConformidadesRoute
   '/obras': typeof ObrasRoute
   '/relatorios': typeof RelatoriosRoute
+  '/inspecoes/$id': typeof InspecoesIdRoute
   '/inspecoes/': typeof InspecoesIndexRoute
 }
 export interface FileRouteTypes {
@@ -100,6 +109,7 @@ export interface FileRouteTypes {
     | '/nao-conformidades'
     | '/obras'
     | '/relatorios'
+    | '/inspecoes/$id'
     | '/inspecoes/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -110,6 +120,7 @@ export interface FileRouteTypes {
     | '/nao-conformidades'
     | '/obras'
     | '/relatorios'
+    | '/inspecoes/$id'
     | '/inspecoes'
   id:
     | '__root__'
@@ -120,6 +131,7 @@ export interface FileRouteTypes {
     | '/nao-conformidades'
     | '/obras'
     | '/relatorios'
+    | '/inspecoes/$id'
     | '/inspecoes/'
   fileRoutesById: FileRoutesById
 }
@@ -131,6 +143,7 @@ export interface RootRouteChildren {
   NaoConformidadesRoute: typeof NaoConformidadesRoute
   ObrasRoute: typeof ObrasRoute
   RelatoriosRoute: typeof RelatoriosRoute
+  InspecoesIdRoute: typeof InspecoesIdRoute
   InspecoesIndexRoute: typeof InspecoesIndexRoute
 }
 
@@ -192,6 +205,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof InspecoesIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/inspecoes/$id': {
+      id: '/inspecoes/$id'
+      path: '/inspecoes/$id'
+      fullPath: '/inspecoes/$id'
+      preLoaderRoute: typeof InspecoesIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -203,6 +223,7 @@ const rootRouteChildren: RootRouteChildren = {
   NaoConformidadesRoute: NaoConformidadesRoute,
   ObrasRoute: ObrasRoute,
   RelatoriosRoute: RelatoriosRoute,
+  InspecoesIdRoute: InspecoesIdRoute,
   InspecoesIndexRoute: InspecoesIndexRoute,
 }
 export const routeTree = rootRouteImport
