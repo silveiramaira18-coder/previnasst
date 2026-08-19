@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AcoesCorretivasRouteImport } from './routes/acoes-corretivas'
+import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ChecklistsRouteImport } from './routes/checklists'
 import { Route as ConfiguracoesRouteImport } from './routes/configuracoes'
 import { Route as NaoConformidadesRouteImport } from './routes/nao-conformidades'
@@ -28,6 +29,11 @@ const IndexRoute = IndexRouteImport.update({
 const AcoesCorretivasRoute = AcoesCorretivasRouteImport.update({
   id: '/acoes-corretivas',
   path: '/acoes-corretivas',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ChecklistsRoute = ChecklistsRouteImport.update({
@@ -74,6 +80,7 @@ const InspecoesIdRoute = InspecoesIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/acoes-corretivas': typeof AcoesCorretivasRoute
+  '/auth': typeof AuthRoute
   '/checklists': typeof ChecklistsRoute
   '/configuracoes': typeof ConfiguracoesRoute
   '/nao-conformidades': typeof NaoConformidadesRoute
@@ -86,6 +93,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/acoes-corretivas': typeof AcoesCorretivasRoute
+  '/auth': typeof AuthRoute
   '/checklists': typeof ChecklistsRoute
   '/configuracoes': typeof ConfiguracoesRoute
   '/nao-conformidades': typeof NaoConformidadesRoute
@@ -99,6 +107,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/acoes-corretivas': typeof AcoesCorretivasRoute
+  '/auth': typeof AuthRoute
   '/checklists': typeof ChecklistsRoute
   '/configuracoes': typeof ConfiguracoesRoute
   '/nao-conformidades': typeof NaoConformidadesRoute
@@ -113,6 +122,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/acoes-corretivas'
+    | '/auth'
     | '/checklists'
     | '/configuracoes'
     | '/nao-conformidades'
@@ -125,6 +135,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/acoes-corretivas'
+    | '/auth'
     | '/checklists'
     | '/configuracoes'
     | '/nao-conformidades'
@@ -137,6 +148,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/acoes-corretivas'
+    | '/auth'
     | '/checklists'
     | '/configuracoes'
     | '/nao-conformidades'
@@ -150,6 +162,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AcoesCorretivasRoute: typeof AcoesCorretivasRoute
+  AuthRoute: typeof AuthRoute
   ChecklistsRoute: typeof ChecklistsRoute
   ConfiguracoesRoute: typeof ConfiguracoesRoute
   NaoConformidadesRoute: typeof NaoConformidadesRoute
@@ -174,6 +187,13 @@ declare module '@tanstack/react-router' {
       path: '/acoes-corretivas'
       fullPath: '/acoes-corretivas'
       preLoaderRoute: typeof AcoesCorretivasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/checklists': {
@@ -238,6 +258,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AcoesCorretivasRoute: AcoesCorretivasRoute,
+  AuthRoute: AuthRoute,
   ChecklistsRoute: ChecklistsRoute,
   ConfiguracoesRoute: ConfiguracoesRoute,
   NaoConformidadesRoute: NaoConformidadesRoute,
