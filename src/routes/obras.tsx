@@ -1,10 +1,30 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Plus, Building2 } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
 
 import { PageHeader } from "@/components/PageHeader";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -13,7 +33,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { obras } from "@/lib/mock-data";
+import { supabase } from "@/integrations/supabase/client";
+import { formatarData, listarObras } from "@/lib/db";
 
 export const Route = createFileRoute("/obras")({
   head: () => ({
@@ -33,57 +54,166 @@ export const Route = createFileRoute("/obras")({
   component: ObrasPage,
 });
 
+const STATUS = ["Em andamento", "Paralisada", "Concluída"];
+
 function ObrasPage() {
+  const qc = useQueryClient();
+  const [aberto, setAberto] = useState(false);
+  const [form, setForm] = useState({
+    nome: "",
+    empresa: "",
+    endereco: "",
+    responsavel: "",
+    status: "Em andamento",
+  });
+
+  const { data: obras = [], isLoading } = useQuery({ queryKey: ["obras"], queryFn: listarObras });
+
+  const criar = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase.from("obras").insert(form);
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["obras"] });
+      setAberto(false);
+      setForm({ nome: "", empresa: "", endereco: "", responsavel: "", status: "Em andamento" });
+      toast.success("Obra cadastrada");
+    },
+    onError: (e: Error) => toast.error("Erro ao cadastrar", { description: e.message }),
+  });
+
   return (
     <div className="space-y-6">
       <PageHeader
         title="Obras"
         description="Empresas e canteiros acompanhados pela equipe de segurança."
         action={
-          <Button size="lg" disabled className="gap-2">
-            <Plus className="size-4" /> Nova Obra
-          </Button>
+          <Dialog open={aberto} onOpenChange={setAberto}>
+            <DialogTrigger asChild>
+              <Button size="lg" className="gap-2">
+                <Plus className="size-4" /> Nova Obra
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Nova obra</DialogTitle>
+              </DialogHeader>
+              <form
+                className="space-y-4"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  criar.mutate();
+                }}
+              >
+                <div className="space-y-1.5">
+                  <Label htmlFor="nome">Nome da obra</Label>
+                  <Input
+                    id="nome"
+                    required
+                    className="h-12"
+                    value={form.nome}
+                    onChange={(e) => setForm({ ...form, nome: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="empresa">Empresa</Label>
+                  <Input
+                    id="empresa"
+                    className="h-12"
+                    value={form.empresa}
+                    onChange={(e) => setForm({ ...form, empresa: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="endereco">Endereço</Label>
+                  <Input
+                    id="endereco"
+                    className="h-12"
+                    value={form.endereco}
+                    onChange={(e) => setForm({ ...form, endereco: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="responsavel">Responsável</Label>
+                  <Input
+                    id="responsavel"
+                    className="h-12"
+                    value={form.responsavel}
+                    onChange={(e) => setForm({ ...form, responsavel: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Status</Label>
+                  <Select
+                    value={form.status}
+                    onValueChange={(v) => setForm({ ...form, status: v })}
+                  >
+                    <SelectTrigger className="h-12 w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {STATUS.map((s) => (
+                        <SelectItem key={s} value={s}>
+                          {s}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <DialogFooter>
+                  <Button type="submit" size="lg" className="h-12 w-full" disabled={criar.isPending}>
+                    Salvar obra
+                  </Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
         }
       />
 
-      <p className="text-xs text-muted-foreground">
-        O cadastro de obras será habilitado quando o armazenamento de dados for implementado.
-        Abaixo, exemplos ilustrativos.
-      </p>
+      {isLoading ? <p className="text-sm text-muted-foreground">Carregando obras...</p> : null}
+      {!isLoading && obras.length === 0 ? (
+        <p className="text-sm text-muted-foreground">
+          Nenhuma obra cadastrada ainda. Use o botão "Nova Obra" para começar.
+        </p>
+      ) : null}
 
-      {/* Tabela — desktop */}
-      <Card className="hidden md:block">
-        <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Nome da obra</TableHead>
-                <TableHead>Empresa</TableHead>
-                <TableHead>Endereço</TableHead>
-                <TableHead>Responsável</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Cadastro</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {obras.map((o) => (
-                <TableRow key={o.id}>
-                  <TableCell className="font-medium">{o.nome}</TableCell>
-                  <TableCell>{o.empresa}</TableCell>
-                  <TableCell className="text-muted-foreground">{o.endereco}</TableCell>
-                  <TableCell>{o.responsavel}</TableCell>
-                  <TableCell>
-                    <StatusBadge value={o.status} />
-                  </TableCell>
-                  <TableCell className="text-muted-foreground">{o.cadastro}</TableCell>
+      {obras.length > 0 ? (
+        <Card className="hidden md:block">
+          <CardContent className="p-0">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Nome da obra</TableHead>
+                  <TableHead>Empresa</TableHead>
+                  <TableHead>Endereço</TableHead>
+                  <TableHead>Responsável</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Cadastro</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+              </TableHeader>
+              <TableBody>
+                {obras.map((o) => (
+                  <TableRow key={o.id}>
+                    <TableCell className="font-medium">{o.nome}</TableCell>
+                    <TableCell>{o.empresa}</TableCell>
+                    <TableCell className="text-muted-foreground">{o.endereco}</TableCell>
+                    <TableCell>{o.responsavel}</TableCell>
+                    <TableCell>
+                      <StatusBadge value={o.status} />
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {formatarData(o.data_criacao)}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      ) : null}
 
-      {/* Cards — mobile */}
       <div className="grid gap-3 md:hidden">
         {obras.map((o) => (
           <Card key={o.id}>
@@ -99,7 +229,7 @@ function ObrasPage() {
               <p className="text-sm text-muted-foreground">{o.endereco}</p>
               <div className="flex flex-wrap justify-between gap-2 pt-1 text-sm">
                 <span>{o.responsavel}</span>
-                <span className="text-muted-foreground">{o.cadastro}</span>
+                <span className="text-muted-foreground">{formatarData(o.data_criacao)}</span>
               </div>
             </CardContent>
           </Card>

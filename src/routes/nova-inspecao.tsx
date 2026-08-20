@@ -1,8 +1,9 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
-import { Camera, ImagePlus, Trash2, Upload } from "lucide-react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import { toast } from "sonner";
 
+import { FotoManager } from "@/components/FotoManager";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,7 +17,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { obras, tiposInspecao } from "@/lib/mock-data";
+import { supabase } from "@/integrations/supabase/client";
+import { listarObras } from "@/lib/db";
+import { tiposInspecao } from "@/lib/mock-data";
 
 export const Route = createFileRoute("/nova-inspecao")({
   head: () => ({
@@ -37,46 +40,67 @@ export const Route = createFileRoute("/nova-inspecao")({
   component: NovaInspecao,
 });
 
-type Foto = { id: string; url: string; nome: string; legenda: string };
-
 function NovaInspecao() {
-  const [fotos, setFotos] = useState<Foto[]>([]);
-  const cameraRef = useRef<HTMLInputElement>(null);
-  const galeriaRef = useRef<HTMLInputElement>(null);
+  const navigate = useNavigate();
+  const [inspecaoId, setInspecaoId] = useState<string | null>(null);
+  const [form, setForm] = useState({
+    obra_id: "",
+    data: new Date().toISOString().slice(0, 10),
+    horario: "",
+    responsavel: "",
+    local: "",
+    tipo_inspecao: "",
+    observacoes: "",
+  });
 
-  // Armazenamento temporário: as imagens vivem apenas na memória do navegador.
-  useEffect(() => {
-    return () => fotos.forEach((f) => URL.revokeObjectURL(f.url));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  const { data: obras = [] } = useQuery({ queryKey: ["obras"], queryFn: listarObras });
 
-  const adicionar = (files: FileList | null) => {
-    if (!files?.length) return;
-    const novas = Array.from(files).map((file) => ({
-      id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
-      url: URL.createObjectURL(file),
-      nome: file.name,
-      legenda: "",
-    }));
-    setFotos((prev) => [...prev, ...novas]);
-  };
+  const salvar = useMutation({
+    mutationFn: async () => {
+      const payload = {
+        obra_id: form.obra_id || null,
+        data: form.data,
+        horario: form.horario || null,
+        responsavel: form.responsavel || null,
+        local: form.local || null,
+        tipo_inspecao: form.tipo_inspecao || null,
+        observacoes: form.observacoes || null,
+      };
+      if (inspecaoId) {
+        const { error } = await supabase.from("inspecoes").update(payload).eq("id", inspecaoId);
+        if (error) throw new Error(error.message);
+        return inspecaoId;
+      }
+      const { data, error } = await supabase
+        .from("inspecoes")
+        .insert(payload)
+        .select("id")
+        .single();
+      if (error) throw new Error(error.message);
+      return data.id as string;
+    },
+    onSuccess: (id) => {
+      setInspecaoId(id);
+      toast.success("Inspeção salva", { description: "Agora você pode adicionar as fotos." });
+    },
+    onError: (e: Error) => toast.error("Erro ao salvar", { description: e.message }),
+  });
 
-  const remover = (id: string) =>
-    setFotos((prev) => {
-      const alvo = prev.find((f) => f.id === id);
-      if (alvo) URL.revokeObjectURL(alvo.url);
-      return prev.filter((f) => f.id !== id);
-    });
-
-  const setLegenda = (id: string, legenda: string) =>
-    setFotos((prev) => prev.map((f) => (f.id === id ? { ...f, legenda } : f)));
-
-  const finalizar = () => {
-    toast.info("Inspeção não enviada", {
-      description:
-        "O armazenamento de inspeções ainda não foi implementado. As fotos ficam apenas nesta sessão.",
-    });
-  };
+  const finalizar = useMutation({
+    mutationFn: async () => {
+      if (!inspecaoId) throw new Error("Salve a inspeção antes de finalizar.");
+      const { error } = await supabase
+        .from("inspecoes")
+        .update({ status: "Concluída" })
+        .eq("id", inspecaoId);
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: () => {
+      toast.success("Inspeção finalizada");
+      if (inspecaoId) navigate({ to: "/inspecoes/$id", params: { id: inspecaoId } });
+    },
+    onError: (e: Error) => toast.error("Erro ao finalizar", { description: e.message }),
+  });
 
   return (
     <div className="space-y-6 pb-24 lg:pb-6">
@@ -92,7 +116,7 @@ function NovaInspecao() {
         <CardContent className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-1.5 sm:col-span-2">
             <Label htmlFor="obra">Obra</Label>
-            <Select>
+            <Select value={form.obra_id} onValueChange={(v) => setForm({ ...form, obra_id: v })}>
               <SelectTrigger id="obra" className="h-12 w-full">
                 <SelectValue placeholder="Selecione a obra" />
               </SelectTrigger>
@@ -104,26 +128,58 @@ function NovaInspecao() {
                 ))}
               </SelectContent>
             </Select>
+            {obras.length === 0 ? (
+              <p className="text-xs text-muted-foreground">
+                Cadastre uma obra primeiro na tela "Obras".
+              </p>
+            ) : null}
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="data">Data</Label>
-            <Input id="data" type="date" className="h-12" />
+            <Input
+              id="data"
+              type="date"
+              className="h-12"
+              value={form.data}
+              onChange={(e) => setForm({ ...form, data: e.target.value })}
+            />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="hora">Horário</Label>
-            <Input id="hora" type="time" className="h-12" />
+            <Input
+              id="hora"
+              type="time"
+              className="h-12"
+              value={form.horario}
+              onChange={(e) => setForm({ ...form, horario: e.target.value })}
+            />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="inspetor">Inspetor / responsável</Label>
-            <Input id="inspetor" className="h-12" placeholder="Nome do profissional" />
+            <Input
+              id="inspetor"
+              className="h-12"
+              placeholder="Nome do profissional"
+              value={form.responsavel}
+              onChange={(e) => setForm({ ...form, responsavel: e.target.value })}
+            />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="local">Setor ou local</Label>
-            <Input id="local" className="h-12" placeholder="Ex.: Torre B — 7º pavimento" />
+            <Input
+              id="local"
+              className="h-12"
+              placeholder="Ex.: Torre B — 7º pavimento"
+              value={form.local}
+              onChange={(e) => setForm({ ...form, local: e.target.value })}
+            />
           </div>
           <div className="space-y-1.5 sm:col-span-2">
             <Label htmlFor="tipo">Tipo de inspeção</Label>
-            <Select>
+            <Select
+              value={form.tipo_inspecao}
+              onValueChange={(v) => setForm({ ...form, tipo_inspecao: v })}
+            >
               <SelectTrigger id="tipo" className="h-12 w-full">
                 <SelectValue placeholder="Selecione o tipo" />
               </SelectTrigger>
@@ -142,7 +198,21 @@ function NovaInspecao() {
               id="obs"
               rows={5}
               placeholder="Descreva o que foi observado durante a inspeção..."
+              value={form.observacoes}
+              onChange={(e) => setForm({ ...form, observacoes: e.target.value })}
             />
+          </div>
+          <div className="sm:col-span-2">
+            <Button
+              type="button"
+              size="lg"
+              variant={inspecaoId ? "outline" : "default"}
+              className="h-12 w-full"
+              disabled={salvar.isPending}
+              onClick={() => salvar.mutate()}
+            >
+              {inspecaoId ? "Salvar alterações" : "Salvar e adicionar fotos"}
+            </Button>
           </div>
         </CardContent>
       </Card>
@@ -152,102 +222,30 @@ function NovaInspecao() {
           <CardTitle className="text-base">Evidências Fotográficas</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <input
-            ref={cameraRef}
-            type="file"
-            accept="image/*"
-            capture="environment"
-            className="hidden"
-            onChange={(e) => {
-              adicionar(e.target.files);
-              e.target.value = "";
-            }}
-          />
-          <input
-            ref={galeriaRef}
-            type="file"
-            accept="image/*"
-            multiple
-            className="hidden"
-            onChange={(e) => {
-              adicionar(e.target.files);
-              e.target.value = "";
-            }}
-          />
-
-          <div className="grid gap-3 sm:grid-cols-2">
-            <Button
-              type="button"
-              size="lg"
-              className="h-14 gap-2 text-base"
-              onClick={() => cameraRef.current?.click()}
-            >
-              <Camera className="size-5" /> Tirar foto
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="lg"
-              className="h-14 gap-2 text-base"
-              onClick={() => galeriaRef.current?.click()}
-            >
-              <ImagePlus className="size-5" /> Galeria / Upload
-            </Button>
-          </div>
-
-          <p className="text-xs text-muted-foreground">
-            No celular, "Tirar foto" abre a câmera. No computador, use "Galeria / Upload" para
-            selecionar imagens. As fotos ficam apenas nesta sessão (armazenamento temporário).
-          </p>
-
-          {fotos.length === 0 ? (
-            <div className="grid place-items-center gap-2 rounded-xl border border-dashed p-8 text-center text-muted-foreground">
-              <Upload className="size-6" />
-              <p className="text-sm">Nenhuma foto adicionada ainda</p>
-            </div>
+          {inspecaoId ? (
+            <FotoManager
+              tabela="fotos_inspecao"
+              coluna="inspecao_id"
+              valor={inspecaoId}
+              titulo="Fotos desta inspeção"
+            />
           ) : (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {fotos.map((f, idx) => (
-                <div key={f.id} className="space-y-2 rounded-xl border p-3">
-                  <div className="relative overflow-hidden rounded-lg bg-muted">
-                    <img
-                      src={f.url}
-                      alt={f.legenda || `Evidência fotográfica ${idx + 1} da inspeção`}
-                      className="aspect-square w-full object-cover"
-                      loading="lazy"
-                    />
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      size="icon"
-                      className="absolute right-2 top-2 size-9 rounded-full"
-                      aria-label={`Excluir foto ${idx + 1}`}
-                      onClick={() => remover(f.id)}
-                    >
-                      <Trash2 className="size-4" />
-                    </Button>
-                  </div>
-                  <Input
-                    className="h-11"
-                    placeholder="Descrição / legenda da foto"
-                    value={f.legenda}
-                    onChange={(e) => setLegenda(f.id, e.target.value)}
-                  />
-                </div>
-              ))}
-            </div>
-          )}
-
-          {fotos.length > 0 ? (
             <p className="text-sm text-muted-foreground">
-              {fotos.length} foto(s) associada(s) a esta inspeção.
+              Salve os dados da inspeção para liberar o envio de fotos pela câmera, galeria ou
+              upload.
             </p>
-          ) : null}
+          )}
         </CardContent>
       </Card>
 
       <div className="fixed inset-x-0 bottom-0 z-20 border-t bg-background p-4 lg:static lg:border-0 lg:bg-transparent lg:p-0">
-        <Button type="button" size="lg" className="h-14 w-full text-base" onClick={finalizar}>
+        <Button
+          type="button"
+          size="lg"
+          className="h-14 w-full text-base"
+          disabled={!inspecaoId || finalizar.isPending}
+          onClick={() => finalizar.mutate()}
+        >
           Finalizar Inspeção
         </Button>
       </div>

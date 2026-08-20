@@ -42,7 +42,12 @@ export async function enviarFotos(
 
     const { error: dbErr } = await supabase
       .from(tabela)
-      .insert({ [coluna]: valor, url: caminho, nome_arquivo: arquivo.name, user_id: userId });
+      .insert({
+        [coluna]: valor,
+        url: caminho,
+        nome_arquivo: arquivo.name,
+        user_id: userId,
+      } as never);
     if (dbErr) throw dbErr;
   }
 }
