@@ -170,6 +170,44 @@ export type Database = {
           },
         ]
       }
+      fotos_item_inspecao: {
+        Row: {
+          data_upload: string
+          descricao: string | null
+          id: string
+          item_inspecao_id: string
+          nome_arquivo: string | null
+          url: string
+          user_id: string
+        }
+        Insert: {
+          data_upload?: string
+          descricao?: string | null
+          id?: string
+          item_inspecao_id: string
+          nome_arquivo?: string | null
+          url: string
+          user_id?: string
+        }
+        Update: {
+          data_upload?: string
+          descricao?: string | null
+          id?: string
+          item_inspecao_id?: string
+          nome_arquivo?: string | null
+          url?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fotos_item_inspecao_item_inspecao_id_fkey"
+            columns: ["item_inspecao_id"]
+            isOneToOne: false
+            referencedRelation: "itens_inspecao"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       fotos_nao_conformidade: {
         Row: {
           data_upload: string
@@ -299,6 +337,59 @@ export type Database = {
           },
         ]
       }
+      itens_inspecao: {
+        Row: {
+          categoria: string | null
+          data_criacao: string
+          id: string
+          inspecao_id: string
+          numero: number
+          observacao: string | null
+          ordem: number
+          pergunta: string | null
+          resposta: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          categoria?: string | null
+          data_criacao?: string
+          id?: string
+          inspecao_id: string
+          numero?: number
+          observacao?: string | null
+          ordem?: number
+          pergunta?: string | null
+          resposta?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Update: {
+          categoria?: string | null
+          data_criacao?: string
+          id?: string
+          inspecao_id?: string
+          numero?: number
+          observacao?: string | null
+          ordem?: number
+          pergunta?: string | null
+          resposta?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "itens_inspecao_inspecao_id_fkey"
+            columns: ["inspecao_id"]
+            isOneToOne: false
+            referencedRelation: "inspecoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       nao_conformidades: {
         Row: {
           categoria: string | null
@@ -306,9 +397,12 @@ export type Database = {
           descricao: string
           id: string
           inspecao_id: string | null
+          item_inspecao_id: string | null
           numero: string
+          obra_id: string | null
           observacao: string | null
           prazo: string | null
+          responsavel: string | null
           severidade: string
           status: string
           user_id: string
@@ -319,9 +413,12 @@ export type Database = {
           descricao: string
           id?: string
           inspecao_id?: string | null
+          item_inspecao_id?: string | null
           numero?: string
+          obra_id?: string | null
           observacao?: string | null
           prazo?: string | null
+          responsavel?: string | null
           severidade?: string
           status?: string
           user_id?: string
@@ -332,9 +429,12 @@ export type Database = {
           descricao?: string
           id?: string
           inspecao_id?: string | null
+          item_inspecao_id?: string | null
           numero?: string
+          obra_id?: string | null
           observacao?: string | null
           prazo?: string | null
+          responsavel?: string | null
           severidade?: string
           status?: string
           user_id?: string
@@ -345,6 +445,20 @@ export type Database = {
             columns: ["inspecao_id"]
             isOneToOne: false
             referencedRelation: "inspecoes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nao_conformidades_item_inspecao_id_fkey"
+            columns: ["item_inspecao_id"]
+            isOneToOne: false
+            referencedRelation: "itens_inspecao"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nao_conformidades_obra_id_fkey"
+            columns: ["obra_id"]
+            isOneToOne: false
+            referencedRelation: "obras"
             referencedColumns: ["id"]
           },
         ]
