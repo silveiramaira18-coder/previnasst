@@ -2,7 +2,11 @@ import { supabase } from "@/integrations/supabase/client";
 
 export const BUCKET = "fotos";
 
-export type FotoTabela = "fotos_inspecao" | "fotos_nao_conformidade" | "fotos_acao_corretiva";
+export type FotoTabela =
+  | "fotos_inspecao"
+  | "fotos_item_inspecao"
+  | "fotos_nao_conformidade"
+  | "fotos_acao_corretiva";
 
 export type Foto = {
   id: string;

@@ -49,7 +49,7 @@ export function AppSidebar() {
             <HardHat className="size-5" />
           </div>
           <div className="min-w-0">
-            <p className="truncate font-display text-lg font-bold leading-none">SafeCheck</p>
+            <p className="truncate font-display text-lg font-bold leading-none">Previna SST</p>
             <p className="mt-1 truncate text-xs text-sidebar-foreground/60">
               Inspeções de Segurança
             </p>

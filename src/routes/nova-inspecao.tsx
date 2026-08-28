@@ -4,6 +4,8 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { FotoManager } from "@/components/FotoManager";
+import { ItensInspecao } from "@/components/ItensInspecao";
+import { ResumoInspecao } from "@/components/ResumoInspecao";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -24,13 +26,13 @@ import { tiposInspecao } from "@/lib/mock-data";
 export const Route = createFileRoute("/nova-inspecao")({
   head: () => ({
     meta: [
-      { title: "Nova Inspeção — SafeCheck" },
+      { title: "Nova Inspeção — Previna SST" },
       {
         name: "description",
         content:
           "Registre uma inspeção de segurança do trabalho direto do celular, com evidências fotográficas e legendas.",
       },
-      { property: "og:title", content: "Nova Inspeção — SafeCheck" },
+      { property: "og:title", content: "Nova Inspeção — Previna SST" },
       {
         property: "og:description",
         content: "Formulário rápido de inspeção em campo com fotos da câmera, galeria ou upload.",
@@ -219,7 +221,33 @@ function NovaInspecao() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Evidências Fotográficas</CardTitle>
+          <CardTitle className="text-base">Itens da Inspeção</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {inspecaoId ? (
+            <ItensInspecao inspecaoId={inspecaoId} obraId={form.obra_id || null} />
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              Salve os dados da inspeção para começar a adicionar os itens.
+            </p>
+          )}
+        </CardContent>
+      </Card>
+
+      {inspecaoId ? (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Resumo</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResumoInspecao inspecaoId={inspecaoId} />
+          </CardContent>
+        </Card>
+      ) : null}
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Evidências Fotográficas gerais</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           {inspecaoId ? (
@@ -227,7 +255,7 @@ function NovaInspecao() {
               tabela="fotos_inspecao"
               coluna="inspecao_id"
               valor={inspecaoId}
-              titulo="Fotos desta inspeção"
+              titulo="Fotos gerais desta inspeção"
             />
           ) : (
             <p className="text-sm text-muted-foreground">
