@@ -1,6 +1,6 @@
-# SafeCheck Inspections
+# Previna SST Inspections
 
-Quero criar um aplicativo web chamado SafeCheck, voltado para Inspeções de Segurança do Trabalho em obras e empresas.
+Quero criar um aplicativo web chamado Previna SST, voltado para Inspeções de Segurança do Trabalho em obras e empresas.
 
 Nesta primeira etapa, quero construir a estrutura visual e funcional inicial do aplicativo.
 
@@ -14,7 +14,7 @@ Crie:
 
 Criar uma tela inicial com:
 
-- Nome do aplicativo: SafeCheck
+- Nome do aplicativo: Previna SST
 
 - Menu lateral
 
