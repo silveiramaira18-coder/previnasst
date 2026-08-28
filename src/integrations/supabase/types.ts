@@ -499,6 +499,7 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          cargo: string | null
           data_criacao: string
           empresa: string | null
           id: string
@@ -507,6 +508,7 @@ export type Database = {
         }
         Insert: {
           avatar_url?: string | null
+          cargo?: string | null
           data_criacao?: string
           empresa?: string | null
           id: string
@@ -515,6 +517,7 @@ export type Database = {
         }
         Update: {
           avatar_url?: string | null
+          cargo?: string | null
           data_criacao?: string
           empresa?: string | null
           id?: string
@@ -601,6 +604,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_admin_principal: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "inspetor" | "responsavel"
