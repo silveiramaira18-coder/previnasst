@@ -17,6 +17,7 @@ import { Route as ConfiguracoesRouteImport } from './routes/configuracoes'
 import { Route as NaoConformidadesRouteImport } from './routes/nao-conformidades'
 import { Route as NovaInspecaoRouteImport } from './routes/nova-inspecao'
 import { Route as ObrasRouteImport } from './routes/obras'
+import { Route as PerfilRouteImport } from './routes/perfil'
 import { Route as RelatoriosRouteImport } from './routes/relatorios'
 import { Route as InspecoesIndexRouteImport } from './routes/inspecoes.index'
 import { Route as InspecoesIdRouteImport } from './routes/inspecoes.$id'
@@ -61,6 +62,11 @@ const ObrasRoute = ObrasRouteImport.update({
   path: '/obras',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PerfilRoute = PerfilRouteImport.update({
+  id: '/perfil',
+  path: '/perfil',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RelatoriosRoute = RelatoriosRouteImport.update({
   id: '/relatorios',
   path: '/relatorios',
@@ -86,6 +92,7 @@ export interface FileRoutesByFullPath {
   '/nao-conformidades': typeof NaoConformidadesRoute
   '/nova-inspecao': typeof NovaInspecaoRoute
   '/obras': typeof ObrasRoute
+  '/perfil': typeof PerfilRoute
   '/relatorios': typeof RelatoriosRoute
   '/inspecoes/$id': typeof InspecoesIdRoute
   '/inspecoes/': typeof InspecoesIndexRoute
@@ -99,6 +106,7 @@ export interface FileRoutesByTo {
   '/nao-conformidades': typeof NaoConformidadesRoute
   '/nova-inspecao': typeof NovaInspecaoRoute
   '/obras': typeof ObrasRoute
+  '/perfil': typeof PerfilRoute
   '/relatorios': typeof RelatoriosRoute
   '/inspecoes/$id': typeof InspecoesIdRoute
   '/inspecoes': typeof InspecoesIndexRoute
@@ -113,6 +121,7 @@ export interface FileRoutesById {
   '/nao-conformidades': typeof NaoConformidadesRoute
   '/nova-inspecao': typeof NovaInspecaoRoute
   '/obras': typeof ObrasRoute
+  '/perfil': typeof PerfilRoute
   '/relatorios': typeof RelatoriosRoute
   '/inspecoes/$id': typeof InspecoesIdRoute
   '/inspecoes/': typeof InspecoesIndexRoute
@@ -128,6 +137,7 @@ export interface FileRouteTypes {
     | '/nao-conformidades'
     | '/nova-inspecao'
     | '/obras'
+    | '/perfil'
     | '/relatorios'
     | '/inspecoes/$id'
     | '/inspecoes/'
@@ -141,6 +151,7 @@ export interface FileRouteTypes {
     | '/nao-conformidades'
     | '/nova-inspecao'
     | '/obras'
+    | '/perfil'
     | '/relatorios'
     | '/inspecoes/$id'
     | '/inspecoes'
@@ -154,6 +165,7 @@ export interface FileRouteTypes {
     | '/nao-conformidades'
     | '/nova-inspecao'
     | '/obras'
+    | '/perfil'
     | '/relatorios'
     | '/inspecoes/$id'
     | '/inspecoes/'
@@ -168,6 +180,7 @@ export interface RootRouteChildren {
   NaoConformidadesRoute: typeof NaoConformidadesRoute
   NovaInspecaoRoute: typeof NovaInspecaoRoute
   ObrasRoute: typeof ObrasRoute
+  PerfilRoute: typeof PerfilRoute
   RelatoriosRoute: typeof RelatoriosRoute
   InspecoesIdRoute: typeof InspecoesIdRoute
   InspecoesIndexRoute: typeof InspecoesIndexRoute
@@ -231,6 +244,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ObrasRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/perfil': {
+      id: '/perfil'
+      path: '/perfil'
+      fullPath: '/perfil'
+      preLoaderRoute: typeof PerfilRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/relatorios': {
       id: '/relatorios'
       path: '/relatorios'
@@ -264,6 +284,7 @@ const rootRouteChildren: RootRouteChildren = {
   NaoConformidadesRoute: NaoConformidadesRoute,
   NovaInspecaoRoute: NovaInspecaoRoute,
   ObrasRoute: ObrasRoute,
+  PerfilRoute: PerfilRoute,
   RelatoriosRoute: RelatoriosRoute,
   InspecoesIdRoute: InspecoesIdRoute,
   InspecoesIndexRoute: InspecoesIndexRoute,
