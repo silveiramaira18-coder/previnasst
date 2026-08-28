@@ -13,6 +13,7 @@ import {
   UserRound,
 } from "lucide-react";
 
+import { AvatarPerfil } from "@/components/AvatarPerfil";
 import {
   Sidebar,
   SidebarContent,
@@ -33,7 +34,12 @@ const items = [
   { title: "Obras", to: "/obras", icon: Building2, permissao: "gerenciarObras" },
   { title: "Nova Inspeção", to: "/nova-inspecao", icon: CameraIcon, permissao: "criarInspecao" },
   { title: "Inspeções", to: "/inspecoes", icon: ClipboardList },
-  { title: "Checklists", to: "/checklists", icon: ListChecks, permissao: "gerenciarChecklists" },
+  {
+    title: "Lista de Verificação",
+    to: "/checklists",
+    icon: ListChecks,
+    permissao: "gerenciarChecklists",
+  },
   { title: "Não Conformidades", to: "/nao-conformidades", icon: TriangleAlert },
   { title: "Ações Corretivas", to: "/acoes-corretivas", icon: Wrench },
   { title: "Relatórios", to: "/relatorios", icon: FileText },
@@ -44,9 +50,7 @@ const items = [
 export function AppSidebar() {
   const { isMobile, setOpenMobile } = useSidebar();
   const { perfil, pode, isLoading } = usePerfil();
-  const visiveis = items.filter(
-    (i) => !("permissao" in i) || isLoading || pode(i.permissao as Permissao),
-  );
+  const visiveis = items.filter((i) => !("permissao" in i) || pode(i.permissao as Permissao));
 
   return (
     <Sidebar>
@@ -69,7 +73,7 @@ export function AppSidebar() {
           <SidebarGroupLabel>Navegação</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {visiveis.map((item) => (
+              {(isLoading ? items.filter((i) => !("permissao" in i)) : visiveis).map((item) => (
                 <SidebarMenuItem key={item.to}>
                   <SidebarMenuButton asChild size="lg" className="text-[15px]">
                     <Link
@@ -92,14 +96,25 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="border-t border-sidebar-border p-4 text-xs text-sidebar-foreground/60">
+      <SidebarFooter className="border-t border-sidebar-border p-4">
         {perfil ? (
-          <>
-            <p className="truncate text-sidebar-foreground">{perfil.nome || perfil.email}</p>
-            <p className="truncate">{rotuloPapel[perfil.papel]}</p>
-          </>
+          <Link
+            to="/perfil"
+            className="flex min-w-0 items-center gap-3 rounded-xl p-1 transition-colors hover:bg-sidebar-accent"
+            onClick={() => isMobile && setOpenMobile(false)}
+          >
+            <AvatarPerfil caminho={perfil.avatar_url} nome={perfil.nome || perfil.email} />
+            <div className="min-w-0">
+              <p className="truncate text-sm font-semibold text-sidebar-foreground">
+                {perfil.nome || perfil.email}
+              </p>
+              <p className="truncate text-xs text-sidebar-foreground/60">
+                {perfil.cargo || rotuloPapel[perfil.papel]}
+              </p>
+            </div>
+          </Link>
         ) : (
-          "Previna SST"
+          <p className="text-xs text-sidebar-foreground/60">Previna SST</p>
         )}
       </SidebarFooter>
     </Sidebar>

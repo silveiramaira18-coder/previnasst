@@ -4,11 +4,25 @@ import { supabase } from "@/integrations/supabase/client";
 
 export type Papel = "admin" | "inspetor" | "responsavel";
 
+/** Único e-mail com privilégios de administradora principal (também validado no banco). */
+export const EMAIL_ADMIN_PRINCIPAL = "silveiramaira18@gmail.com";
+
 export const rotuloPapel: Record<Papel, string> = {
-  admin: "Administrador",
+  admin: "Administradora principal",
   inspetor: "Inspetor",
   responsavel: "Responsável pela obra",
 };
+
+export const CARGOS = [
+  "Técnica em Segurança do Trabalho",
+  "Técnico de Segurança do Trabalho",
+  "Engenheiro de Segurança do Trabalho",
+  "Engenheiro Civil",
+  "Supervisor de Segurança",
+  "Coordenador de Segurança",
+  "Gestor",
+  "Outro",
+];
 
 /** Permissões por tipo de usuário. */
 export const permissoes = {
@@ -28,7 +42,7 @@ export const permissoes = {
     editarInspecao: true,
     registrarNC: true,
     gerenciarObras: true,
-    gerenciarChecklists: true,
+    gerenciarChecklists: false,
     atualizarAcoes: true,
     adicionarFotos: true,
     verRelatorios: true,
@@ -53,10 +67,12 @@ export type Perfil = {
   id: string;
   nome: string | null;
   empresa: string | null;
+  cargo: string | null;
   telefone: string | null;
   avatar_url: string | null;
   email: string | null;
   papel: Papel;
+  adminPrincipal: boolean;
 };
 
 export async function carregarPerfil(): Promise<Perfil | null> {
@@ -67,29 +83,30 @@ export async function carregarPerfil(): Promise<Perfil | null> {
   const [{ data: perfil }, { data: papeis }] = await Promise.all([
     supabase
       .from("profiles")
-      .select("id, nome, empresa, telefone, avatar_url")
+      .select("id, nome, empresa, cargo, telefone, avatar_url")
       .eq("id", user.id)
       .maybeSingle(),
     supabase.from("user_roles").select("role").eq("user_id", user.id),
   ]);
 
+  const adminPrincipal = (user.email ?? "").toLowerCase() === EMAIL_ADMIN_PRINCIPAL;
   const lista = (papeis ?? []).map((p) => p.role as Papel);
-  const papel: Papel = lista.includes("admin")
+  const papel: Papel = adminPrincipal
     ? "admin"
-    : lista.includes("inspetor")
-      ? "inspetor"
-      : lista.includes("responsavel")
-        ? "responsavel"
-        : "inspetor";
+    : lista.includes("responsavel")
+      ? "responsavel"
+      : "inspetor";
 
   return {
     id: user.id,
     nome: perfil?.nome ?? (user.user_metadata?.['nome'] as string | undefined) ?? null,
     empresa: perfil?.empresa ?? null,
+    cargo: perfil?.cargo ?? null,
     telefone: perfil?.telefone ?? null,
     avatar_url: perfil?.avatar_url ?? null,
     email: user.email ?? null,
     papel,
+    adminPrincipal,
   };
 }
 
@@ -100,6 +117,7 @@ export function usePerfil() {
     ...query,
     perfil: query.data ?? null,
     papel,
+    adminPrincipal: query.data?.adminPrincipal ?? false,
     pode: (p: Permissao) => (papel ? permissoes[papel][p] : false),
   };
 }
@@ -107,6 +125,7 @@ export function usePerfil() {
 export async function salvarPerfil(dados: {
   nome: string;
   empresa: string;
+  cargo?: string | null;
   telefone: string;
   avatar_url?: string | null;
 }) {
