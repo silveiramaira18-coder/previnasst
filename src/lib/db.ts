@@ -134,3 +134,111 @@ export const formatarData = (iso: string | null) => {
 };
 
 export const formatarHora = (h: string | null) => (h ? h.slice(0, 5) : "—");
+
+/* ---------- Indicadores do dashboard (respeitam as regras de acesso do banco) ---------- */
+
+export type Indicadores = {
+  obras: number;
+  inspecoes: number;
+  naoConformidades: number;
+  ncsAbertas: number;
+  acoes: number;
+  acoesAbertas: number;
+  acoesAtrasadas: number;
+  conformes: number;
+  naoConformes: number;
+  pendentes: number;
+  conformidade: number;
+};
+
+const contarTabela = async (tabela: string) => {
+  const { count, error } = await supabase
+    .from(tabela as "obras")
+    .select("id", { count: "exact", head: true });
+  if (error) throw new Error(error.message);
+  return count ?? 0;
+};
+
+export async function carregarIndicadores(): Promise<Indicadores> {
+  const hoje = new Date().toISOString().slice(0, 10);
+
+  const [obras, inspecoes, ncs, ncsAbertas, acoes, acoesAbertas, acoesAtrasadas, itens] =
+    await Promise.all([
+      contarTabela("obras"),
+      contarTabela("inspecoes"),
+      contarTabela("nao_conformidades"),
+      supabase
+        .from("nao_conformidades")
+        .select("id", { count: "exact", head: true })
+        .neq("status", "Concluída"),
+      contarTabela("acoes_corretivas"),
+      supabase
+        .from("acoes_corretivas")
+        .select("id", { count: "exact", head: true })
+        .neq("status", "Concluída"),
+      supabase
+        .from("acoes_corretivas")
+        .select("id", { count: "exact", head: true })
+        .neq("status", "Concluída")
+        .lt("prazo", hoje),
+      supabase.from("itens_inspecao").select("resposta"),
+    ]);
+
+  const lista = (itens.data ?? []) as { resposta: string | null }[];
+  const conformes = lista.filter((i) => i.resposta === "Conforme").length;
+  const naoConformes = lista.filter((i) => i.resposta === "Não conforme").length;
+  const pendentes = lista.filter((i) => !i.resposta).length;
+  const avaliados = conformes + naoConformes;
+
+  return {
+    obras,
+    inspecoes,
+    naoConformidades: ncs,
+    ncsAbertas: ncsAbertas.count ?? 0,
+    acoes,
+    acoesAbertas: acoesAbertas.count ?? 0,
+    acoesAtrasadas: acoesAtrasadas.count ?? 0,
+    conformes,
+    naoConformes,
+    pendentes,
+    conformidade: avaliados > 0 ? Math.round((conformes / avaliados) * 100) : 0,
+  };
+}
+
+export type ResumoUsuario = {
+  user_id: string;
+  nome: string;
+  empresa: string | null;
+  cargo: string | null;
+  obras: number;
+  inspecoes: number;
+  ncs: number;
+  acoes: number;
+};
+
+/** Visão por usuário — só retorna dados completos para a administradora principal. */
+export async function carregarResumoPorUsuario(): Promise<ResumoUsuario[]> {
+  const [perfis, obras, inspecoes, ncs, acoes] = await Promise.all([
+    supabase.from("profiles").select("id, nome, empresa, cargo"),
+    supabase.from("obras").select("user_id"),
+    supabase.from("inspecoes").select("user_id"),
+    supabase.from("nao_conformidades").select("user_id"),
+    supabase.from("acoes_corretivas").select("user_id"),
+  ]);
+
+  const contarPor = (linhas: { user_id: string }[] | null, id: string) =>
+    (linhas ?? []).filter((l) => l.user_id === id).length;
+
+  return ((perfis.data ?? []) as { id: string; nome: string | null; empresa: string | null; cargo: string | null }[])
+    .map((p) => ({
+      user_id: p.id,
+      nome: p.nome || "Usuário sem nome",
+      empresa: p.empresa,
+      cargo: p.cargo,
+      obras: contarPor(obras.data as { user_id: string }[] | null, p.id),
+      inspecoes: contarPor(inspecoes.data as { user_id: string }[] | null, p.id),
+      ncs: contarPor(ncs.data as { user_id: string }[] | null, p.id),
+      acoes: contarPor(acoes.data as { user_id: string }[] | null, p.id),
+    }))
+    .sort((a, b) => b.inspecoes - a.inspecoes);
+}
