@@ -1,9 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Camera, ImagePlus, Loader2, Trash2, Upload } from "lucide-react";
+import { Camera, ImagePlus, Loader2, Maximize2, Trash2, Upload } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import {
   enviarFotos,
@@ -20,6 +21,7 @@ type Props = {
   coluna: string;
   valor: string;
   titulo?: string;
+  rotuloUpload?: string;
 };
 
 function FotoCard({
@@ -27,11 +29,13 @@ function FotoCard({
   index,
   onExcluir,
   onDescricao,
+  onAmpliar,
 }: {
   foto: Foto;
   index: number;
   onExcluir: () => void;
   onDescricao: (v: string) => void;
+  onAmpliar: (src: string, legenda: string) => void;
 }) {
   const [src, setSrc] = useState<string | null>(null);
   const [descricao, setDescricao] = useState(foto.descricao ?? "");
@@ -50,17 +54,29 @@ function FotoCard({
     <div className="space-y-2 rounded-xl border p-3">
       <div className="relative overflow-hidden rounded-lg bg-muted">
         {src ? (
-          <img
-            src={src}
-            alt={descricao || `Evidência fotográfica ${index + 1}`}
-            className="aspect-square w-full object-cover"
-            loading="lazy"
-          />
+          <button
+            type="button"
+            className="block w-full"
+            onClick={() => onAmpliar(src, descricao || `Foto ${index + 1}`)}
+            aria-label={`Abrir foto ${index + 1} em tamanho maior`}
+          >
+            <img
+              src={src}
+              alt={descricao || `Evidência fotográfica ${index + 1}`}
+              className="aspect-square w-full object-cover"
+              loading="lazy"
+            />
+          </button>
         ) : (
           <div className="grid aspect-square w-full place-items-center text-muted-foreground">
             <Loader2 className="size-5 animate-spin" />
           </div>
         )}
+        {src ? (
+          <span className="pointer-events-none absolute bottom-2 left-2 rounded-full bg-background/85 p-1.5 text-foreground">
+            <Maximize2 className="size-4" />
+          </span>
+        ) : null}
         <Button
           type="button"
           variant="destructive"
@@ -85,11 +101,18 @@ function FotoCard({
   );
 }
 
-export function FotoManager({ tabela, coluna, valor, titulo = "Evidências Fotográficas" }: Props) {
+export function FotoManager({
+  tabela,
+  coluna,
+  valor,
+  titulo = "Evidências Fotográficas",
+  rotuloUpload = "Galeria / Upload",
+}: Props) {
   const qc = useQueryClient();
   const cameraRef = useRef<HTMLInputElement>(null);
   const galeriaRef = useRef<HTMLInputElement>(null);
   const chave = ["fotos", tabela, valor];
+  const [ampliada, setAmpliada] = useState<{ src: string; legenda: string } | null>(null);
 
   const { data: fotos = [], isLoading } = useQuery({
     queryKey: chave,
@@ -178,7 +201,7 @@ export function FotoManager({ tabela, coluna, valor, titulo = "Evidências Fotog
           disabled={upload.isPending}
           onClick={() => galeriaRef.current?.click()}
         >
-          <ImagePlus className="size-5" /> Galeria / Upload
+          <ImagePlus className="size-5" /> {rotuloUpload}
         </Button>
       </div>
 
@@ -198,10 +221,26 @@ export function FotoManager({ tabela, coluna, valor, titulo = "Evidências Fotog
               index={idx}
               onExcluir={() => remover.mutate(f)}
               onDescricao={(descricao) => descrever.mutate({ id: f.id, descricao })}
+              onAmpliar={(src, legenda) => setAmpliada({ src, legenda })}
             />
           ))}
         </div>
       )}
+
+      <Dialog open={!!ampliada} onOpenChange={(o) => !o && setAmpliada(null)}>
+        <DialogContent className="sm:max-w-3xl">
+          <DialogHeader>
+            <DialogTitle className="text-base">{ampliada?.legenda}</DialogTitle>
+          </DialogHeader>
+          {ampliada ? (
+            <img
+              src={ampliada.src}
+              alt={ampliada.legenda}
+              className="max-h-[75vh] w-full rounded-lg object-contain"
+            />
+          ) : null}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
