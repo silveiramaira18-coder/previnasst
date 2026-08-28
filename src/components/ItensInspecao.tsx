@@ -479,6 +479,7 @@ export function ItensInspecao({
       if (destino < 0 || destino >= itens.length) return;
       const novos = [...itens];
       const [movido] = novos.splice(index, 1);
+      if (!movido) return;
       novos.splice(destino, 0, movido);
       await reordenarItens(novos);
     },
