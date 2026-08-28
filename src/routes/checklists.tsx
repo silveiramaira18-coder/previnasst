@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Plus, ListChecks } from "lucide-react";
 
+import { RequerPermissao } from "@/components/RequerPermissao";
 import { PageHeader } from "@/components/PageHeader";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Button } from "@/components/ui/button";
@@ -24,7 +25,7 @@ export const Route = createFileRoute("/checklists")({
       },
     ],
   }),
-  component: ChecklistsPage,
+  component: ChecklistsPageProtegido,
 });
 
 function ChecklistsPage() {
@@ -73,5 +74,12 @@ function ChecklistsPage() {
         ))}
       </div>
     </div>
+  );
+}
+function ChecklistsPageProtegido() {
+  return (
+    <RequerPermissao permissao="gerenciarChecklists">
+      <ChecklistsPage />
+    </RequerPermissao>
   );
 }
