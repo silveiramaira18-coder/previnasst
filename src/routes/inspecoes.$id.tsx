@@ -6,6 +6,9 @@ import { toast } from "sonner";
 
 import { FotoDialog } from "@/components/FotoDialog";
 import { FotoManager } from "@/components/FotoManager";
+import { ItensInspecao } from "@/components/ItensInspecao";
+import { ItensInspecaoView } from "@/components/ItensInspecaoView";
+import { ResumoInspecao } from "@/components/ResumoInspecao";
 import { PageHeader } from "@/components/PageHeader";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Button } from "@/components/ui/button";
@@ -64,6 +67,7 @@ function DetalheInspecao() {
   const { id } = Route.useParams();
   const qc = useQueryClient();
   const [ncAberta, setNcAberta] = useState(false);
+  const [editando, setEditando] = useState(false);
   const [ncForm, setNcForm] = useState({
     categoria: categoriasChecklist[0] ?? "",
     descricao: "",
@@ -172,14 +176,39 @@ function DetalheInspecao() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Evidências fotográficas</CardTitle>
+          <CardTitle className="text-base">Resumo da inspeção</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ResumoInspecao inspecaoId={id} />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between gap-3">
+          <CardTitle className="text-base">Itens da inspeção</CardTitle>
+          <Button variant="outline" size="sm" onClick={() => setEditando((v) => !v)}>
+            {editando ? "Ver resultado" : "Editar itens"}
+          </Button>
+        </CardHeader>
+        <CardContent>
+          {editando ? (
+            <ItensInspecao inspecaoId={id} obraId={inspecao.obra_id} />
+          ) : (
+            <ItensInspecaoView inspecaoId={id} />
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Evidências fotográficas gerais</CardTitle>
         </CardHeader>
         <CardContent>
           <FotoManager
             tabela="fotos_inspecao"
             coluna="inspecao_id"
             valor={id}
-            titulo="Fotos da inspeção"
+            titulo="Fotos gerais da inspeção"
           />
         </CardContent>
       </Card>
