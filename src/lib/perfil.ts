@@ -84,7 +84,7 @@ export async function carregarPerfil(): Promise<Perfil | null> {
 
   return {
     id: user.id,
-    nome: perfil?.nome ?? (user.user_metadata?.nome as string | undefined) ?? null,
+    nome: perfil?.nome ?? (user.user_metadata?.['nome'] as string | undefined) ?? null,
     empresa: perfil?.empresa ?? null,
     telefone: perfil?.telefone ?? null,
     avatar_url: perfil?.avatar_url ?? null,
