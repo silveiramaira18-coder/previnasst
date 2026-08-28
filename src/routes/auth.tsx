@@ -15,16 +15,16 @@ export const Route = createFileRoute("/auth")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "Entrar — SafeCheck" },
+      { title: "Entrar — Previna SST" },
       {
         name: "description",
         content:
-          "Acesse o SafeCheck para registrar inspeções de segurança do trabalho, fotos e não conformidades.",
+          "Acesse o Previna SST para registrar inspeções de segurança do trabalho, fotos e não conformidades.",
       },
-      { property: "og:title", content: "Entrar — SafeCheck" },
+      { property: "og:title", content: "Entrar — Previna SST" },
       {
         property: "og:description",
-        content: "Acesse sua conta SafeCheck e gerencie inspeções de segurança do trabalho.",
+        content: "Acesse sua conta Previna SST e gerencie inspeções de segurança do trabalho.",
       },
     ],
   }),
@@ -66,7 +66,7 @@ function AuthPage() {
     });
     setEnviando(false);
     if (error) toast.error("Não foi possível cadastrar", { description: error.message });
-    else toast.success("Conta criada", { description: "Você já pode acessar o SafeCheck." });
+    else toast.success("Conta criada", { description: "Você já pode acessar o Previna SST." });
   };
 
   return (
@@ -76,7 +76,7 @@ function AuthPage() {
           <div className="grid size-10 place-items-center rounded-xl bg-primary text-primary-foreground">
             <HardHat className="size-5" />
           </div>
-          <span className="font-display text-2xl font-bold">SafeCheck</span>
+          <span className="font-display text-2xl font-bold">Previna SST</span>
         </div>
 
         <Card>

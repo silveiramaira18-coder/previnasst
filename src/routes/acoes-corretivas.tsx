@@ -41,13 +41,13 @@ import { formatarData, listarAcoes, listarNCs } from "@/lib/db";
 export const Route = createFileRoute("/acoes-corretivas")({
   head: () => ({
     meta: [
-      { title: "Ações Corretivas — SafeCheck" },
+      { title: "Ações Corretivas — Previna SST" },
       {
         name: "description",
         content:
           "Controle das tratativas de não conformidades: responsável, prazo, status e evidências de conclusão.",
       },
-      { property: "og:title", content: "Ações Corretivas — SafeCheck" },
+      { property: "og:title", content: "Ações Corretivas — Previna SST" },
       {
         property: "og:description",
         content: "Acompanhe as tratativas das não conformidades de segurança do trabalho.",

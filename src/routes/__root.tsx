@@ -85,17 +85,17 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "SafeCheck — Inspeções de Segurança do Trabalho" },
+      { title: "Previna SST — Inspeções de Segurança do Trabalho" },
       {
         name: "description",
         content:
-          "SafeCheck: registre e acompanhe inspeções de segurança do trabalho em obras e empresas.",
+          "Previna SST: registre e acompanhe inspeções de segurança do trabalho em obras e empresas.",
       },
-      { property: "og:title", content: "SafeCheck — Inspeções de Segurança do Trabalho" },
+      { property: "og:title", content: "Previna SST — Inspeções de Segurança do Trabalho" },
       {
         property: "og:description",
         content:
-          "SafeCheck: registre e acompanhe inspeções de segurança do trabalho em obras e empresas.",
+          "Previna SST: registre e acompanhe inspeções de segurança do trabalho em obras e empresas.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -157,7 +157,7 @@ function RootComponent() {
             <div className="flex min-w-0 flex-1 flex-col">
               <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b bg-background/95 px-4 backdrop-blur">
                 <SidebarTrigger className="size-9" />
-                <span className="font-display text-base font-bold">SafeCheck</span>
+                <span className="font-display text-base font-bold">Previna SST</span>
                 <Button
                   variant="ghost"
                   size="sm"
@@ -191,7 +191,7 @@ function AuthGate({ children }: { children: ReactNode }) {
   if (loading || !session) {
     return (
       <div className="grid min-h-screen w-full place-items-center bg-background">
-        <p className="text-sm text-muted-foreground">Carregando SafeCheck...</p>
+        <p className="text-sm text-muted-foreground">Carregando Previna SST...</p>
       </div>
     );
   }

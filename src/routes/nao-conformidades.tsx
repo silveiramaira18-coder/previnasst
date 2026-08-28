@@ -42,13 +42,13 @@ import { categoriasChecklist } from "@/lib/mock-data";
 export const Route = createFileRoute("/nao-conformidades")({
   head: () => ({
     meta: [
-      { title: "Não Conformidades — SafeCheck" },
+      { title: "Não Conformidades — Previna SST" },
       {
         name: "description",
         content:
           "Acompanhe não conformidades de segurança do trabalho com filtros por obra, severidade, status e período.",
       },
-      { property: "og:title", content: "Não Conformidades — SafeCheck" },
+      { property: "og:title", content: "Não Conformidades — Previna SST" },
       {
         property: "og:description",
         content: "Painel de não conformidades com filtros e evidências fotográficas.",

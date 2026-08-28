@@ -9,15 +9,15 @@ import { Button } from "@/components/ui/button";
 export const Route = createFileRoute("/configuracoes")({
   head: () => ({
     meta: [
-      { title: "Configurações — SafeCheck" },
+      { title: "Configurações — Previna SST" },
       {
         name: "description",
-        content: "Preferências gerais do SafeCheck: empresa, equipe e padrões de inspeção.",
+        content: "Preferências gerais do Previna SST: empresa, equipe e padrões de inspeção.",
       },
-      { property: "og:title", content: "Configurações — SafeCheck" },
+      { property: "og:title", content: "Configurações — Previna SST" },
       {
         property: "og:description",
-        content: "Preferências gerais do SafeCheck: empresa, equipe e padrões de inspeção.",
+        content: "Preferências gerais do Previna SST: empresa, equipe e padrões de inspeção.",
       },
     ],
   }),

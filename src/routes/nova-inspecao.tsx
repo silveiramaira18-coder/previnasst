@@ -24,13 +24,13 @@ import { tiposInspecao } from "@/lib/mock-data";
 export const Route = createFileRoute("/nova-inspecao")({
   head: () => ({
     meta: [
-      { title: "Nova Inspeção — SafeCheck" },
+      { title: "Nova Inspeção — Previna SST" },
       {
         name: "description",
         content:
           "Registre uma inspeção de segurança do trabalho direto do celular, com evidências fotográficas e legendas.",
       },
-      { property: "og:title", content: "Nova Inspeção — SafeCheck" },
+      { property: "og:title", content: "Nova Inspeção — Previna SST" },
       {
         property: "og:description",
         content: "Formulário rápido de inspeção em campo com fotos da câmera, galeria ou upload.",

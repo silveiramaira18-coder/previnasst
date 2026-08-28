@@ -39,15 +39,15 @@ import { formatarData, listarObras } from "@/lib/db";
 export const Route = createFileRoute("/obras")({
   head: () => ({
     meta: [
-      { title: "Obras — SafeCheck" },
+      { title: "Obras — Previna SST" },
       {
         name: "description",
-        content: "Cadastro e acompanhamento das obras e empresas inspecionadas no SafeCheck.",
+        content: "Cadastro e acompanhamento das obras e empresas inspecionadas no Previna SST.",
       },
-      { property: "og:title", content: "Obras — SafeCheck" },
+      { property: "og:title", content: "Obras — Previna SST" },
       {
         property: "og:description",
-        content: "Cadastro e acompanhamento das obras e empresas inspecionadas no SafeCheck.",
+        content: "Cadastro e acompanhamento das obras e empresas inspecionadas no Previna SST.",
       },
     ],
   }),

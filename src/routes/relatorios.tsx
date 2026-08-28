@@ -8,13 +8,13 @@ import { Card, CardContent } from "@/components/ui/card";
 export const Route = createFileRoute("/relatorios")({
   head: () => ({
     meta: [
-      { title: "Relatórios — SafeCheck" },
+      { title: "Relatórios — Previna SST" },
       {
         name: "description",
         content:
           "Área de relatórios de inspeções de segurança do trabalho, preparada para exportação em PDF.",
       },
-      { property: "og:title", content: "Relatórios — SafeCheck" },
+      { property: "og:title", content: "Relatórios — Previna SST" },
       {
         property: "og:description",
         content: "Modelos de relatórios de segurança do trabalho prontos para exportação futura.",

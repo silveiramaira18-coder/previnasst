@@ -41,13 +41,13 @@ import { categoriasChecklist } from "@/lib/mock-data";
 export const Route = createFileRoute("/inspecoes/$id")({
   head: () => ({
     meta: [
-      { title: "Detalhe da Inspeção — SafeCheck" },
+      { title: "Detalhe da Inspeção — Previna SST" },
       {
         name: "description",
         content:
           "Detalhes da inspeção de segurança do trabalho com evidências fotográficas, não conformidades e ações corretivas.",
       },
-      { property: "og:title", content: "Detalhe da Inspeção — SafeCheck" },
+      { property: "og:title", content: "Detalhe da Inspeção — Previna SST" },
       {
         property: "og:description",
         content: "Veja fotos, não conformidades e ações corretivas de uma inspeção.",

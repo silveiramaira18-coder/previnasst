@@ -28,13 +28,13 @@ import { indicadores, conformidadeMensal, inspecoes } from "@/lib/mock-data";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "SafeCheck — Inspeções de Segurança do Trabalho" },
+      { title: "Previna SST — Inspeções de Segurança do Trabalho" },
       {
         name: "description",
         content:
-          "Dashboard do SafeCheck com indicadores de conformidade, não conformidades e ações corretivas de obras e empresas.",
+          "Dashboard do Previna SST com indicadores de conformidade, não conformidades e ações corretivas de obras e empresas.",
       },
-      { property: "og:title", content: "SafeCheck — Inspeções de Segurança do Trabalho" },
+      { property: "og:title", content: "Previna SST — Inspeções de Segurança do Trabalho" },
       {
         property: "og:description",
         content:

@@ -11,13 +11,13 @@ import { checklists, categoriasChecklist } from "@/lib/mock-data";
 export const Route = createFileRoute("/checklists")({
   head: () => ({
     meta: [
-      { title: "Checklists de Segurança — SafeCheck" },
+      { title: "Checklists de Segurança — Previna SST" },
       {
         name: "description",
         content:
           "Modelos de checklist de segurança do trabalho por categoria: altura, EPI, elétrica, andaimes e mais.",
       },
-      { property: "og:title", content: "Checklists de Segurança — SafeCheck" },
+      { property: "og:title", content: "Checklists de Segurança — Previna SST" },
       {
         property: "og:description",
         content: "Modelos de checklist de segurança do trabalho organizados por categoria.",
