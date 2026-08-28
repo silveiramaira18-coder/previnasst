@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { FotoManager } from "@/components/FotoManager";
 import { ItensInspecao } from "@/components/ItensInspecao";
 import { ResumoInspecao } from "@/components/ResumoInspecao";
+import { RequerPermissao } from "@/components/RequerPermissao";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -39,7 +40,7 @@ export const Route = createFileRoute("/nova-inspecao")({
       },
     ],
   }),
-  component: NovaInspecao,
+  component: NovaInspecaoProtegido,
 });
 
 function NovaInspecao() {
@@ -278,5 +279,13 @@ function NovaInspecao() {
         </Button>
       </div>
     </div>
+  );
+}
+
+function NovaInspecaoProtegido() {
+  return (
+    <RequerPermissao permissao="criarInspecao">
+      <NovaInspecao />
+    </RequerPermissao>
   );
 }

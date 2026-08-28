@@ -10,6 +10,7 @@ import {
   FileText,
   Settings,
   HardHat,
+  UserRound,
 } from "lucide-react";
 
 import {
@@ -25,21 +26,27 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { rotuloPapel, usePerfil, type Permissao } from "@/lib/perfil";
 
 const items = [
   { title: "Dashboard", to: "/", icon: LayoutDashboard },
-  { title: "Obras", to: "/obras", icon: Building2 },
-  { title: "Nova Inspeção", to: "/nova-inspecao", icon: CameraIcon },
+  { title: "Obras", to: "/obras", icon: Building2, permissao: "gerenciarObras" },
+  { title: "Nova Inspeção", to: "/nova-inspecao", icon: CameraIcon, permissao: "criarInspecao" },
   { title: "Inspeções", to: "/inspecoes", icon: ClipboardList },
-  { title: "Checklists", to: "/checklists", icon: ListChecks },
+  { title: "Checklists", to: "/checklists", icon: ListChecks, permissao: "gerenciarChecklists" },
   { title: "Não Conformidades", to: "/nao-conformidades", icon: TriangleAlert },
   { title: "Ações Corretivas", to: "/acoes-corretivas", icon: Wrench },
   { title: "Relatórios", to: "/relatorios", icon: FileText },
+  { title: "Meu Perfil", to: "/perfil", icon: UserRound },
   { title: "Configurações", to: "/configuracoes", icon: Settings },
 ] as const;
 
 export function AppSidebar() {
   const { isMobile, setOpenMobile } = useSidebar();
+  const { perfil, pode, isLoading } = usePerfil();
+  const visiveis = items.filter(
+    (i) => !("permissao" in i) || isLoading || pode(i.permissao as Permissao),
+  );
 
   return (
     <Sidebar>
@@ -62,7 +69,7 @@ export function AppSidebar() {
           <SidebarGroupLabel>Navegação</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {items.map((item) => (
+              {visiveis.map((item) => (
                 <SidebarMenuItem key={item.to}>
                   <SidebarMenuButton asChild size="lg" className="text-[15px]">
                     <Link
@@ -86,7 +93,14 @@ export function AppSidebar() {
       </SidebarContent>
 
       <SidebarFooter className="border-t border-sidebar-border p-4 text-xs text-sidebar-foreground/60">
-        Versão de demonstração — dados fictícios
+        {perfil ? (
+          <>
+            <p className="truncate text-sidebar-foreground">{perfil.nome || perfil.email}</p>
+            <p className="truncate">{rotuloPapel[perfil.papel]}</p>
+          </>
+        ) : (
+          "Previna SST"
+        )}
       </SidebarFooter>
     </Sidebar>
   );

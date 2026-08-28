@@ -4,6 +4,7 @@ import { Plus, Building2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
+import { RequerPermissao } from "@/components/RequerPermissao";
 import { PageHeader } from "@/components/PageHeader";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Button } from "@/components/ui/button";
@@ -51,7 +52,7 @@ export const Route = createFileRoute("/obras")({
       },
     ],
   }),
-  component: ObrasPage,
+  component: ObrasPageProtegido,
 });
 
 const STATUS = ["Em andamento", "Paralisada", "Concluída"];
@@ -236,5 +237,13 @@ function ObrasPage() {
         ))}
       </div>
     </div>
+  );
+}
+
+function ObrasPageProtegido() {
+  return (
+    <RequerPermissao permissao="gerenciarObras">
+      <ObrasPage />
+    </RequerPermissao>
   );
 }

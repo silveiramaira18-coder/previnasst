@@ -7,6 +7,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -38,6 +45,7 @@ function AuthPage() {
   const [senha, setSenha] = useState("");
   const [nome, setNome] = useState("");
   const [empresa, setEmpresa] = useState("");
+  const [perfilNovo, setPerfilNovo] = useState("inspetor");
   const [enviando, setEnviando] = useState(false);
 
   useEffect(() => {
@@ -61,12 +69,31 @@ function AuthPage() {
       password: senha,
       options: {
         emailRedirectTo: `${window.location.origin}/`,
-        data: { nome, empresa },
+        data: { nome, empresa, perfil: perfilNovo },
       },
     });
     setEnviando(false);
     if (error) toast.error("Não foi possível cadastrar", { description: error.message });
     else toast.success("Conta criada", { description: "Você já pode acessar o Previna SST." });
+  };
+
+  const recuperar = async () => {
+    if (!email) {
+      toast.error("Informe seu e-mail", {
+        description: "Digite o e-mail cadastrado para receber o link de recuperação.",
+      });
+      return;
+    }
+    setEnviando(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/perfil`,
+    });
+    setEnviando(false);
+    if (error) toast.error("Não foi possível enviar o e-mail", { description: error.message });
+    else
+      toast.success("E-mail enviado", {
+        description: "Confira sua caixa de entrada para redefinir a senha.",
+      });
   };
 
   return (
@@ -117,6 +144,15 @@ function AuthPage() {
                   <Button type="submit" size="lg" className="h-12 w-full" disabled={enviando}>
                     {enviando ? <Loader2 className="size-4 animate-spin" /> : "Entrar"}
                   </Button>
+                  <Button
+                    type="button"
+                    variant="link"
+                    className="h-auto w-full p-0 text-sm"
+                    disabled={enviando}
+                    onClick={recuperar}
+                  >
+                    Recuperar senha
+                  </Button>
                 </form>
               </TabsContent>
 
@@ -139,6 +175,18 @@ function AuthPage() {
                       value={empresa}
                       onChange={(e) => setEmpresa(e.target.value)}
                     />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="perfil">Tipo de usuário</Label>
+                    <Select value={perfilNovo} onValueChange={setPerfilNovo}>
+                      <SelectTrigger id="perfil" className="h-12 w-full">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="inspetor">Inspetor</SelectItem>
+                        <SelectItem value="responsavel">Responsável pela obra</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div className="space-y-1.5">
                     <Label htmlFor="email2">E-mail</Label>
