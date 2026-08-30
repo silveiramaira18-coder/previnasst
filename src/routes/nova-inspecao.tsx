@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { listarObras } from "@/lib/db";
-import { tiposInspecao } from "@/lib/mock-data";
+
 
 export const Route = createFileRoute("/nova-inspecao")({
   head: () => ({
@@ -43,9 +43,12 @@ export const Route = createFileRoute("/nova-inspecao")({
   component: NovaInspecaoProtegido,
 });
 
+const TIPOS_INSPECAO = ["Relatório de Segurança", "Outro"];
+
 function NovaInspecao() {
   const navigate = useNavigate();
   const [inspecaoId, setInspecaoId] = useState<string | null>(null);
+  const [tipoOutro, setTipoOutro] = useState("");
   const [form, setForm] = useState({
     obra_id: "",
     data: new Date().toISOString().slice(0, 10),
@@ -66,7 +69,8 @@ function NovaInspecao() {
         horario: form.horario || null,
         responsavel: form.responsavel || null,
         local: form.local || null,
-        tipo_inspecao: form.tipo_inspecao || null,
+        tipo_inspecao:
+          (form.tipo_inspecao === "Outro" ? tipoOutro.trim() : form.tipo_inspecao) || null,
         observacoes: form.observacoes || null,
       };
       if (inspecaoId) {
@@ -108,7 +112,7 @@ function NovaInspecao() {
   return (
     <div className="space-y-6 pb-24 lg:pb-6">
       <PageHeader
-        title="Nova Inspeção"
+        title="Inspeção de Segurança do Trabalho"
         description="Preencha os dados e registre as evidências direto do celular."
       />
 
@@ -138,7 +142,7 @@ function NovaInspecao() {
             ) : null}
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="data">Data</Label>
+            <Label htmlFor="data">Data da inspeção</Label>
             <Input
               id="data"
               type="date"
@@ -158,7 +162,7 @@ function NovaInspecao() {
             />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="inspetor">Inspetor / responsável</Label>
+            <Label htmlFor="inspetor">Responsável pela inspeção</Label>
             <Input
               id="inspetor"
               className="h-12"
@@ -168,7 +172,7 @@ function NovaInspecao() {
             />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="local">Setor ou local</Label>
+            <Label htmlFor="local">Local / setor</Label>
             <Input
               id="local"
               className="h-12"
@@ -187,13 +191,26 @@ function NovaInspecao() {
                 <SelectValue placeholder="Selecione o tipo" />
               </SelectTrigger>
               <SelectContent>
-                {tiposInspecao.map((t) => (
+                {TIPOS_INSPECAO.map((t) => (
                   <SelectItem key={t} value={t}>
                     {t}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
+            {form.tipo_inspecao === "Outro" ? (
+              <div className="mt-3 space-y-1.5">
+                <Label htmlFor="tipo-outro">Informe o tipo de inspeção</Label>
+                <Input
+                  id="tipo-outro"
+                  className="h-12"
+                  maxLength={120}
+                  placeholder="Ex.: Inspeção de andaimes"
+                  value={tipoOutro}
+                  onChange={(e) => setTipoOutro(e.target.value)}
+                />
+              </div>
+            ) : null}
           </div>
           <div className="space-y-1.5 sm:col-span-2">
             <Label htmlFor="obs">Observações gerais</Label>
