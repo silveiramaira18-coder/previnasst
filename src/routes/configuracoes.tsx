@@ -248,7 +248,7 @@ function ConfigPage() {
               Excluir definitivamente
             </Button>
           </DialogFooter>
-        </DialogFooter>
+        </DialogContent>
       </Dialog>
     </div>
   );
