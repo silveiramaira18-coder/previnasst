@@ -115,17 +115,14 @@ function ItemCard({
   onConcluir: () => void;
 }) {
   const qc = useQueryClient();
-  const [ncAberta, setNcAberta] = useState(false);
   const [local, setLocal] = useState({
     categoria: item.categoria ?? "",
     local: item.local ?? "",
-    pergunta: item.pergunta ?? "",
     resposta: item.resposta ?? "",
-    observacao: item.observacao ?? "",
   });
   const [ncForm, setNcForm] = useState({
-    categoria: item.categoria ?? categoriasChecklist[0] ?? "",
-    descricao: item.pergunta ?? "",
+    categoria: item.categoria ?? "",
+    descricao: "",
     severidade: "Médio",
     prazo: "",
     responsavel: "",
