@@ -562,8 +562,12 @@ export function ItensInspecao({
           total={itens.length}
           inspecaoId={inspecaoId}
           obraId={obraId}
+          aberto={abertoId === item.id}
+          onAlternar={() => setAbertoId((v) => (v === item.id ? null : item.id))}
+          onConcluir={() => irParaProximo(index)}
           onMover={(dir) => mover.mutate({ index, dir })}
           onExcluir={() => remover.mutate(item.id)}
+
         />
       ))}
 
