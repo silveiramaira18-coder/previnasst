@@ -49,7 +49,7 @@ import {
 } from "@/lib/itens";
 import { categoriasChecklist } from "@/lib/mock-data";
 
-const SEVERIDADES = ["Baixa", "Média", "Alta", "Crítica"];
+const SEVERIDADES = ["Crítico", "Médio", "Baixo"];
 
 export const iconeResposta = (resposta: string | null) =>
   resposta === "Conforme" ? (
@@ -124,7 +124,7 @@ function ItemCard({
   const [ncForm, setNcForm] = useState({
     categoria: item.categoria ?? categoriasChecklist[0] ?? "",
     descricao: item.pergunta ?? "",
-    severidade: "Média",
+    severidade: "Médio",
     prazo: "",
     responsavel: "",
     observacao: "",
@@ -362,7 +362,7 @@ function ItemCard({
                 </Select>
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor={`nc-desc-${item.id}`}>Descrição</Label>
+                <Label htmlFor={`nc-desc-${item.id}`}>Não conformidade encontrada</Label>
                 <Textarea
                   id={`nc-desc-${item.id}`}
                   required
@@ -373,7 +373,7 @@ function ItemCard({
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-1.5">
-                  <Label>Severidade</Label>
+                  <Label>Grau de severidade / risco</Label>
                   <Select
                     value={ncForm.severidade}
                     onValueChange={(v) => setNcForm({ ...ncForm, severidade: v })}
@@ -391,7 +391,7 @@ function ItemCard({
                   </Select>
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor={`nc-prazo-${item.id}`}>Prazo</Label>
+                  <Label htmlFor={`nc-prazo-${item.id}`}>Data para correção</Label>
                   <Input
                     id={`nc-prazo-${item.id}`}
                     type="date"
@@ -405,16 +405,19 @@ function ItemCard({
                   <Input
                     id={`nc-resp-${item.id}`}
                     className="h-12"
-                    placeholder="Quem deve tratar"
+                    required
+                    placeholder="Pessoa ou equipe responsável pela correção"
                     value={ncForm.responsavel}
                     onChange={(e) => setNcForm({ ...ncForm, responsavel: e.target.value })}
                   />
                 </div>
                 <div className="space-y-1.5 sm:col-span-2">
-                  <Label htmlFor={`nc-obs-${item.id}`}>Observação</Label>
+                  <Label htmlFor={`nc-obs-${item.id}`}>Medida de correção</Label>
                   <Textarea
                     id={`nc-obs-${item.id}`}
+                    required
                     rows={2}
+                    placeholder="Ação corretiva necessária"
                     value={ncForm.observacao}
                     onChange={(e) => setNcForm({ ...ncForm, observacao: e.target.value })}
                   />
