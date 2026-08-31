@@ -264,7 +264,6 @@ function ItemCard({
                       onClick={() => {
                         setLocal({ ...local, resposta: r });
                         salvar.mutate({ resposta: r, status: statusDaResposta(r) });
-                        if (r === "Não conforme") setNcAberta(true);
                       }}
                     >
                       {r}
@@ -283,28 +282,6 @@ function ItemCard({
                 value={local.local}
                 onChange={(e) => setLocal({ ...local, local: e.target.value })}
                 onBlur={() => salvar.mutate({ local: local.local })}
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <Label>Pergunta / descrição</Label>
-              <Textarea
-                rows={2}
-                placeholder="O que está sendo verificado neste item?"
-                value={local.pergunta}
-                onChange={(e) => setLocal({ ...local, pergunta: e.target.value })}
-                onBlur={() => salvar.mutate({ pergunta: local.pergunta })}
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <Label>Observação</Label>
-              <Textarea
-                rows={3}
-                placeholder="Detalhes observados em campo..."
-                value={local.observacao}
-                onChange={(e) => setLocal({ ...local, observacao: e.target.value })}
-                onBlur={() => salvar.mutate({ observacao: local.observacao })}
               />
             </div>
 
