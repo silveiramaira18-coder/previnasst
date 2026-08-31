@@ -68,7 +68,7 @@ export const Route = createFileRoute("/inspecoes/$id")({
 });
 
 
-const SEVERIDADES = ["Baixa", "Média", "Alta", "Crítica"];
+const SEVERIDADES = ["Crítico", "Médio", "Baixo"];
 const STATUS_NC = ["Aberta", "Em tratativa", "Atrasada", "Concluída"];
 
 function DetalheInspecao() {
@@ -84,7 +84,7 @@ function DetalheInspecao() {
   const [ncForm, setNcForm] = useState({
     categoria: categoriasChecklist[0] ?? "",
     descricao: "",
-    severidade: "Média",
+    severidade: "Médio",
     prazo: "",
     status: "Aberta",
     observacao: "",
