@@ -88,7 +88,7 @@ export function AppSidebar() {
                       onClick={() => isMobile && setOpenMobile(false)}
                     >
                       <item.icon className="size-5 shrink-0" />
-                      <span className="truncate">{item.title}</span>
+                      <span className="truncate">{t(item.title)}</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
