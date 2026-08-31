@@ -254,14 +254,24 @@ function ObrasPage() {
                       {formatarData(o.data_criacao)}
                     </TableCell>
                     <TableCell className="text-right">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="gap-1"
-                        onClick={() => abrirEdicao(o)}
-                      >
-                        <Pencil className="size-3.5" /> Editar
-                      </Button>
+                      <div className="flex justify-end gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="gap-1"
+                          onClick={() => abrirEdicao(o)}
+                        >
+                          <Pencil className="size-3.5" /> Editar
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          className="gap-1"
+                          onClick={() => setObraExcluir(o)}
+                        >
+                          <Trash2 className="size-3.5" /> Excluir
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -289,9 +299,19 @@ function ObrasPage() {
               </p>
               <div className="flex flex-wrap items-center justify-between gap-2 pt-1 text-sm">
                 <span className="text-muted-foreground">{formatarData(o.data_criacao)}</span>
-                <Button variant="outline" size="sm" className="gap-1" onClick={() => abrirEdicao(o)}>
-                  <Pencil className="size-3.5" /> Editar obra
-                </Button>
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" className="gap-1" onClick={() => abrirEdicao(o)}>
+                    <Pencil className="size-3.5" /> Editar
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    className="gap-1"
+                    onClick={() => setObraExcluir(o)}
+                  >
+                    <Trash2 className="size-3.5" /> Excluir
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>
