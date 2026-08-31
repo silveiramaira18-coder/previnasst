@@ -36,6 +36,9 @@ export type NaoConformidade = {
   status: string;
   observacao: string | null;
   data_criacao: string;
+  item_inspecao_id?: string | null;
+  obra_id?: string | null;
+  responsavel?: string | null;
   inspecoes?: { numero: string; data: string; obras?: { nome: string } | null } | null;
 };
 

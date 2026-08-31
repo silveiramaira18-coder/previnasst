@@ -1,6 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Eye, ImageIcon, TriangleAlert } from "lucide-react";
+import { Download, Eye, ImageIcon, Pencil, TriangleAlert } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
+
+import { gerarPdfInspecao } from "@/lib/pdf";
 
 import { PageHeader } from "@/components/PageHeader";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -67,6 +71,19 @@ function InspecoesPage() {
     queryKey: ["inspecoes-lista"],
     queryFn: listar,
   });
+  const [gerando, setGerando] = useState<string | null>(null);
+
+  const baixarPdf = async (id: string) => {
+    setGerando(id);
+    try {
+      await gerarPdfInspecao(id);
+      toast.success("Relatório gerado");
+    } catch (e) {
+      toast.error("Erro ao gerar PDF", { description: (e as Error).message });
+    } finally {
+      setGerando(null);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -123,11 +140,27 @@ function InspecoesPage() {
                       </span>
                     </TableCell>
                     <TableCell className="text-right">
-                      <Button asChild variant="outline" size="sm" className="gap-1">
-                        <Link to="/inspecoes/$id" params={{ id: i.id }}>
-                          <Eye className="size-4" /> Visualizar
-                        </Link>
-                      </Button>
+                      <div className="flex justify-end gap-2">
+                        <Button asChild variant="outline" size="sm" className="gap-1">
+                          <Link to="/inspecoes/$id" params={{ id: i.id }}>
+                            <Eye className="size-4" /> Visualizar
+                          </Link>
+                        </Button>
+                        <Button asChild variant="outline" size="sm" className="gap-1">
+                          <Link to="/inspecoes/$id" params={{ id: i.id }} search={{ editar: true }}>
+                            <Pencil className="size-3.5" /> Editar
+                          </Link>
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="gap-1"
+                          disabled={gerando === i.id}
+                          onClick={() => baixarPdf(i.id)}
+                        >
+                          <Download className="size-3.5" /> Baixar PDF
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
