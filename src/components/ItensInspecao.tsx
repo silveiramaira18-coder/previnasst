@@ -514,7 +514,11 @@ export function ItensInspecao({
 
   const adicionar = useMutation({
     mutationFn: () => criarItem(inspecaoId, itens.length, itens.length + 1),
-    onSuccess: invalidar,
+    onSuccess: (novo) => {
+      invalidar();
+      setAbertoId(novo.id);
+    },
+
     onError: (e: Error) => toast.error("Erro ao adicionar item", { description: e.message }),
   });
 
