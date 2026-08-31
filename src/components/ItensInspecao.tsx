@@ -488,10 +488,24 @@ export function ItensInspecao({
   obraId: string | null;
 }) {
   const qc = useQueryClient();
+  const [abertoId, setAbertoId] = useState<string | null>(null);
   const { data: itens = [], isLoading } = useQuery({
     queryKey: ["itens", inspecaoId],
     queryFn: () => listarItens(inspecaoId),
   });
+
+  const irParaProximo = (index: number) => {
+    const proximo = itens[index + 1];
+    setAbertoId(proximo ? proximo.id : null);
+    if (proximo) {
+      setTimeout(() => {
+        document
+          .getElementById(`item-${proximo.id}`)
+          ?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 120);
+    }
+  };
+
 
   const invalidar = () => {
     qc.invalidateQueries({ queryKey: ["itens", inspecaoId] });
