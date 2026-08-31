@@ -18,13 +18,6 @@ import { FotoManager } from "@/components/FotoManager";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -60,8 +53,8 @@ export const iconeResposta = (resposta: string | null) =>
     <MinusCircle className="size-4 text-muted-foreground" />
   ) : null;
 
-function NCsDoItem({ itemId }: { itemId: string }) {
-  const { data: ncs = [] } = useQuery({
+function useNCsDoItem(itemId: string) {
+  return useQuery({
     queryKey: ["ncs-item", itemId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -73,7 +66,9 @@ function NCsDoItem({ itemId }: { itemId: string }) {
       return data ?? [];
     },
   });
+}
 
+function NCsDoItem({ ncs }: { ncs: { id: string; numero: string; descricao: string; severidade: string }[] }) {
   if (ncs.length === 0) return null;
 
   return (
@@ -97,6 +92,7 @@ function NCsDoItem({ itemId }: { itemId: string }) {
   );
 }
 
+
 function ItemCard({
   item,
   total,
@@ -104,6 +100,9 @@ function ItemCard({
   onExcluir,
   inspecaoId,
   obraId,
+  aberto,
+  onAlternar,
+  onConcluir,
 }: {
   item: ItemInspecao;
   total: number;
@@ -111,9 +110,11 @@ function ItemCard({
   onExcluir: () => void;
   inspecaoId: string;
   obraId: string | null;
+  aberto: boolean;
+  onAlternar: () => void;
+  onConcluir: () => void;
 }) {
   const qc = useQueryClient();
-  const [aberto, setAberto] = useState(false);
   const [ncAberta, setNcAberta] = useState(false);
   const [local, setLocal] = useState({
     categoria: item.categoria ?? "",
@@ -135,6 +136,8 @@ function ItemCard({
     queryKey: ["fotos", "fotos_item_inspecao", item.id],
     queryFn: () => listarFotos("fotos_item_inspecao", "item_inspecao_id", item.id),
   });
+
+  const { data: ncs = [] } = useNCsDoItem(item.id);
 
   const salvar = useMutation({
     mutationFn: (campos: Partial<ItemInspecao>) => atualizarItem(item.id, campos),
@@ -159,14 +162,17 @@ function ItemCard({
         observacao: ncForm.observacao || null,
       });
       if (error) throw new Error(error.message);
+      await atualizarItem(item.id, { status: "Não conforme" });
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["ncs-item", item.id] });
       qc.invalidateQueries({ queryKey: ["ncs", inspecaoId] });
       qc.invalidateQueries({ queryKey: ["ncs-todas"] });
+      qc.invalidateQueries({ queryKey: ["itens", inspecaoId] });
       qc.invalidateQueries({ queryKey: ["resumo", inspecaoId] });
       setNcAberta(false);
       toast.success("Não conformidade registrada");
+      onConcluir();
     },
     onError: (e: Error) => toast.error("Erro ao registrar NC", { description: e.message }),
   });
@@ -174,15 +180,10 @@ function ItemCard({
   const rotulo = `Item ${String(item.numero).padStart(2, "0")}`;
 
   return (
-    <Card>
+    <Card id={`item-${item.id}`} className="scroll-mt-24">
       <CardContent className="space-y-4 p-4">
         <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
-          <button
-            type="button"
-            className="min-w-0 text-left"
-            onClick={() => setAberto((v) => !v)}
-            aria-expanded={aberto}
-          >
+          <button type="button" className="min-w-0 text-left" onClick={onAlternar} aria-expanded={aberto}>
             <p className="truncate font-semibold">
               {rotulo}
               {local.categoria ? ` — ${local.categoria}` : ""}
@@ -199,6 +200,11 @@ function ItemCard({
                 <ImageIcon className="size-4" /> {fotos.length} fotos
               </span>
             </p>
+            {ncs.length > 0 ? (
+              <p className="mt-1 inline-flex items-center gap-1 rounded-lg bg-destructive/10 px-2 py-1 text-xs font-medium text-destructive">
+                <TriangleAlert className="size-3.5" /> NC registrada com {fotos.length} fotos
+              </p>
+            ) : null}
           </button>
           <div className="flex items-center gap-1">
             <Button
@@ -230,12 +236,7 @@ function ItemCard({
             >
               <Trash2 className="size-4 text-destructive" />
             </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => setAberto((v) => !v)}
-            >
+            <Button type="button" variant="outline" size="sm" onClick={onAlternar}>
               {aberto ? "Fechar" : "Abrir"}
             </Button>
           </div>
@@ -277,6 +278,7 @@ function ItemCard({
                       onClick={() => {
                         setLocal({ ...local, resposta: r });
                         salvar.mutate({ resposta: r, status: statusDaResposta(r) });
+                        if (r === "Não conforme") setNcAberta(true);
                       }}
                     >
                       {r}
@@ -322,139 +324,154 @@ function ItemCard({
 
             {local.resposta === "Não conforme" ? (
               <div className="space-y-3">
-                <Button
-                  type="button"
-                  variant="destructive"
-                  size="lg"
-                  className="h-12 w-full gap-2"
-                  onClick={() => setNcAberta(true)}
-                >
-                  <TriangleAlert className="size-4" /> Registrar não conformidade
-                </Button>
-                <NCsDoItem itemId={item.id} />
+                <NCsDoItem ncs={ncs} />
+                {ncAberta ? (
+                  <form
+                    className="space-y-4 rounded-xl border border-destructive/40 bg-destructive/5 p-4"
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      criarNC.mutate();
+                    }}
+                  >
+                    <p className="font-semibold">Não conformidade — {rotulo}</p>
+                    <div className="space-y-1.5">
+                      <Label>Categoria</Label>
+                      <Select
+                        value={ncForm.categoria}
+                        onValueChange={(v) => setNcForm({ ...ncForm, categoria: v })}
+                      >
+                        <SelectTrigger className="h-12 w-full">
+                          <SelectValue placeholder="Selecione" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {categoriasChecklist.map((c) => (
+                            <SelectItem key={c} value={c}>
+                              {c}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label htmlFor={`nc-desc-${item.id}`}>Não conformidade encontrada</Label>
+                      <Textarea
+                        id={`nc-desc-${item.id}`}
+                        required
+                        rows={3}
+                        value={ncForm.descricao}
+                        onChange={(e) => setNcForm({ ...ncForm, descricao: e.target.value })}
+                      />
+                    </div>
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div className="space-y-1.5">
+                        <Label>Grau de severidade / risco</Label>
+                        <Select
+                          value={ncForm.severidade}
+                          onValueChange={(v) => setNcForm({ ...ncForm, severidade: v })}
+                        >
+                          <SelectTrigger className="h-12 w-full">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {SEVERIDADES.map((s) => (
+                              <SelectItem key={s} value={s}>
+                                {s}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label htmlFor={`nc-prazo-${item.id}`}>Data para correção</Label>
+                        <Input
+                          id={`nc-prazo-${item.id}`}
+                          type="date"
+                          className="h-12"
+                          value={ncForm.prazo}
+                          onChange={(e) => setNcForm({ ...ncForm, prazo: e.target.value })}
+                        />
+                      </div>
+                      <div className="space-y-1.5 sm:col-span-2">
+                        <Label htmlFor={`nc-resp-${item.id}`}>Responsável</Label>
+                        <Input
+                          id={`nc-resp-${item.id}`}
+                          className="h-12"
+                          required
+                          placeholder="Pessoa ou equipe responsável pela correção"
+                          value={ncForm.responsavel}
+                          onChange={(e) => setNcForm({ ...ncForm, responsavel: e.target.value })}
+                        />
+                      </div>
+                      <div className="space-y-1.5 sm:col-span-2">
+                        <Label htmlFor={`nc-obs-${item.id}`}>Medida de correção</Label>
+                        <Textarea
+                          id={`nc-obs-${item.id}`}
+                          required
+                          rows={2}
+                          placeholder="Ação corretiva necessária"
+                          value={ncForm.observacao}
+                          onChange={(e) => setNcForm({ ...ncForm, observacao: e.target.value })}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="rounded-xl border bg-background p-3">
+                      <FotoManager
+                        tabela="fotos_item_inspecao"
+                        coluna="item_inspecao_id"
+                        valor={item.id}
+                        titulo="Fotos da não conformidade"
+                        rotuloUpload="+ Adicionar fotos"
+                      />
+                    </div>
+
+                    <div className="grid gap-2 sm:grid-cols-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="lg"
+                        className="h-12"
+                        onClick={() => setNcAberta(false)}
+                      >
+                        Cancelar
+                      </Button>
+                      <Button type="submit" size="lg" className="h-12" disabled={criarNC.isPending}>
+                        Salvar NC e ir para o próximo item
+                      </Button>
+                    </div>
+                  </form>
+                ) : (
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="lg"
+                    className="h-12 w-full gap-2"
+                    onClick={() => setNcAberta(true)}
+                  >
+                    <TriangleAlert className="size-4" /> Registrar não conformidade
+                  </Button>
+                )}
               </div>
             ) : null}
 
-            <div className="rounded-xl border p-3">
-              <FotoManager
-                tabela="fotos_item_inspecao"
-                coluna="item_inspecao_id"
-                valor={item.id}
-                titulo={`Evidências fotográficas deste item (${rotulo})`}
-                rotuloUpload="+ Adicionar fotos"
-              />
-            </div>
-          </div>
-        ) : null}
-
-        <Dialog open={ncAberta} onOpenChange={setNcAberta}>
-          <DialogContent className="max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Não conformidade — {rotulo}</DialogTitle>
-            </DialogHeader>
-            <form
-              className="space-y-4"
-              onSubmit={(e) => {
-                e.preventDefault();
-                criarNC.mutate();
-              }}
-            >
-              <div className="space-y-1.5">
-                <Label>Categoria</Label>
-                <Select
-                  value={ncForm.categoria}
-                  onValueChange={(v) => setNcForm({ ...ncForm, categoria: v })}
-                >
-                  <SelectTrigger className="h-12 w-full">
-                    <SelectValue placeholder="Selecione" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categoriasChecklist.map((c) => (
-                      <SelectItem key={c} value={c}>
-                        {c}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor={`nc-desc-${item.id}`}>Não conformidade encontrada</Label>
-                <Textarea
-                  id={`nc-desc-${item.id}`}
-                  required
-                  rows={3}
-                  value={ncForm.descricao}
-                  onChange={(e) => setNcForm({ ...ncForm, descricao: e.target.value })}
+            {!ncAberta ? (
+              <div className="rounded-xl border p-3">
+                <FotoManager
+                  tabela="fotos_item_inspecao"
+                  coluna="item_inspecao_id"
+                  valor={item.id}
+                  titulo={`Evidências fotográficas deste item (${rotulo})`}
+                  rotuloUpload="+ Adicionar fotos"
                 />
               </div>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-1.5">
-                  <Label>Grau de severidade / risco</Label>
-                  <Select
-                    value={ncForm.severidade}
-                    onValueChange={(v) => setNcForm({ ...ncForm, severidade: v })}
-                  >
-                    <SelectTrigger className="h-12 w-full">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {SEVERIDADES.map((s) => (
-                        <SelectItem key={s} value={s}>
-                          {s}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor={`nc-prazo-${item.id}`}>Data para correção</Label>
-                  <Input
-                    id={`nc-prazo-${item.id}`}
-                    type="date"
-                    className="h-12"
-                    value={ncForm.prazo}
-                    onChange={(e) => setNcForm({ ...ncForm, prazo: e.target.value })}
-                  />
-                </div>
-                <div className="space-y-1.5 sm:col-span-2">
-                  <Label htmlFor={`nc-resp-${item.id}`}>Responsável</Label>
-                  <Input
-                    id={`nc-resp-${item.id}`}
-                    className="h-12"
-                    required
-                    placeholder="Pessoa ou equipe responsável pela correção"
-                    value={ncForm.responsavel}
-                    onChange={(e) => setNcForm({ ...ncForm, responsavel: e.target.value })}
-                  />
-                </div>
-                <div className="space-y-1.5 sm:col-span-2">
-                  <Label htmlFor={`nc-obs-${item.id}`}>Medida de correção</Label>
-                  <Textarea
-                    id={`nc-obs-${item.id}`}
-                    required
-                    rows={2}
-                    placeholder="Ação corretiva necessária"
-                    value={ncForm.observacao}
-                    onChange={(e) => setNcForm({ ...ncForm, observacao: e.target.value })}
-                  />
-                </div>
-              </div>
-              <p className="text-xs text-muted-foreground">
-                As fotos deste item já servem como evidência. Após salvar, use "Fotos da NC" para
-                anexar imagens adicionais.
-              </p>
-              <DialogFooter>
-                <Button type="submit" size="lg" className="h-12 w-full" disabled={criarNC.isPending}>
-                  Salvar não conformidade
-                </Button>
-              </DialogFooter>
-            </form>
-          </DialogContent>
-        </Dialog>
+            ) : null}
+          </div>
+        ) : null}
       </CardContent>
     </Card>
   );
 }
+
 
 export function ItensInspecao({
   inspecaoId,
@@ -464,10 +481,24 @@ export function ItensInspecao({
   obraId: string | null;
 }) {
   const qc = useQueryClient();
+  const [abertoId, setAbertoId] = useState<string | null>(null);
   const { data: itens = [], isLoading } = useQuery({
     queryKey: ["itens", inspecaoId],
     queryFn: () => listarItens(inspecaoId),
   });
+
+  const irParaProximo = (index: number) => {
+    const proximo = itens[index + 1];
+    setAbertoId(proximo ? proximo.id : null);
+    if (proximo) {
+      setTimeout(() => {
+        document
+          .getElementById(`item-${proximo.id}`)
+          ?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 120);
+    }
+  };
+
 
   const invalidar = () => {
     qc.invalidateQueries({ queryKey: ["itens", inspecaoId] });
@@ -476,7 +507,11 @@ export function ItensInspecao({
 
   const adicionar = useMutation({
     mutationFn: () => criarItem(inspecaoId, itens.length, itens.length + 1),
-    onSuccess: invalidar,
+    onSuccess: (novo) => {
+      invalidar();
+      setAbertoId(novo.id);
+    },
+
     onError: (e: Error) => toast.error("Erro ao adicionar item", { description: e.message }),
   });
 
@@ -524,8 +559,12 @@ export function ItensInspecao({
           total={itens.length}
           inspecaoId={inspecaoId}
           obraId={obraId}
+          aberto={abertoId === item.id}
+          onAlternar={() => setAbertoId((v) => (v === item.id ? null : item.id))}
+          onConcluir={() => irParaProximo(index)}
           onMover={(dir) => mover.mutate({ index, dir })}
           onExcluir={() => remover.mutate(item.id)}
+
         />
       ))}
 
