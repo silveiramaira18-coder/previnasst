@@ -187,6 +187,9 @@ function ItemCard({
               {rotulo}
               {local.categoria ? ` — ${local.categoria}` : ""}
             </p>
+            {local.local ? (
+              <p className="truncate text-xs text-muted-foreground">{local.local}</p>
+            ) : null}
             <p className="mt-1 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
               <span className="inline-flex items-center gap-1">
                 {iconeResposta(local.resposta)}
