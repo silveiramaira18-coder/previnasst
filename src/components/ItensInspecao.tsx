@@ -40,7 +40,7 @@ import {
   statusDaResposta,
   type ItemInspecao,
 } from "@/lib/itens";
-import { categoriasChecklist } from "@/lib/mock-data";
+
 
 const SEVERIDADES = ["Crítico", "Médio", "Baixo"];
 
@@ -115,17 +115,14 @@ function ItemCard({
   onConcluir: () => void;
 }) {
   const qc = useQueryClient();
-  const [ncAberta, setNcAberta] = useState(false);
   const [local, setLocal] = useState({
     categoria: item.categoria ?? "",
     local: item.local ?? "",
-    pergunta: item.pergunta ?? "",
     resposta: item.resposta ?? "",
-    observacao: item.observacao ?? "",
   });
   const [ncForm, setNcForm] = useState({
-    categoria: item.categoria ?? categoriasChecklist[0] ?? "",
-    descricao: item.pergunta ?? "",
+    categoria: item.categoria ?? "",
+    descricao: "",
     severidade: "Médio",
     prazo: "",
     responsavel: "",
@@ -170,7 +167,6 @@ function ItemCard({
       qc.invalidateQueries({ queryKey: ["ncs-todas"] });
       qc.invalidateQueries({ queryKey: ["itens", inspecaoId] });
       qc.invalidateQueries({ queryKey: ["resumo", inspecaoId] });
-      setNcAberta(false);
       toast.success("Não conformidade registrada");
       onConcluir();
     },
@@ -246,25 +242,15 @@ function ItemCard({
           <div className="space-y-4 border-t pt-4">
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-1.5">
-                <Label>Categoria</Label>
-                <Select
+                <Label htmlFor={`item-cat-${item.id}`}>Categoria</Label>
+                <Input
+                  id={`item-cat-${item.id}`}
+                  className="h-12"
+                  placeholder="Ex.: Trabalho em altura, EPI..."
                   value={local.categoria}
-                  onValueChange={(v) => {
-                    setLocal({ ...local, categoria: v });
-                    salvar.mutate({ categoria: v });
-                  }}
-                >
-                  <SelectTrigger className="h-12 w-full">
-                    <SelectValue placeholder="Selecione a categoria" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categoriasChecklist.map((c) => (
-                      <SelectItem key={c} value={c}>
-                        {c}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  onChange={(e) => setLocal({ ...local, categoria: e.target.value })}
+                  onBlur={() => salvar.mutate({ categoria: local.categoria || null })}
+                />
               </div>
               <div className="space-y-1.5">
                 <Label>Resposta</Label>
@@ -278,7 +264,6 @@ function ItemCard({
                       onClick={() => {
                         setLocal({ ...local, resposta: r });
                         salvar.mutate({ resposta: r, status: statusDaResposta(r) });
-                        if (r === "Não conforme") setNcAberta(true);
                       }}
                     >
                       {r}
@@ -300,32 +285,11 @@ function ItemCard({
               />
             </div>
 
-            <div className="space-y-1.5">
-              <Label>Pergunta / descrição</Label>
-              <Textarea
-                rows={2}
-                placeholder="O que está sendo verificado neste item?"
-                value={local.pergunta}
-                onChange={(e) => setLocal({ ...local, pergunta: e.target.value })}
-                onBlur={() => salvar.mutate({ pergunta: local.pergunta })}
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <Label>Observação</Label>
-              <Textarea
-                rows={3}
-                placeholder="Detalhes observados em campo..."
-                value={local.observacao}
-                onChange={(e) => setLocal({ ...local, observacao: e.target.value })}
-                onBlur={() => salvar.mutate({ observacao: local.observacao })}
-              />
-            </div>
-
             {local.resposta === "Não conforme" ? (
               <div className="space-y-3">
-                <NCsDoItem ncs={ncs} />
-                {ncAberta ? (
+                {ncs.length > 0 ? (
+                  <NCsDoItem ncs={ncs} />
+                ) : (
                   <form
                     className="space-y-4 rounded-xl border border-destructive/40 bg-destructive/5 p-4"
                     onSubmit={(e) => {
@@ -335,22 +299,14 @@ function ItemCard({
                   >
                     <p className="font-semibold">Não conformidade — {rotulo}</p>
                     <div className="space-y-1.5">
-                      <Label>Categoria</Label>
-                      <Select
+                      <Label htmlFor={`nc-cat-${item.id}`}>Categoria</Label>
+                      <Input
+                        id={`nc-cat-${item.id}`}
+                        className="h-12"
+                        placeholder="Ex.: Trabalho em altura, EPI..."
                         value={ncForm.categoria}
-                        onValueChange={(v) => setNcForm({ ...ncForm, categoria: v })}
-                      >
-                        <SelectTrigger className="h-12 w-full">
-                          <SelectValue placeholder="Selecione" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {categoriasChecklist.map((c) => (
-                            <SelectItem key={c} value={c}>
-                              {c}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                        onChange={(e) => setNcForm({ ...ncForm, categoria: e.target.value })}
+                      />
                     </div>
                     <div className="space-y-1.5">
                       <Label htmlFor={`nc-desc-${item.id}`}>Não conformidade encontrada</Label>
@@ -425,36 +381,15 @@ function ItemCard({
                       />
                     </div>
 
-                    <div className="grid gap-2 sm:grid-cols-2">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="lg"
-                        className="h-12"
-                        onClick={() => setNcAberta(false)}
-                      >
-                        Cancelar
-                      </Button>
-                      <Button type="submit" size="lg" className="h-12" disabled={criarNC.isPending}>
-                        Salvar NC e ir para o próximo item
-                      </Button>
-                    </div>
+                    <Button type="submit" size="lg" className="h-12 w-full" disabled={criarNC.isPending}>
+                      Salvar NC e ir para o próximo item
+                    </Button>
                   </form>
-                ) : (
-                  <Button
-                    type="button"
-                    variant="destructive"
-                    size="lg"
-                    className="h-12 w-full gap-2"
-                    onClick={() => setNcAberta(true)}
-                  >
-                    <TriangleAlert className="size-4" /> Registrar não conformidade
-                  </Button>
                 )}
               </div>
             ) : null}
 
-            {!ncAberta ? (
+            {local.resposta !== "Não conforme" ? (
               <div className="rounded-xl border p-3">
                 <FotoManager
                   tabela="fotos_item_inspecao"
