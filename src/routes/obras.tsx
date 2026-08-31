@@ -317,6 +317,37 @@ function ObrasPage() {
           </Card>
         ))}
       </div>
+
+      <Dialog open={!!obraExcluir} onOpenChange={(v) => !v && setObraExcluir(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Deseja realmente excluir esta obra?</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            A obra <strong>{obraExcluir?.nome}</strong> será removida permanentemente. Esta ação não
+            pode ser desfeita.
+          </p>
+          <DialogFooter className="gap-2 sm:gap-2">
+            <Button
+              variant="outline"
+              size="lg"
+              className="h-12 w-full sm:w-auto"
+              onClick={() => setObraExcluir(null)}
+            >
+              Cancelar
+            </Button>
+            <Button
+              variant="destructive"
+              size="lg"
+              className="h-12 w-full sm:w-auto"
+              disabled={excluir.isPending}
+              onClick={() => obraExcluir && excluir.mutate(obraExcluir.id)}
+            >
+              Excluir obra
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
