@@ -40,7 +40,7 @@ import {
   statusDaResposta,
   type ItemInspecao,
 } from "@/lib/itens";
-import { categoriasChecklist } from "@/lib/mock-data";
+
 
 const SEVERIDADES = ["Crítico", "Médio", "Baixo"];
 
