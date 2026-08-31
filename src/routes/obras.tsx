@@ -62,6 +62,7 @@ function ObrasPage() {
   const qc = useQueryClient();
   const [aberto, setAberto] = useState(false);
   const [editandoId, setEditandoId] = useState<string | null>(null);
+  const [obraExcluir, setObraExcluir] = useState<Obra | null>(null);
   const [form, setForm] = useState(vazio);
 
   const { data: obras = [], isLoading } = useQuery({ queryKey: ["obras"], queryFn: listarObras });
