@@ -41,10 +41,12 @@ import {
 } from "@/lib/db";
 import { categoriasChecklist } from "@/lib/mock-data";
 
+type BuscaInspecao = { editar?: boolean };
+
 export const Route = createFileRoute("/inspecoes/$id")({
-  validateSearch: (search: Record<string, unknown>) => ({
-    editar: search.editar === true || search.editar === "true",
-  }),
+  validateSearch: (search: Record<string, unknown>): BuscaInspecao =>
+    search["editar"] === true || search["editar"] === "true" ? { editar: true } : {},
+
   head: () => ({
     meta: [
       { title: "Detalhe da Inspeção — Previna SST" },
