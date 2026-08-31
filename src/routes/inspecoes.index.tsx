@@ -71,15 +71,8 @@ function InspecoesPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Inspeções"
+        title="Inspeções Realizadas"
         description="Registros realizados em campo pela equipe de segurança."
-        action={
-          <Button asChild size="lg" className="gap-2">
-            <Link to="/nova-inspecao">
-              <Plus className="size-4" /> Nova Inspeção
-            </Link>
-          </Button>
-        }
       />
 
       {isLoading ? <p className="text-sm text-muted-foreground">Carregando inspeções...</p> : null}

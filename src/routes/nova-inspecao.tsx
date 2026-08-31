@@ -231,7 +231,7 @@ function NovaInspecao() {
               disabled={salvar.isPending}
               onClick={() => salvar.mutate()}
             >
-              {inspecaoId ? "Salvar alterações" : "Salvar e adicionar fotos"}
+              {inspecaoId ? "Salvar alterações" : "Salvar e inserir itens"}
             </Button>
           </div>
         </CardContent>
