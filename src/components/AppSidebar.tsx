@@ -27,6 +27,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { useIdioma } from "@/lib/i18n";
 import { rotuloPapel, usePerfil, type Permissao } from "@/lib/perfil";
 
 const items = [
@@ -50,6 +51,7 @@ const items = [
 export function AppSidebar() {
   const { isMobile, setOpenMobile } = useSidebar();
   const { perfil, pode, isLoading } = usePerfil();
+  const { t } = useIdioma();
   const visiveis = items.filter((i) => !("permissao" in i) || pode(i.permissao as Permissao));
 
   return (
@@ -62,7 +64,7 @@ export function AppSidebar() {
           <div className="min-w-0">
             <p className="truncate font-display text-lg font-bold leading-none">Previna SST</p>
             <p className="mt-1 truncate text-xs text-sidebar-foreground/60">
-              Inspeções de Segurança
+              {t("Inspeções de Segurança")}
             </p>
           </div>
         </div>
@@ -70,7 +72,7 @@ export function AppSidebar() {
 
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Navegação</SidebarGroupLabel>
+          <SidebarGroupLabel>{t("Navegação")}</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {(isLoading ? items.filter((i) => !("permissao" in i)) : visiveis).map((item) => (
