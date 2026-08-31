@@ -71,9 +71,14 @@ const STATUS_NC = ["Aberta", "Em tratativa", "Atrasada", "Concluída"];
 
 function DetalheInspecao() {
   const { id } = Route.useParams();
+  const busca = Route.useSearch();
+  const navigate = useNavigate();
   const qc = useQueryClient();
   const [ncAberta, setNcAberta] = useState(false);
-  const [editando, setEditando] = useState(false);
+  const [editando, setEditando] = useState(Boolean(busca.editar));
+  const [confirmarExclusao, setConfirmarExclusao] = useState(false);
+  const [gerandoPdf, setGerandoPdf] = useState(false);
+
   const [ncForm, setNcForm] = useState({
     categoria: categoriasChecklist[0] ?? "",
     descricao: "",
