@@ -48,6 +48,7 @@ const TIPOS_INSPECAO = ["Relatório de Segurança", "Outro"];
 
 function NovaInspecao() {
   const navigate = useNavigate();
+  const qc = useQueryClient();
   const [inspecaoId, setInspecaoId] = useState<string | null>(null);
   const [tipoOutro, setTipoOutro] = useState("");
   const [form, setForm] = useState({
@@ -64,6 +65,7 @@ function NovaInspecao() {
 
   const salvar = useMutation({
     mutationFn: async () => {
+      if (!form.obra_id) throw new Error("Selecione a obra antes de adicionar itens.");
       const payload = {
         obra_id: form.obra_id || null,
         data: form.data,
