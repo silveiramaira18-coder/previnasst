@@ -52,10 +52,15 @@ function AuthPage() {
     if (!loading && session) navigate({ to: "/" });
   }, [loading, session, navigate]);
 
+  const emailNormalizado = () => email.trim().toLowerCase();
+
   const entrar = async (e: React.FormEvent) => {
     e.preventDefault();
     setEnviando(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password: senha });
+    const { error } = await supabase.auth.signInWithPassword({
+      email: emailNormalizado(),
+      password: senha,
+    });
     setEnviando(false);
     if (error) toast.error("Não foi possível entrar", { description: error.message });
     else navigate({ to: "/" });
@@ -65,7 +70,7 @@ function AuthPage() {
     e.preventDefault();
     setEnviando(true);
     const { error } = await supabase.auth.signUp({
-      email,
+      email: emailNormalizado(),
       password: senha,
       options: {
         emailRedirectTo: `${window.location.origin}/`,
