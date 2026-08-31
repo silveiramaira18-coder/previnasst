@@ -167,7 +167,6 @@ function ItemCard({
       qc.invalidateQueries({ queryKey: ["ncs-todas"] });
       qc.invalidateQueries({ queryKey: ["itens", inspecaoId] });
       qc.invalidateQueries({ queryKey: ["resumo", inspecaoId] });
-      setNcAberta(false);
       toast.success("Não conformidade registrada");
       onConcluir();
     },
@@ -243,25 +242,15 @@ function ItemCard({
           <div className="space-y-4 border-t pt-4">
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-1.5">
-                <Label>Categoria</Label>
-                <Select
+                <Label htmlFor={`item-cat-${item.id}`}>Categoria</Label>
+                <Input
+                  id={`item-cat-${item.id}`}
+                  className="h-12"
+                  placeholder="Ex.: Trabalho em altura, EPI..."
                   value={local.categoria}
-                  onValueChange={(v) => {
-                    setLocal({ ...local, categoria: v });
-                    salvar.mutate({ categoria: v });
-                  }}
-                >
-                  <SelectTrigger className="h-12 w-full">
-                    <SelectValue placeholder="Selecione a categoria" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categoriasChecklist.map((c) => (
-                      <SelectItem key={c} value={c}>
-                        {c}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  onChange={(e) => setLocal({ ...local, categoria: e.target.value })}
+                  onBlur={() => salvar.mutate({ categoria: local.categoria || null })}
+                />
               </div>
               <div className="space-y-1.5">
                 <Label>Resposta</Label>
