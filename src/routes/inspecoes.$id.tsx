@@ -1,6 +1,7 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Plus } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Download, Pencil, Plus, Trash2 } from "lucide-react";
+
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -40,8 +41,14 @@ import {
   type AcaoCorretiva,
 } from "@/lib/db";
 import { categoriasChecklist } from "@/lib/mock-data";
+import { gerarPdfInspecao } from "@/lib/pdf";
+
+type BuscaInspecao = { editar?: boolean };
 
 export const Route = createFileRoute("/inspecoes/$id")({
+  validateSearch: (search: Record<string, unknown>): BuscaInspecao =>
+    search["editar"] === true || search["editar"] === "true" ? { editar: true } : {},
+
   head: () => ({
     meta: [
       { title: "Detalhe da Inspeção — Previna SST" },
@@ -60,18 +67,24 @@ export const Route = createFileRoute("/inspecoes/$id")({
   component: DetalheInspecao,
 });
 
-const SEVERIDADES = ["Baixa", "Média", "Alta", "Crítica"];
+
+const SEVERIDADES = ["Crítico", "Médio", "Baixo"];
 const STATUS_NC = ["Aberta", "Em tratativa", "Atrasada", "Concluída"];
 
 function DetalheInspecao() {
   const { id } = Route.useParams();
+  const busca = Route.useSearch();
+  const navigate = useNavigate();
   const qc = useQueryClient();
   const [ncAberta, setNcAberta] = useState(false);
-  const [editando, setEditando] = useState(false);
+  const [editando, setEditando] = useState(Boolean(busca.editar));
+  const [confirmarExclusao, setConfirmarExclusao] = useState(false);
+  const [gerandoPdf, setGerandoPdf] = useState(false);
+
   const [ncForm, setNcForm] = useState({
     categoria: categoriasChecklist[0] ?? "",
     descricao: "",
-    severidade: "Média",
+    severidade: "Médio",
     prazo: "",
     status: "Aberta",
     observacao: "",
@@ -125,6 +138,47 @@ function DetalheInspecao() {
     onError: (e: Error) => toast.error("Erro ao registrar NC", { description: e.message }),
   });
 
+  const finalizar = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase
+        .from("inspecoes")
+        .update({ status: "Concluída" })
+        .eq("id", id);
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["inspecao", id] });
+      qc.invalidateQueries({ queryKey: ["inspecoes-lista"] });
+      toast.success("Inspeção finalizada");
+    },
+    onError: (e: Error) => toast.error("Erro ao finalizar", { description: e.message }),
+  });
+
+  const excluir = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase.from("inspecoes").delete().eq("id", id);
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["inspecoes-lista"] });
+      toast.success("Inspeção excluída");
+      navigate({ to: "/inspecoes" });
+    },
+    onError: (e: Error) => toast.error("Erro ao excluir", { description: e.message }),
+  });
+
+  const baixarPdf = async () => {
+    setGerandoPdf(true);
+    try {
+      await gerarPdfInspecao(id);
+      toast.success("Relatório gerado");
+    } catch (e) {
+      toast.error("Erro ao gerar PDF", { description: (e as Error).message });
+    } finally {
+      setGerandoPdf(false);
+    }
+  };
+
   if (isLoading) return <p className="text-sm text-muted-foreground">Carregando inspeção...</p>;
   if (!inspecao) return <p className="text-sm text-muted-foreground">Inspeção não encontrada.</p>;
 
@@ -150,6 +204,63 @@ function DetalheInspecao() {
         description={inspecao.obras?.nome ?? "Sem obra vinculada"}
         action={<StatusBadge value={inspecao.status} />}
       />
+
+      <div className="grid grid-cols-2 gap-2 lg:flex lg:flex-wrap">
+        <Button variant="outline" size="lg" className="h-12 gap-2" onClick={() => setEditando(true)}>
+          <Pencil className="size-4" /> Editar
+        </Button>
+        <Button
+          variant="outline"
+          size="lg"
+          className="h-12 gap-2"
+          disabled={finalizar.isPending || inspecao.status === "Concluída"}
+          onClick={() => finalizar.mutate()}
+        >
+          <CheckCircle2 className="size-4" /> Finalizar
+        </Button>
+        <Button
+          variant="outline"
+          size="lg"
+          className="h-12 gap-2"
+          disabled={gerandoPdf}
+          onClick={baixarPdf}
+        >
+          <Download className="size-4" /> Baixar PDF
+        </Button>
+        <Button
+          variant="destructive"
+          size="lg"
+          className="h-12 gap-2"
+          onClick={() => setConfirmarExclusao(true)}
+        >
+          <Trash2 className="size-4" /> Excluir
+        </Button>
+      </div>
+
+      <Dialog open={confirmarExclusao} onOpenChange={setConfirmarExclusao}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Deseja realmente excluir esta inspeção?</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            A inspeção {inspecao.numero} e todos os itens, fotos e não conformidades vinculados
+            serão removidos definitivamente.
+          </p>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setConfirmarExclusao(false)}>
+              Cancelar
+            </Button>
+            <Button
+              variant="destructive"
+              disabled={excluir.isPending}
+              onClick={() => excluir.mutate()}
+            >
+              Excluir inspeção
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
 
       <Card>
         <CardHeader>

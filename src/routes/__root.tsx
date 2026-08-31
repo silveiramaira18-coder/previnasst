@@ -19,6 +19,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { IdiomaProvider } from "@/lib/i18n";
 
 function NotFoundComponent() {
   return (
@@ -142,14 +143,17 @@ function RootComponent() {
   if (pathname === "/auth") {
     return (
       <QueryClientProvider client={queryClient}>
-        <Outlet />
-        <Toaster />
+        <IdiomaProvider>
+          <Outlet />
+          <Toaster />
+        </IdiomaProvider>
       </QueryClientProvider>
     );
   }
 
   return (
     <QueryClientProvider client={queryClient}>
+      <IdiomaProvider>
       <AuthGate>
         <SidebarProvider>
           <div className="flex min-h-screen w-full bg-background">
@@ -176,6 +180,7 @@ function RootComponent() {
         </SidebarProvider>
       </AuthGate>
       <Toaster />
+      </IdiomaProvider>
     </QueryClientProvider>
   );
 }

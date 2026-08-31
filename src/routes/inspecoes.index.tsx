@@ -192,11 +192,29 @@ function InspecoesPage() {
                   <TriangleAlert className="size-4" /> {num(i.nao_conformidades)} NCs
                 </span>
               </div>
-              <Button asChild variant="outline" size="lg" className="w-full gap-1">
-                <Link to="/inspecoes/$id" params={{ id: i.id }}>
-                  <Eye className="size-4" /> Visualizar
-                </Link>
-              </Button>
+              <div className="grid gap-2">
+                <Button asChild variant="outline" size="lg" className="h-12 w-full gap-1">
+                  <Link to="/inspecoes/$id" params={{ id: i.id }}>
+                    <Eye className="size-4" /> Visualizar
+                  </Link>
+                </Button>
+                <div className="grid grid-cols-2 gap-2">
+                  <Button asChild variant="outline" size="lg" className="h-12 gap-1">
+                    <Link to="/inspecoes/$id" params={{ id: i.id }} search={{ editar: true }}>
+                      <Pencil className="size-4" /> Editar
+                    </Link>
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    className="h-12 gap-1"
+                    disabled={gerando === i.id}
+                    onClick={() => baixarPdf(i.id)}
+                  >
+                    <Download className="size-4" /> Baixar PDF
+                  </Button>
+                </div>
+              </div>
             </CardContent>
           </Card>
         ))}
