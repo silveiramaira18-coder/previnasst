@@ -263,9 +263,16 @@ function NovaInspecao() {
           {inspecaoId ? (
             <ItensInspecao inspecaoId={inspecaoId} obraId={form.obra_id || null} />
           ) : (
-            <p className="text-sm text-muted-foreground">
-              Salve os dados da inspeção para começar a adicionar os itens.
-            </p>
+            <Button
+              type="button"
+              size="lg"
+              variant="outline"
+              className="h-14 w-full gap-2 text-base"
+              disabled={adicionarPrimeiroItem.isPending}
+              onClick={() => adicionarPrimeiroItem.mutate()}
+            >
+              <Plus className="size-5" /> Adicionar item
+            </Button>
           )}
         </CardContent>
       </Card>
@@ -280,27 +287,6 @@ function NovaInspecao() {
           </CardContent>
         </Card>
       ) : null}
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Evidências Fotográficas gerais</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {inspecaoId ? (
-            <FotoManager
-              tabela="fotos_inspecao"
-              coluna="inspecao_id"
-              valor={inspecaoId}
-              titulo="Fotos gerais desta inspeção"
-            />
-          ) : (
-            <p className="text-sm text-muted-foreground">
-              Salve os dados da inspeção para liberar o envio de fotos pela câmera, galeria ou
-              upload.
-            </p>
-          )}
-        </CardContent>
-      </Card>
 
       <div className="fixed inset-x-0 bottom-0 z-20 border-t bg-background p-4 lg:static lg:border-0 lg:bg-transparent lg:p-0">
         <Button
