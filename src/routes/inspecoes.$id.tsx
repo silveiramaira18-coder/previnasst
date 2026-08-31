@@ -42,6 +42,9 @@ import {
 import { categoriasChecklist } from "@/lib/mock-data";
 
 export const Route = createFileRoute("/inspecoes/$id")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    editar: search.editar === true || search.editar === "true",
+  }),
   head: () => ({
     meta: [
       { title: "Detalhe da Inspeção — Previna SST" },
@@ -59,6 +62,7 @@ export const Route = createFileRoute("/inspecoes/$id")({
   }),
   component: DetalheInspecao,
 });
+
 
 const SEVERIDADES = ["Baixa", "Média", "Alta", "Crítica"];
 const STATUS_NC = ["Aberta", "Em tratativa", "Atrasada", "Concluída"];
