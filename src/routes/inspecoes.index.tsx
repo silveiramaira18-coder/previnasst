@@ -71,6 +71,19 @@ function InspecoesPage() {
     queryKey: ["inspecoes-lista"],
     queryFn: listar,
   });
+  const [gerando, setGerando] = useState<string | null>(null);
+
+  const baixarPdf = async (id: string) => {
+    setGerando(id);
+    try {
+      await gerarPdfInspecao(id);
+      toast.success("Relatório gerado");
+    } catch (e) {
+      toast.error("Erro ao gerar PDF", { description: (e as Error).message });
+    } finally {
+      setGerando(null);
+    }
+  };
 
   return (
     <div className="space-y-6">
