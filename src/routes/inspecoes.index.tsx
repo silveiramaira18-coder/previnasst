@@ -1,6 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Eye, ImageIcon, TriangleAlert } from "lucide-react";
+import { Download, Eye, ImageIcon, Pencil, TriangleAlert } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
+
+import { gerarPdfInspecao } from "@/lib/pdf";
 
 import { PageHeader } from "@/components/PageHeader";
 import { StatusBadge } from "@/components/StatusBadge";
