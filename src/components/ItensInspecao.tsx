@@ -60,8 +60,8 @@ export const iconeResposta = (resposta: string | null) =>
     <MinusCircle className="size-4 text-muted-foreground" />
   ) : null;
 
-function NCsDoItem({ itemId }: { itemId: string }) {
-  const { data: ncs = [] } = useQuery({
+function useNCsDoItem(itemId: string) {
+  return useQuery({
     queryKey: ["ncs-item", itemId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -73,7 +73,9 @@ function NCsDoItem({ itemId }: { itemId: string }) {
       return data ?? [];
     },
   });
+}
 
+function NCsDoItem({ ncs }: { ncs: { id: string; numero: string; descricao: string; severidade: string }[] }) {
   if (ncs.length === 0) return null;
 
   return (
@@ -96,6 +98,7 @@ function NCsDoItem({ itemId }: { itemId: string }) {
     </div>
   );
 }
+
 
 function ItemCard({
   item,
