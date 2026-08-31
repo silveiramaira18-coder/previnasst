@@ -56,7 +56,6 @@ function NovaInspecao() {
     data: new Date().toISOString().slice(0, 10),
     horario: "",
     responsavel: "",
-    local: "",
     tipo_inspecao: "",
     observacoes: "",
   });
@@ -71,7 +70,6 @@ function NovaInspecao() {
         data: form.data,
         horario: form.horario || null,
         responsavel: form.responsavel || null,
-        local: form.local || null,
         tipo_inspecao:
           (form.tipo_inspecao === "Outro" ? tipoOutro.trim() : form.tipo_inspecao) || null,
         observacoes: form.observacoes || null,
@@ -187,16 +185,6 @@ function NovaInspecao() {
               placeholder="Nome do profissional"
               value={form.responsavel}
               onChange={(e) => setForm({ ...form, responsavel: e.target.value })}
-            />
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="local">Local / setor</Label>
-            <Input
-              id="local"
-              className="h-12"
-              placeholder="Ex.: Torre B — 7º pavimento"
-              value={form.local}
-              onChange={(e) => setForm({ ...form, local: e.target.value })}
             />
           </div>
           <div className="space-y-1.5 sm:col-span-2">

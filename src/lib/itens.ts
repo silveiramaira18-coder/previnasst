@@ -10,6 +10,7 @@ export type ItemInspecao = {
   numero: number;
   ordem: number;
   categoria: string | null;
+  local: string | null;
   pergunta: string | null;
   resposta: string | null;
   observacao: string | null;
