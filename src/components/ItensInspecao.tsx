@@ -389,7 +389,7 @@ function ItemCard({
               </div>
             ) : null}
 
-            {!ncAberta ? (
+            {local.resposta !== "Não conforme" ? (
               <div className="rounded-xl border p-3">
                 <FotoManager
                   tabela="fotos_item_inspecao"
