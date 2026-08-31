@@ -1,9 +1,9 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Plus } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
-import { FotoManager } from "@/components/FotoManager";
 import { ItensInspecao } from "@/components/ItensInspecao";
 import { ResumoInspecao } from "@/components/ResumoInspecao";
 import { RequerPermissao } from "@/components/RequerPermissao";
@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { listarObras } from "@/lib/db";
+import { criarItem } from "@/lib/itens";
 
 
 export const Route = createFileRoute("/nova-inspecao")({
