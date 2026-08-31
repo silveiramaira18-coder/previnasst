@@ -287,8 +287,9 @@ function ItemCard({
 
             {local.resposta === "Não conforme" ? (
               <div className="space-y-3">
-                <NCsDoItem ncs={ncs} />
-                {ncAberta ? (
+                {ncs.length > 0 ? (
+                  <NCsDoItem ncs={ncs} />
+                ) : (
                   <form
                     className="space-y-4 rounded-xl border border-destructive/40 bg-destructive/5 p-4"
                     onSubmit={(e) => {
@@ -298,22 +299,14 @@ function ItemCard({
                   >
                     <p className="font-semibold">Não conformidade — {rotulo}</p>
                     <div className="space-y-1.5">
-                      <Label>Categoria</Label>
-                      <Select
+                      <Label htmlFor={`nc-cat-${item.id}`}>Categoria</Label>
+                      <Input
+                        id={`nc-cat-${item.id}`}
+                        className="h-12"
+                        placeholder="Ex.: Trabalho em altura, EPI..."
                         value={ncForm.categoria}
-                        onValueChange={(v) => setNcForm({ ...ncForm, categoria: v })}
-                      >
-                        <SelectTrigger className="h-12 w-full">
-                          <SelectValue placeholder="Selecione" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {categoriasChecklist.map((c) => (
-                            <SelectItem key={c} value={c}>
-                              {c}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                        onChange={(e) => setNcForm({ ...ncForm, categoria: e.target.value })}
+                      />
                     </div>
                     <div className="space-y-1.5">
                       <Label htmlFor={`nc-desc-${item.id}`}>Não conformidade encontrada</Label>
@@ -388,31 +381,10 @@ function ItemCard({
                       />
                     </div>
 
-                    <div className="grid gap-2 sm:grid-cols-2">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="lg"
-                        className="h-12"
-                        onClick={() => setNcAberta(false)}
-                      >
-                        Cancelar
-                      </Button>
-                      <Button type="submit" size="lg" className="h-12" disabled={criarNC.isPending}>
-                        Salvar NC e ir para o próximo item
-                      </Button>
-                    </div>
+                    <Button type="submit" size="lg" className="h-12 w-full" disabled={criarNC.isPending}>
+                      Salvar NC e ir para o próximo item
+                    </Button>
                   </form>
-                ) : (
-                  <Button
-                    type="button"
-                    variant="destructive"
-                    size="lg"
-                    className="h-12 w-full gap-2"
-                    onClick={() => setNcAberta(true)}
-                  >
-                    <TriangleAlert className="size-4" /> Registrar não conformidade
-                  </Button>
                 )}
               </div>
             ) : null}
