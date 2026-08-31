@@ -343,6 +343,7 @@ export type Database = {
           data_criacao: string
           id: string
           inspecao_id: string
+          local: string | null
           numero: number
           observacao: string | null
           ordem: number
@@ -357,6 +358,7 @@ export type Database = {
           data_criacao?: string
           id?: string
           inspecao_id: string
+          local?: string | null
           numero?: number
           observacao?: string | null
           ordem?: number
@@ -371,6 +373,7 @@ export type Database = {
           data_criacao?: string
           id?: string
           inspecao_id?: string
+          local?: string | null
           numero?: number
           observacao?: string | null
           ordem?: number
