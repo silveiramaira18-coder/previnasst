@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Plus, Building2, Pencil } from "lucide-react";
+import { Plus, Building2, Pencil, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -108,6 +108,20 @@ function ObrasPage() {
       setForm(vazio);
     },
     onError: (e: Error) => toast.error("Erro ao salvar obra", { description: e.message }),
+  });
+
+  const excluir = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("obras").delete().eq("id", id);
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["obras"] });
+      qc.invalidateQueries({ queryKey: ["indicadores"] });
+      toast.success("Obra excluída");
+      setObraExcluir(null);
+    },
+    onError: (e: Error) => toast.error("Erro ao excluir obra", { description: e.message }),
   });
 
   return (
