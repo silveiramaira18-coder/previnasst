@@ -41,6 +41,7 @@ import {
   type AcaoCorretiva,
 } from "@/lib/db";
 import { categoriasChecklist } from "@/lib/mock-data";
+import { gerarPdfInspecao } from "@/lib/pdf";
 
 type BuscaInspecao = { editar?: boolean };
 
