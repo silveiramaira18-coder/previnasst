@@ -1,6 +1,7 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Plus } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Download, Pencil, Plus, Trash2 } from "lucide-react";
+
 import { useState } from "react";
 import { toast } from "sonner";
 
