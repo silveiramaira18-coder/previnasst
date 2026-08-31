@@ -202,6 +202,10 @@ function AuthPage() {
                     <Input
                       id="email2"
                       type="email"
+                      autoCapitalize="none"
+                      autoCorrect="off"
+                      autoComplete="email"
+                      inputMode="email"
                       required
                       className="h-12"
                       value={email}
