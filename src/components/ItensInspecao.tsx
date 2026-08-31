@@ -117,6 +117,7 @@ function ItemCard({
   const [ncAberta, setNcAberta] = useState(false);
   const [local, setLocal] = useState({
     categoria: item.categoria ?? "",
+    local: item.local ?? "",
     pergunta: item.pergunta ?? "",
     resposta: item.resposta ?? "",
     observacao: item.observacao ?? "",
@@ -186,6 +187,9 @@ function ItemCard({
               {rotulo}
               {local.categoria ? ` — ${local.categoria}` : ""}
             </p>
+            {local.local ? (
+              <p className="truncate text-xs text-muted-foreground">{local.local}</p>
+            ) : null}
             <p className="mt-1 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
               <span className="inline-flex items-center gap-1">
                 {iconeResposta(local.resposta)}
@@ -280,6 +284,18 @@ function ItemCard({
                   ))}
                 </div>
               </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor={`item-local-${item.id}`}>Local / setor</Label>
+              <Input
+                id={`item-local-${item.id}`}
+                className="h-12"
+                placeholder="Ex.: Torre B — 7º pavimento"
+                value={local.local}
+                onChange={(e) => setLocal({ ...local, local: e.target.value })}
+                onBlur={() => salvar.mutate({ local: local.local })}
+              />
             </div>
 
             <div className="space-y-1.5">

@@ -1,0 +1,1 @@
+ALTER TABLE public.itens_inspecao ADD COLUMN IF NOT EXISTS local text;

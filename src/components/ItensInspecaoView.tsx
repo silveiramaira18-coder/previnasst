@@ -48,6 +48,7 @@ function ItemView({ item }: { item: ItemInspecao }) {
           Item {String(item.numero).padStart(2, "0")}
           {item.categoria ? ` — ${item.categoria}` : ""}
         </p>
+        {item.local ? <p className="text-xs text-muted-foreground">{item.local}</p> : null}
         {item.pergunta ? <p className="text-sm">{item.pergunta}</p> : null}
         <p className="inline-flex items-center gap-1 text-sm font-medium">
           {iconeResposta(item.resposta)} {item.resposta || "Sem resposta"}
