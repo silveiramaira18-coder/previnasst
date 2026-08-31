@@ -91,9 +91,24 @@ function NovaInspecao() {
     },
     onSuccess: (id) => {
       setInspecaoId(id);
-      toast.success("Inspeção salva", { description: "Agora você pode adicionar as fotos." });
+      toast.success("Inspeção salva", { description: "Agora você pode adicionar os itens." });
     },
     onError: (e: Error) => toast.error("Erro ao salvar", { description: e.message }),
+  });
+
+  // Adiciona o primeiro item direto na tela: salva a inspeção (se ainda não
+  // foi salva) e já cria o item, sem etapa intermediária.
+  const adicionarPrimeiroItem = useMutation({
+    mutationFn: async () => {
+      const id = inspecaoId ?? (await salvar.mutateAsync());
+      await criarItem(id, 0, 1);
+      return id;
+    },
+    onSuccess: (id) => {
+      qc.invalidateQueries({ queryKey: ["itens", id] });
+      qc.invalidateQueries({ queryKey: ["resumo", id] });
+    },
+    onError: (e: Error) => toast.error("Não foi possível adicionar o item", { description: e.message }),
   });
 
   const finalizar = useMutation({
