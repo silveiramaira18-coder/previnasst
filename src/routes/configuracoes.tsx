@@ -52,6 +52,8 @@ export const Route = createFileRoute("/configuracoes")({
 function ConfigPage() {
   const navigate = useNavigate();
   const { perfil, adminPrincipal } = usePerfil();
+  const { idioma, setIdioma, t } = useIdioma();
+
   const excluir = useServerFn(excluirMinhaConta);
 
   const [senha, setSenha] = useState("");
