@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Plus, Building2, Pencil } from "lucide-react";
+import { Plus, Building2, Pencil, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -62,6 +62,7 @@ function ObrasPage() {
   const qc = useQueryClient();
   const [aberto, setAberto] = useState(false);
   const [editandoId, setEditandoId] = useState<string | null>(null);
+  const [obraExcluir, setObraExcluir] = useState<Obra | null>(null);
   const [form, setForm] = useState(vazio);
 
   const { data: obras = [], isLoading } = useQuery({ queryKey: ["obras"], queryFn: listarObras });
@@ -108,6 +109,20 @@ function ObrasPage() {
       setForm(vazio);
     },
     onError: (e: Error) => toast.error("Erro ao salvar obra", { description: e.message }),
+  });
+
+  const excluir = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("obras").delete().eq("id", id);
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["obras"] });
+      qc.invalidateQueries({ queryKey: ["indicadores"] });
+      toast.success("Obra excluída");
+      setObraExcluir(null);
+    },
+    onError: (e: Error) => toast.error("Erro ao excluir obra", { description: e.message }),
   });
 
   return (
@@ -239,14 +254,24 @@ function ObrasPage() {
                       {formatarData(o.data_criacao)}
                     </TableCell>
                     <TableCell className="text-right">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="gap-1"
-                        onClick={() => abrirEdicao(o)}
-                      >
-                        <Pencil className="size-3.5" /> Editar
-                      </Button>
+                      <div className="flex justify-end gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="gap-1"
+                          onClick={() => abrirEdicao(o)}
+                        >
+                          <Pencil className="size-3.5" /> Editar
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          className="gap-1"
+                          onClick={() => setObraExcluir(o)}
+                        >
+                          <Trash2 className="size-3.5" /> Excluir
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -274,14 +299,55 @@ function ObrasPage() {
               </p>
               <div className="flex flex-wrap items-center justify-between gap-2 pt-1 text-sm">
                 <span className="text-muted-foreground">{formatarData(o.data_criacao)}</span>
-                <Button variant="outline" size="sm" className="gap-1" onClick={() => abrirEdicao(o)}>
-                  <Pencil className="size-3.5" /> Editar obra
-                </Button>
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" className="gap-1" onClick={() => abrirEdicao(o)}>
+                    <Pencil className="size-3.5" /> Editar
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    className="gap-1"
+                    onClick={() => setObraExcluir(o)}
+                  >
+                    <Trash2 className="size-3.5" /> Excluir
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>
         ))}
       </div>
+
+      <Dialog open={!!obraExcluir} onOpenChange={(v) => !v && setObraExcluir(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Deseja realmente excluir esta obra?</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            A obra <strong>{obraExcluir?.nome}</strong> será removida permanentemente. Esta ação não
+            pode ser desfeita.
+          </p>
+          <DialogFooter className="gap-2 sm:gap-2">
+            <Button
+              variant="outline"
+              size="lg"
+              className="h-12 w-full sm:w-auto"
+              onClick={() => setObraExcluir(null)}
+            >
+              Cancelar
+            </Button>
+            <Button
+              variant="destructive"
+              size="lg"
+              className="h-12 w-full sm:w-auto"
+              disabled={excluir.isPending}
+              onClick={() => obraExcluir && excluir.mutate(obraExcluir.id)}
+            >
+              Excluir obra
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

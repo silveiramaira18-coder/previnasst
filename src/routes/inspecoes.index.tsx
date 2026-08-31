@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Eye, ImageIcon, Plus, TriangleAlert } from "lucide-react";
+import { Eye, ImageIcon, TriangleAlert } from "lucide-react";
 
 import { PageHeader } from "@/components/PageHeader";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -71,15 +71,8 @@ function InspecoesPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Inspeções"
+        title="Inspeções Realizadas"
         description="Registros realizados em campo pela equipe de segurança."
-        action={
-          <Button asChild size="lg" className="gap-2">
-            <Link to="/nova-inspecao">
-              <Plus className="size-4" /> Nova Inspeção
-            </Link>
-          </Button>
-        }
       />
 
       {isLoading ? <p className="text-sm text-muted-foreground">Carregando inspeções...</p> : null}
