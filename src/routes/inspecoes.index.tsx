@@ -127,11 +127,27 @@ function InspecoesPage() {
                       </span>
                     </TableCell>
                     <TableCell className="text-right">
-                      <Button asChild variant="outline" size="sm" className="gap-1">
-                        <Link to="/inspecoes/$id" params={{ id: i.id }}>
-                          <Eye className="size-4" /> Visualizar
-                        </Link>
-                      </Button>
+                      <div className="flex justify-end gap-2">
+                        <Button asChild variant="outline" size="sm" className="gap-1">
+                          <Link to="/inspecoes/$id" params={{ id: i.id }}>
+                            <Eye className="size-4" /> Visualizar
+                          </Link>
+                        </Button>
+                        <Button asChild variant="outline" size="sm" className="gap-1">
+                          <Link to="/inspecoes/$id" params={{ id: i.id }} search={{ editar: true }}>
+                            <Pencil className="size-3.5" /> Editar
+                          </Link>
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="gap-1"
+                          disabled={gerando === i.id}
+                          onClick={() => baixarPdf(i.id)}
+                        >
+                          <Download className="size-3.5" /> Baixar PDF
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
