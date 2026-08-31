@@ -90,7 +90,7 @@ function AuthPage() {
       return;
     }
     setEnviando(true);
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    const { error } = await supabase.auth.resetPasswordForEmail(emailNormalizado(), {
       redirectTo: `${window.location.origin}/perfil`,
     });
     setEnviando(false);
@@ -129,6 +129,10 @@ function AuthPage() {
                     <Input
                       id="email"
                       type="email"
+                      autoCapitalize="none"
+                      autoCorrect="off"
+                      autoComplete="email"
+                      inputMode="email"
                       required
                       className="h-12"
                       value={email}
