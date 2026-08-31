@@ -1,9 +1,9 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Plus } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
-import { FotoManager } from "@/components/FotoManager";
 import { ItensInspecao } from "@/components/ItensInspecao";
 import { ResumoInspecao } from "@/components/ResumoInspecao";
 import { RequerPermissao } from "@/components/RequerPermissao";
@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { listarObras } from "@/lib/db";
+import { criarItem } from "@/lib/itens";
 
 
 export const Route = createFileRoute("/nova-inspecao")({
@@ -47,6 +48,7 @@ const TIPOS_INSPECAO = ["Relatório de Segurança", "Outro"];
 
 function NovaInspecao() {
   const navigate = useNavigate();
+  const qc = useQueryClient();
   const [inspecaoId, setInspecaoId] = useState<string | null>(null);
   const [tipoOutro, setTipoOutro] = useState("");
   const [form, setForm] = useState({
@@ -63,6 +65,7 @@ function NovaInspecao() {
 
   const salvar = useMutation({
     mutationFn: async () => {
+      if (!form.obra_id) throw new Error("Selecione a obra antes de adicionar itens.");
       const payload = {
         obra_id: form.obra_id || null,
         data: form.data,
@@ -88,9 +91,24 @@ function NovaInspecao() {
     },
     onSuccess: (id) => {
       setInspecaoId(id);
-      toast.success("Inspeção salva", { description: "Agora você pode adicionar as fotos." });
+      toast.success("Inspeção salva", { description: "Agora você pode adicionar os itens." });
     },
     onError: (e: Error) => toast.error("Erro ao salvar", { description: e.message }),
+  });
+
+  // Adiciona o primeiro item direto na tela: salva a inspeção (se ainda não
+  // foi salva) e já cria o item, sem etapa intermediária.
+  const adicionarPrimeiroItem = useMutation({
+    mutationFn: async () => {
+      const id = inspecaoId ?? (await salvar.mutateAsync());
+      await criarItem(id, 0, 1);
+      return id;
+    },
+    onSuccess: (id) => {
+      qc.invalidateQueries({ queryKey: ["itens", id] });
+      qc.invalidateQueries({ queryKey: ["resumo", id] });
+    },
+    onError: (e: Error) => toast.error("Não foi possível adicionar o item", { description: e.message }),
   });
 
   const finalizar = useMutation({
@@ -245,9 +263,16 @@ function NovaInspecao() {
           {inspecaoId ? (
             <ItensInspecao inspecaoId={inspecaoId} obraId={form.obra_id || null} />
           ) : (
-            <p className="text-sm text-muted-foreground">
-              Salve os dados da inspeção para começar a adicionar os itens.
-            </p>
+            <Button
+              type="button"
+              size="lg"
+              variant="outline"
+              className="h-14 w-full gap-2 text-base"
+              disabled={adicionarPrimeiroItem.isPending}
+              onClick={() => adicionarPrimeiroItem.mutate()}
+            >
+              <Plus className="size-5" /> Adicionar item
+            </Button>
           )}
         </CardContent>
       </Card>
@@ -262,27 +287,6 @@ function NovaInspecao() {
           </CardContent>
         </Card>
       ) : null}
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Evidências Fotográficas gerais</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {inspecaoId ? (
-            <FotoManager
-              tabela="fotos_inspecao"
-              coluna="inspecao_id"
-              valor={inspecaoId}
-              titulo="Fotos gerais desta inspeção"
-            />
-          ) : (
-            <p className="text-sm text-muted-foreground">
-              Salve os dados da inspeção para liberar o envio de fotos pela câmera, galeria ou
-              upload.
-            </p>
-          )}
-        </CardContent>
-      </Card>
 
       <div className="fixed inset-x-0 bottom-0 z-20 border-t bg-background p-4 lg:static lg:border-0 lg:bg-transparent lg:p-0">
         <Button
