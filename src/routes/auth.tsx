@@ -17,6 +17,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { registrarUsuarioNaPlanilha } from "@/lib/drive.functions";
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
@@ -78,8 +79,18 @@ function AuthPage() {
       },
     });
     setEnviando(false);
-    if (error) toast.error("Não foi possível cadastrar", { description: error.message });
-    else toast.success("Conta criada", { description: "Você já pode acessar o Previna SST." });
+    if (error) {
+      toast.error("Não foi possível cadastrar", { description: error.message });
+      return;
+    }
+    toast.success("Conta criada", { description: "Você já pode acessar o Previna SST." });
+    try {
+      await registrarUsuarioNaPlanilha({
+        data: { nome, email: emailNormalizado(), empresa, perfil: perfilNovo },
+      });
+    } catch (erro) {
+      console.error("Falha ao registrar usuário na planilha do Google Drive", erro);
+    }
   };
 
   const recuperar = async () => {
