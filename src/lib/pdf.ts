@@ -1,7 +1,9 @@
 import { jsPDF } from "jspdf";
+import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
 import { formatarData, formatarHora, listarNCsDaInspecao, obterInspecao } from "@/lib/db";
+import { enviarRelatorioParaDrive } from "@/lib/drive.functions";
 import { listarItens, resumoInspecao } from "@/lib/itens";
 import { carregarPerfil } from "@/lib/perfil";
 
