@@ -3,7 +3,7 @@ import {
   ChevronDown,
   ChevronUp,
   ImageIcon,
-  MinusCircle,
+  Pencil,
   Plus,
   Trash2,
   TriangleAlert,
