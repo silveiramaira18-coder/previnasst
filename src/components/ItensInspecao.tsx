@@ -162,7 +162,7 @@ function ItemCard({
         observacao: ncForm.observacao || null,
       });
       if (error) throw new Error(error.message);
-      await atualizarItem(item.id, { status: "Não conforme" });
+      await atualizarItem(item.id, { status: "Não conforme", categoria: ncForm.categoria || null });
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["ncs-item", item.id] });
