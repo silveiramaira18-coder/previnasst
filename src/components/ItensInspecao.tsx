@@ -137,6 +137,10 @@ function ItemCard({
 
   const { data: ncs = [] } = useNCsDoItem(item.id);
 
+  useEffect(() => {
+    if (fotos.length > 0) setErroFotos(false);
+  }, [fotos.length]);
+
   const salvar = useMutation({
     mutationFn: (campos: Partial<ItemInspecao>) => atualizarItem(item.id, campos),
     onSuccess: () => {
