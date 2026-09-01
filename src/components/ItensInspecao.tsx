@@ -260,20 +260,9 @@ function ItemCard({
           <div className="space-y-4 border-t pt-4">
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-1.5">
-                <Label htmlFor={`item-cat-${item.id}`}>Categoria</Label>
-                <Input
-                  id={`item-cat-${item.id}`}
-                  className="h-12"
-                  placeholder="Ex.: Trabalho em altura, EPI..."
-                  value={local.categoria}
-                  onChange={(e) => setLocal({ ...local, categoria: e.target.value })}
-                  onBlur={() => salvar.mutate({ categoria: local.categoria || null })}
-                />
-              </div>
-              <div className="space-y-1.5">
                 <Label>Resposta</Label>
-                <div className="grid grid-cols-3 gap-2">
-                  {RESPOSTAS.map((r) => (
+                <div className="grid grid-cols-2 gap-2">
+                  {RESPOSTAS.filter((r) => r !== "Não se aplica").map((r) => (
                     <Button
                       key={r}
                       type="button"
@@ -289,18 +278,17 @@ function ItemCard({
                   ))}
                 </div>
               </div>
-            </div>
-
-            <div className="space-y-1.5">
-              <Label htmlFor={`item-local-${item.id}`}>Local / setor</Label>
-              <Input
-                id={`item-local-${item.id}`}
-                className="h-12"
-                placeholder="Ex.: Torre B — 7º pavimento"
-                value={local.local}
-                onChange={(e) => setLocal({ ...local, local: e.target.value })}
-                onBlur={() => salvar.mutate({ local: local.local })}
-              />
+              <div className="space-y-1.5">
+                <Label htmlFor={`item-local-${item.id}`}>Local / setor</Label>
+                <Input
+                  id={`item-local-${item.id}`}
+                  className="h-12"
+                  placeholder="Ex.: Torre B — 7º pavimento"
+                  value={local.local}
+                  onChange={(e) => setLocal({ ...local, local: e.target.value })}
+                  onBlur={() => salvar.mutate({ local: local.local })}
+                />
+              </div>
             </div>
 
             {local.resposta === "Não conforme" ? (
