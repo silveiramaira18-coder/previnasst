@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { formatarData, formatarHora, listarNCsDaInspecao, obterInspecao } from "@/lib/db";
 import { enviarRelatorioParaDrive } from "@/lib/drive.functions";
+import { listarFotos, urlAssinada } from "@/lib/fotos";
 import { listarItens, resumoInspecao } from "@/lib/itens";
 import { carregarPerfil } from "@/lib/perfil";
 
@@ -148,7 +149,7 @@ export async function gerarPdfInspecao(inspecaoId: string) {
   linha(`Empresa: ${empresa || "—"}`);
   linha(`Obra / local inspecionado: ${inspecao.obras?.nome ?? "—"}${inspecao.local ? ` — ${inspecao.local}` : ""}`);
   linha(`Data: ${formatarData(inspecao.data)}   Horário: ${formatarHora(inspecao.horario)}`);
-  linha(`Tipo de inspeção: ${inspecao.tipo_inspecao ?? "—"}   Status: ${inspecao.status}`);
+  linha(`Tipo de inspeção: ${inspecao.tipo_inspecao ?? "—"}`);
   y += 6;
 
   linha("PROFISSIONAL RESPONSÁVEL", { bold: true, size: 12 });
@@ -166,26 +167,62 @@ export async function gerarPdfInspecao(inspecaoId: string) {
 
   linha("RESUMO", { bold: true, size: 12 });
   linha(
-    `Itens: ${resumo.total}   Conformes: ${resumo.conformes}   Não conformes: ${resumo.naoConformes}   Não se aplica: ${resumo.naoAplicaveis}   Conformidade: ${resumo.conformidade.toFixed(1)}%`,
+    `Itens: ${resumo.total}   Conformes: ${resumo.conformes}   Não conformes: ${resumo.naoConformes}   Conformidade: ${resumo.conformidade.toFixed(1)}%`,
   );
   y += 6;
 
   linha("ITENS DA INSPEÇÃO", { bold: true, size: 12 });
   if (itens.length === 0) linha("Nenhum item registrado.");
-  itens.forEach((item) => {
+  for (const item of itens) {
     const nc = ncs.find((n) => n.item_inspecao_id === item.id);
     y += 4;
-    linha(`Item ${item.numero} — ${item.categoria || "Sem categoria"}`, { bold: true });
-    if (item.pergunta) linha(`Descrição: ${item.pergunta}`);
+    novaPaginaSeNecessario(40);
+    linha(`Item ${item.numero}${item.categoria ? ` — ${item.categoria}` : ""}`, { bold: true });
+    if (item.local) linha(`Local / setor: ${item.local}`);
     linha(`Resposta: ${item.resposta ?? "Pendente"}`);
-    if (item.observacao) linha(`Observação: ${item.observacao}`);
     if (nc) {
-      linha(`Não conformidade (${nc.numero}): ${nc.descricao}`);
+      if (nc.categoria) linha(`Categoria: ${nc.categoria}`);
+      linha(`Não conformidade: ${nc.descricao}`);
       linha(`Severidade: ${nc.severidade}   Prazo: ${nc.prazo ? formatarData(nc.prazo) : "—"}`);
       linha(`Responsável: ${nc.responsavel || "—"}`);
       if (nc.observacao) linha(`Medida de correção: ${nc.observacao}`);
     }
-  });
+
+    // Fotos vinculadas ao item
+    const fotos = await listarFotos("fotos_item_inspecao", "item_inspecao_id", item.id);
+    if (fotos.length > 0) {
+      linha(`Fotos vinculadas (${fotos.length}):`);
+      const larg = 120;
+      const alt = 90;
+      const gap = 10;
+      const porLinha = Math.max(1, Math.floor((limite + gap) / (larg + gap)));
+      for (let i = 0; i < fotos.length; i += porLinha) {
+        novaPaginaSeNecessario(alt + 8);
+        const linhaFotos = fotos.slice(i, i + porLinha);
+        for (let j = 0; j < linhaFotos.length; j++) {
+          const foto = linhaFotos[j];
+          if (!foto) continue;
+          try {
+            const url = await urlAssinada(foto.url);
+            const resp = await fetch(url);
+            if (!resp.ok) throw new Error(`Foto indisponível [${resp.status}]`);
+            const blob = await resp.blob();
+            const dataUrl = await new Promise<string>((resolve, reject) => {
+              const reader = new FileReader();
+              reader.onload = () => resolve(reader.result as string);
+              reader.onerror = () => reject(new Error("Falha ao ler imagem"));
+              reader.readAsDataURL(blob);
+            });
+            const formato = blob.type.includes("png") ? "PNG" : "JPEG";
+            doc.addImage(dataUrl, formato, margem + j * (larg + gap), y, larg, alt);
+          } catch (erroFoto) {
+            console.error("Falha ao embutir foto no PDF", erroFoto);
+          }
+        }
+        y += alt + 8;
+      }
+    }
+  }
 
   // Gráfico de severidades
   const contagem: Record<NivelRisco, number> = { Crítico: 0, Médio: 0, Baixo: 0 };
