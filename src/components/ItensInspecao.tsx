@@ -299,6 +299,12 @@ function ItemCard({
                     className="space-y-4 rounded-xl border border-destructive/40 bg-destructive/5 p-4"
                     onSubmit={(e) => {
                       e.preventDefault();
+                      if (fotos.length === 0) {
+                        setErroFotos(true);
+                        toast.error("Adicione ao menos uma foto antes de prosseguir.");
+                        return;
+                      }
+                      setErroFotos(false);
                       criarNC.mutate();
                     }}
                   >
