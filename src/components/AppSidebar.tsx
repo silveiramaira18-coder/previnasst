@@ -34,7 +34,7 @@ const items = [
   { title: "Dashboard", to: "/", icon: LayoutDashboard },
   { title: "Obras", to: "/obras", icon: Building2, permissao: "gerenciarObras" },
   { title: "Nova Inspeção", to: "/nova-inspecao", icon: CameraIcon, permissao: "criarInspecao" },
-  { title: "Inspeções", to: "/inspecoes", icon: ClipboardList },
+  { title: "Inspeções Realizadas", to: "/inspecoes", icon: ClipboardList },
   {
     title: "Lista de Verificação",
     to: "/checklists",

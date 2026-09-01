@@ -3,7 +3,7 @@ import {
   ChevronDown,
   ChevronUp,
   ImageIcon,
-  MinusCircle,
+  Pencil,
   Plus,
   Trash2,
   TriangleAlert,
@@ -49,8 +49,6 @@ export const iconeResposta = (resposta: string | null) =>
     <CheckCircle2 className="size-4 text-success" />
   ) : resposta === "Não conforme" ? (
     <XCircle className="size-4 text-destructive" />
-  ) : resposta === "Não se aplica" ? (
-    <MinusCircle className="size-4 text-muted-foreground" />
   ) : null;
 
 function useNCsDoItem(itemId: string) {
@@ -116,10 +114,10 @@ function ItemCard({
 }) {
   const qc = useQueryClient();
   const [local, setLocal] = useState({
-    categoria: item.categoria ?? "",
     local: item.local ?? "",
     resposta: item.resposta ?? "",
   });
+  const [modoEdicao, setModoEdicao] = useState(false);
   const [ncForm, setNcForm] = useState({
     categoria: item.categoria ?? "",
     descricao: "",
@@ -164,7 +162,7 @@ function ItemCard({
         observacao: ncForm.observacao || null,
       });
       if (error) throw new Error(error.message);
-      await atualizarItem(item.id, { status: "Não conforme" });
+      await atualizarItem(item.id, { status: "Não conforme", categoria: ncForm.categoria || null });
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["ncs-item", item.id] });
@@ -187,7 +185,7 @@ function ItemCard({
           <button type="button" className="min-w-0 text-left" onClick={onAlternar} aria-expanded={aberto}>
             <p className="truncate font-semibold">
               {rotulo}
-              {local.categoria ? ` — ${local.categoria}` : ""}
+              {item.categoria ? ` — ${item.categoria}` : ""}
             </p>
             {local.local ? (
               <p className="truncate text-xs text-muted-foreground">{local.local}</p>
@@ -237,9 +235,24 @@ function ItemCard({
             >
               <Trash2 className="size-4 text-destructive" />
             </Button>
-            <Button type="button" variant="outline" size="sm" onClick={onAlternar}>
-              {aberto ? "Fechar" : "Abrir"}
-            </Button>
+            {aberto ? (
+              <Button type="button" variant="outline" size="sm" onClick={onAlternar}>
+                Fechar
+              </Button>
+            ) : (
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                aria-label={`Editar ${rotulo}`}
+                onClick={() => {
+                  setModoEdicao(true);
+                  onAlternar();
+                }}
+              >
+                <Pencil className="size-4" />
+              </Button>
+            )}
           </div>
         </div>
 
@@ -247,20 +260,9 @@ function ItemCard({
           <div className="space-y-4 border-t pt-4">
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-1.5">
-                <Label htmlFor={`item-cat-${item.id}`}>Categoria</Label>
-                <Input
-                  id={`item-cat-${item.id}`}
-                  className="h-12"
-                  placeholder="Ex.: Trabalho em altura, EPI..."
-                  value={local.categoria}
-                  onChange={(e) => setLocal({ ...local, categoria: e.target.value })}
-                  onBlur={() => salvar.mutate({ categoria: local.categoria || null })}
-                />
-              </div>
-              <div className="space-y-1.5">
                 <Label>Resposta</Label>
-                <div className="grid grid-cols-3 gap-2">
-                  {RESPOSTAS.map((r) => (
+                <div className="grid grid-cols-2 gap-2">
+                  {RESPOSTAS.filter((r) => r !== "Não se aplica").map((r) => (
                     <Button
                       key={r}
                       type="button"
@@ -276,18 +278,17 @@ function ItemCard({
                   ))}
                 </div>
               </div>
-            </div>
-
-            <div className="space-y-1.5">
-              <Label htmlFor={`item-local-${item.id}`}>Local / setor</Label>
-              <Input
-                id={`item-local-${item.id}`}
-                className="h-12"
-                placeholder="Ex.: Torre B — 7º pavimento"
-                value={local.local}
-                onChange={(e) => setLocal({ ...local, local: e.target.value })}
-                onBlur={() => salvar.mutate({ local: local.local })}
-              />
+              <div className="space-y-1.5">
+                <Label htmlFor={`item-local-${item.id}`}>Local / setor</Label>
+                <Input
+                  id={`item-local-${item.id}`}
+                  className="h-12"
+                  placeholder="Ex.: Torre B — 7º pavimento"
+                  value={local.local}
+                  onChange={(e) => setLocal({ ...local, local: e.target.value })}
+                  onBlur={() => salvar.mutate({ local: local.local })}
+                />
+              </div>
             </div>
 
             {local.resposta === "Não conforme" ? (
