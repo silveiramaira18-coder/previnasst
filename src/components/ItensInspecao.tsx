@@ -10,7 +10,7 @@ import {
   XCircle,
   CheckCircle2,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { FotoDialog } from "@/components/FotoDialog";
@@ -128,6 +128,7 @@ function ItemCard({
     responsavel: "",
     observacao: "",
   });
+  const [erroFotos, setErroFotos] = useState(false);
 
   const { data: fotos = [] } = useQuery({
     queryKey: ["fotos", "fotos_item_inspecao", item.id],
@@ -135,6 +136,10 @@ function ItemCard({
   });
 
   const { data: ncs = [] } = useNCsDoItem(item.id);
+
+  useEffect(() => {
+    if (fotos.length > 0) setErroFotos(false);
+  }, [fotos.length]);
 
   const salvar = useMutation({
     mutationFn: (campos: Partial<ItemInspecao>) => atualizarItem(item.id, campos),
@@ -294,6 +299,12 @@ function ItemCard({
                     className="space-y-4 rounded-xl border border-destructive/40 bg-destructive/5 p-4"
                     onSubmit={(e) => {
                       e.preventDefault();
+                      if (fotos.length === 0) {
+                        setErroFotos(true);
+                        toast.error("Adicione ao menos uma foto antes de prosseguir.");
+                        return;
+                      }
+                      setErroFotos(false);
                       criarNC.mutate();
                     }}
                   >
@@ -379,6 +390,11 @@ function ItemCard({
                         titulo="Fotos da não conformidade"
                         rotuloUpload="+ Adicionar fotos"
                       />
+                      {erroFotos ? (
+                        <p className="mt-2 text-sm font-medium text-destructive">
+                          É obrigatório anexar pelo menos 1 foto para registrar a Não Conformidade.
+                        </p>
+                      ) : null}
                     </div>
 
                     <Button type="submit" size="lg" className="h-12 w-full" disabled={criarNC.isPending}>
