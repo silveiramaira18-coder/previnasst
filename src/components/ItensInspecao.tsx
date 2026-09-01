@@ -114,10 +114,10 @@ function ItemCard({
 }) {
   const qc = useQueryClient();
   const [local, setLocal] = useState({
-    categoria: item.categoria ?? "",
     local: item.local ?? "",
     resposta: item.resposta ?? "",
   });
+  const [modoEdicao, setModoEdicao] = useState(false);
   const [ncForm, setNcForm] = useState({
     categoria: item.categoria ?? "",
     descricao: "",
