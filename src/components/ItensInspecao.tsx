@@ -128,6 +128,7 @@ function ItemCard({
     responsavel: "",
     observacao: "",
   });
+  const [erroFotos, setErroFotos] = useState(false);
 
   const { data: fotos = [] } = useQuery({
     queryKey: ["fotos", "fotos_item_inspecao", item.id],
