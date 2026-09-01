@@ -224,5 +224,22 @@ export async function gerarPdfInspecao(inspecaoId: string) {
     .replace(/[^a-zA-Z0-9]+/g, "-")}.pdf`;
 
   doc.save(nomeArquivo);
+
+  // Envio automático para o Google Drive (pasta da empresa)
+  try {
+    const dataUri = doc.output("datauristring");
+    const pdfBase64 = dataUri.slice(dataUri.indexOf(",") + 1);
+    await enviarRelatorioParaDrive({
+      data: { nomeArquivo, empresa: empresa || inspecao.obras?.nome || "Sem empresa", pdfBase64 },
+    });
+    toast.success("Relatório salvo no Google Drive", { description: nomeArquivo });
+  } catch (erro) {
+    console.error(erro);
+    toast.error("Não foi possível enviar o relatório ao Google Drive", {
+      description: erro instanceof Error ? erro.message : undefined,
+    });
+  }
+
   return nomeArquivo;
 }
+
