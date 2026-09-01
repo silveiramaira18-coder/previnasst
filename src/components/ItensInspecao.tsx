@@ -390,6 +390,11 @@ function ItemCard({
                         titulo="Fotos da não conformidade"
                         rotuloUpload="+ Adicionar fotos"
                       />
+                      {erroFotos ? (
+                        <p className="mt-2 text-sm font-medium text-destructive">
+                          É obrigatório anexar pelo menos 1 foto para registrar a Não Conformidade.
+                        </p>
+                      ) : null}
                     </div>
 
                     <Button type="submit" size="lg" className="h-12 w-full" disabled={criarNC.isPending}>
