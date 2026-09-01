@@ -185,7 +185,7 @@ function ItemCard({
           <button type="button" className="min-w-0 text-left" onClick={onAlternar} aria-expanded={aberto}>
             <p className="truncate font-semibold">
               {rotulo}
-              {local.categoria ? ` — ${local.categoria}` : ""}
+              {item.categoria ? ` — ${item.categoria}` : ""}
             </p>
             {local.local ? (
               <p className="truncate text-xs text-muted-foreground">{local.local}</p>
@@ -235,9 +235,24 @@ function ItemCard({
             >
               <Trash2 className="size-4 text-destructive" />
             </Button>
-            <Button type="button" variant="outline" size="sm" onClick={onAlternar}>
-              {aberto ? "Fechar" : "Abrir"}
-            </Button>
+            {aberto ? (
+              <Button type="button" variant="outline" size="sm" onClick={onAlternar}>
+                Fechar
+              </Button>
+            ) : (
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                aria-label={`Editar ${rotulo}`}
+                onClick={() => {
+                  setModoEdicao(true);
+                  onAlternar();
+                }}
+              >
+                <Pencil className="size-4" />
+              </Button>
+            )}
           </div>
         </div>
 
