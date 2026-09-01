@@ -49,8 +49,6 @@ export const iconeResposta = (resposta: string | null) =>
     <CheckCircle2 className="size-4 text-success" />
   ) : resposta === "Não conforme" ? (
     <XCircle className="size-4 text-destructive" />
-  ) : resposta === "Não se aplica" ? (
-    <MinusCircle className="size-4 text-muted-foreground" />
   ) : null;
 
 function useNCsDoItem(itemId: string) {
