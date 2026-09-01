@@ -79,8 +79,18 @@ function AuthPage() {
       },
     });
     setEnviando(false);
-    if (error) toast.error("Não foi possível cadastrar", { description: error.message });
-    else toast.success("Conta criada", { description: "Você já pode acessar o Previna SST." });
+    if (error) {
+      toast.error("Não foi possível cadastrar", { description: error.message });
+      return;
+    }
+    toast.success("Conta criada", { description: "Você já pode acessar o Previna SST." });
+    try {
+      await registrarUsuarioNaPlanilha({
+        data: { nome, email: emailNormalizado(), empresa, perfil: perfilNovo },
+      });
+    } catch (erro) {
+      console.error("Falha ao registrar usuário na planilha do Google Drive", erro);
+    }
   };
 
   const recuperar = async () => {
