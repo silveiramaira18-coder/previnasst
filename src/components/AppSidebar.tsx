@@ -6,7 +6,6 @@ import {
   ClipboardList,
   ListChecks,
   TriangleAlert,
-  Wrench,
   FileText,
   Settings,
   HardHat,
@@ -82,7 +81,7 @@ export function AppSidebar() {
           <SidebarGroupLabel>{t("Navegação")}</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {(isLoading ? items.filter((i) => !("permissao" in i)) : visiveis).map((item) => (
+              {(isLoading ? items.filter((i) => !("permissao" in i) && !("somenteAdminPrincipal" in i)) : visiveis).map((item) => (
                 <SidebarMenuItem key={item.to}>
                   <SidebarMenuButton asChild size="lg" className="text-[15px]">
                     <Link
