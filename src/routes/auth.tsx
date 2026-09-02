@@ -79,7 +79,7 @@ function AuthPage() {
     toast.success("Conta criada", { description: "Você já pode acessar o Previna SST." });
     try {
       await registrarUsuarioNaPlanilha({
-        data: { nome, email: emailNormalizado(), empresa, cargo: funcao, perfil: "inspetor" },
+        data: { nome, email: emailNormalizado(), empresa, perfil: funcao || "Inspetor" },
       });
     } catch (erro) {
       console.error("Falha ao registrar usuário na planilha do Google Drive", erro);
