@@ -344,11 +344,13 @@ export type Database = {
           id: string
           inspecao_id: string
           local: string | null
+          norma_regulamentadora: string | null
           numero: number
           observacao: string | null
           ordem: number
           pergunta: string | null
           resposta: string | null
+          risco_potencial: string | null
           status: string
           updated_at: string
           user_id: string
@@ -359,11 +361,13 @@ export type Database = {
           id?: string
           inspecao_id: string
           local?: string | null
+          norma_regulamentadora?: string | null
           numero?: number
           observacao?: string | null
           ordem?: number
           pergunta?: string | null
           resposta?: string | null
+          risco_potencial?: string | null
           status?: string
           updated_at?: string
           user_id?: string
@@ -374,11 +378,13 @@ export type Database = {
           id?: string
           inspecao_id?: string
           local?: string | null
+          norma_regulamentadora?: string | null
           numero?: number
           observacao?: string | null
           ordem?: number
           pergunta?: string | null
           resposta?: string | null
+          risco_potencial?: string | null
           status?: string
           updated_at?: string
           user_id?: string
@@ -396,6 +402,7 @@ export type Database = {
       nao_conformidades: {
         Row: {
           categoria: string | null
+          data_conclusao: string | null
           data_criacao: string
           descricao: string
           id: string
@@ -412,6 +419,7 @@ export type Database = {
         }
         Insert: {
           categoria?: string | null
+          data_conclusao?: string | null
           data_criacao?: string
           descricao: string
           id?: string
@@ -428,6 +436,7 @@ export type Database = {
         }
         Update: {
           categoria?: string | null
+          data_conclusao?: string | null
           data_criacao?: string
           descricao?: string
           id?: string
@@ -471,6 +480,7 @@ export type Database = {
           data_criacao: string
           empresa: string | null
           endereco: string | null
+          engenheiro_responsavel: string | null
           id: string
           nome: string
           responsavel: string | null
@@ -481,6 +491,7 @@ export type Database = {
           data_criacao?: string
           empresa?: string | null
           endereco?: string | null
+          engenheiro_responsavel?: string | null
           id?: string
           nome: string
           responsavel?: string | null
@@ -491,6 +502,7 @@ export type Database = {
           data_criacao?: string
           empresa?: string | null
           endereco?: string | null
+          engenheiro_responsavel?: string | null
           id?: string
           nome?: string
           responsavel?: string | null
