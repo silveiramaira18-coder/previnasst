@@ -46,7 +46,7 @@ function AuthPage() {
   const [senha, setSenha] = useState("");
   const [nome, setNome] = useState("");
   const [empresa, setEmpresa] = useState("");
-  const [perfilNovo, setPerfilNovo] = useState("inspetor");
+  const [funcao, setFuncao] = useState("");
   const [enviando, setEnviando] = useState(false);
 
   useEffect(() => {
@@ -75,7 +75,7 @@ function AuthPage() {
       password: senha,
       options: {
         emailRedirectTo: `${window.location.origin}/`,
-        data: { nome, empresa, perfil: perfilNovo },
+        data: { nome, empresa, cargo: funcao, perfil: "inspetor" },
       },
     });
     setEnviando(false);
@@ -86,7 +86,7 @@ function AuthPage() {
     toast.success("Conta criada", { description: "Você já pode acessar o Previna SST." });
     try {
       await registrarUsuarioNaPlanilha({
-        data: { nome, email: emailNormalizado(), empresa, perfil: perfilNovo },
+        data: { nome, email: emailNormalizado(), empresa, cargo: funcao, perfil: "inspetor" },
       });
     } catch (erro) {
       console.error("Falha ao registrar usuário na planilha do Google Drive", erro);
@@ -197,16 +197,14 @@ function AuthPage() {
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label htmlFor="perfil">Tipo de usuário</Label>
-                    <Select value={perfilNovo} onValueChange={setPerfilNovo}>
-                      <SelectTrigger id="perfil" className="h-12 w-full">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="inspetor">Inspetor</SelectItem>
-                        <SelectItem value="responsavel">Responsável pela obra</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <Label htmlFor="funcao">Função</Label>
+                    <Input
+                      id="funcao"
+                      className="h-12"
+                      placeholder="Ex.: Técnico de Segurança do Trabalho"
+                      value={funcao}
+                      onChange={(e) => setFuncao(e.target.value)}
+                    />
                   </div>
                   <div className="space-y-1.5">
                     <Label htmlFor="email2">E-mail</Label>
