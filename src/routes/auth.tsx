@@ -7,13 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -46,7 +39,7 @@ function AuthPage() {
   const [senha, setSenha] = useState("");
   const [nome, setNome] = useState("");
   const [empresa, setEmpresa] = useState("");
-  const [perfilNovo, setPerfilNovo] = useState("inspetor");
+  const [funcao, setFuncao] = useState("");
   const [enviando, setEnviando] = useState(false);
 
   useEffect(() => {
@@ -75,7 +68,7 @@ function AuthPage() {
       password: senha,
       options: {
         emailRedirectTo: `${window.location.origin}/`,
-        data: { nome, empresa, perfil: perfilNovo },
+        data: { nome, empresa, cargo: funcao, perfil: "inspetor" },
       },
     });
     setEnviando(false);
@@ -86,7 +79,7 @@ function AuthPage() {
     toast.success("Conta criada", { description: "Você já pode acessar o Previna SST." });
     try {
       await registrarUsuarioNaPlanilha({
-        data: { nome, email: emailNormalizado(), empresa, perfil: perfilNovo },
+        data: { nome, email: emailNormalizado(), empresa, perfil: funcao || "Inspetor" },
       });
     } catch (erro) {
       console.error("Falha ao registrar usuário na planilha do Google Drive", erro);
@@ -197,16 +190,14 @@ function AuthPage() {
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label htmlFor="perfil">Tipo de usuário</Label>
-                    <Select value={perfilNovo} onValueChange={setPerfilNovo}>
-                      <SelectTrigger id="perfil" className="h-12 w-full">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="inspetor">Inspetor</SelectItem>
-                        <SelectItem value="responsavel">Responsável pela obra</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <Label htmlFor="funcao">Função</Label>
+                    <Input
+                      id="funcao"
+                      className="h-12"
+                      placeholder="Ex.: Técnico de Segurança do Trabalho"
+                      value={funcao}
+                      onChange={(e) => setFuncao(e.target.value)}
+                    />
                   </div>
                   <div className="space-y-1.5">
                     <Label htmlFor="email2">E-mail</Label>

@@ -6,7 +6,6 @@ import {
   ClipboardList,
   ListChecks,
   TriangleAlert,
-  Wrench,
   FileText,
   Settings,
   HardHat,
@@ -42,22 +41,29 @@ const items = [
     permissao: "gerenciarChecklists",
   },
   { title: "Não Conformidades", to: "/nao-conformidades", icon: TriangleAlert },
-  { title: "Ações Corretivas", to: "/acoes-corretivas", icon: Wrench },
-  { title: "Relatórios", to: "/relatorios", icon: FileText },
+  { title: "Relatórios", to: "/relatorios", icon: FileText, somenteAdminPrincipal: true },
   { title: "Meu Perfil", to: "/perfil", icon: UserRound },
   { title: "Configurações", to: "/configuracoes", icon: Settings },
 ] as const;
 
 export function AppSidebar() {
   const { isMobile, setOpenMobile } = useSidebar();
-  const { perfil, pode, isLoading } = usePerfil();
+  const { perfil, pode, isLoading, adminPrincipal } = usePerfil();
   const { t } = useIdioma();
-  const visiveis = items.filter((i) => !("permissao" in i) || pode(i.permissao as Permissao));
+  const visiveis = items.filter(
+    (i) =>
+      (!("permissao" in i) || pode(i.permissao as Permissao)) &&
+      (!("somenteAdminPrincipal" in i) || adminPrincipal),
+  );
 
   return (
     <Sidebar>
       <SidebarHeader className="border-b border-sidebar-border p-4">
-        <div className="flex min-w-0 items-center gap-3">
+        <Link
+          to="/"
+          className="flex min-w-0 items-center gap-3 rounded-xl p-1 transition-colors hover:bg-sidebar-accent"
+          onClick={() => isMobile && setOpenMobile(false)}
+        >
           <div className="grid size-10 shrink-0 place-items-center rounded-xl bg-sidebar-primary text-sidebar-primary-foreground">
             <HardHat className="size-5" />
           </div>
@@ -67,7 +73,7 @@ export function AppSidebar() {
               {t("Inspeções de Segurança")}
             </p>
           </div>
-        </div>
+        </Link>
       </SidebarHeader>
 
       <SidebarContent>
@@ -75,7 +81,7 @@ export function AppSidebar() {
           <SidebarGroupLabel>{t("Navegação")}</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {(isLoading ? items.filter((i) => !("permissao" in i)) : visiveis).map((item) => (
+              {(isLoading ? items.filter((i) => !("permissao" in i) && !("somenteAdminPrincipal" in i)) : visiveis).map((item) => (
                 <SidebarMenuItem key={item.to}>
                   <SidebarMenuButton asChild size="lg" className="text-[15px]">
                     <Link

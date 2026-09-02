@@ -20,6 +20,8 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { IdiomaProvider } from "@/lib/i18n";
+import { TemaProvider, useTema } from "@/lib/tema";
+import { Moon, Sun, Menu } from "lucide-react";
 
 function NotFoundComponent() {
   return (
@@ -149,16 +151,19 @@ function RootComponent() {
   if (pathname === "/auth") {
     return (
       <QueryClientProvider client={queryClient}>
-        <IdiomaProvider>
-          <Outlet />
-          <Toaster />
-        </IdiomaProvider>
+        <TemaProvider>
+          <IdiomaProvider>
+            <Outlet />
+            <Toaster />
+          </IdiomaProvider>
+        </TemaProvider>
       </QueryClientProvider>
     );
   }
 
   return (
     <QueryClientProvider client={queryClient}>
+      <TemaProvider>
       <IdiomaProvider>
       <AuthGate>
         <SidebarProvider>
@@ -166,12 +171,16 @@ function RootComponent() {
             <AppSidebar />
             <div className="flex min-w-0 flex-1 flex-col">
               <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b bg-background/95 px-4 backdrop-blur">
-                <SidebarTrigger className="size-9" />
-                <span className="font-display text-base font-bold">Previna SST</span>
+                <SidebarTrigger className="size-10" aria-label="Abrir menu">
+                  <Menu className="size-5" />
+                </SidebarTrigger>
+                <Link to="/" className="font-display text-base font-bold">
+                  Previna SST
+                </Link>
+                <BotaoTema />
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="ml-auto"
                   onClick={() => supabase.auth.signOut()}
                 >
                   Sair
@@ -187,7 +196,23 @@ function RootComponent() {
       </AuthGate>
       <Toaster />
       </IdiomaProvider>
+      </TemaProvider>
     </QueryClientProvider>
+  );
+}
+
+function BotaoTema() {
+  const { tema, alternar } = useTema();
+  return (
+    <Button
+      variant="ghost"
+      size="icon"
+      className="ml-auto size-10"
+      aria-label={tema === "dark" ? "Ativar tema claro" : "Ativar tema escuro"}
+      onClick={alternar}
+    >
+      {tema === "dark" ? <Sun className="size-5" /> : <Moon className="size-5" />}
+    </Button>
   );
 }
 
