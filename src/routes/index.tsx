@@ -191,18 +191,21 @@ function Dashboard() {
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {cards.map((c) => (
-          <Card key={c.label}>
-            <CardContent className="flex items-center gap-4 p-5">
-              <div className="grid size-11 shrink-0 place-items-center rounded-xl bg-secondary">
-                <c.icon className={`size-5 ${c.tone}`} />
-              </div>
-              <div className="min-w-0">
-                <p className="text-2xl font-bold leading-none">{c.value}</p>
-                <p className="mt-1 truncate text-sm text-muted-foreground">{c.label}</p>
-              </div>
-            </CardContent>
-          </Card>
+          <Link key={c.label} to={c.to} className="block focus-visible:outline-none">
+            <Card className="h-full transition-colors hover:bg-secondary">
+              <CardContent className="flex items-center gap-4 p-5">
+                <div className="grid size-11 shrink-0 place-items-center rounded-xl bg-secondary">
+                  <c.icon className={`size-5 ${c.tone}`} />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-2xl font-bold leading-none">{c.value}</p>
+                  <p className="mt-1 truncate text-sm text-muted-foreground">{c.label}</p>
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
         ))}
+
       </div>
 
       <Card>
