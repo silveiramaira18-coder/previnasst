@@ -83,34 +83,57 @@ function Dashboard() {
   }, [perfil]);
 
   const cards = [
-    { label: "Obras cadastradas", value: ind?.obras ?? 0, icon: Building2, tone: "text-primary" },
+    {
+      label: "Obras cadastradas",
+      value: ind?.obras ?? 0,
+      icon: Building2,
+      tone: "text-primary",
+      to: "/obras",
+    },
     {
       label: "Inspeções realizadas",
       value: ind?.inspecoes ?? 0,
       icon: ClipboardList,
       tone: "text-primary",
+      to: "/inspecoes",
     },
     {
       label: "Não conformidades",
       value: ind?.naoConformidades ?? 0,
       icon: TriangleAlert,
       tone: "text-critical",
+      to: "/nao-conformidades",
     },
-    { label: "Itens conformes", value: ind?.conformes ?? 0, icon: CheckCircle2, tone: "text-success" },
-    { label: "Itens pendentes", value: ind?.pendentes ?? 0, icon: Clock, tone: "text-warning" },
+    {
+      label: "Itens conformes",
+      value: ind?.conformes ?? 0,
+      icon: CheckCircle2,
+      tone: "text-success",
+      to: "/inspecoes",
+    },
+    {
+      label: "Itens pendentes",
+      value: ind?.pendentes ?? 0,
+      icon: Clock,
+      tone: "text-warning",
+      to: "/inspecoes",
+    },
     {
       label: "Ações corretivas abertas",
       value: ind?.acoesAbertas ?? 0,
       icon: Wrench,
       tone: "text-info",
+      to: "/acoes-corretivas",
     },
     {
       label: "Ações corretivas atrasadas",
       value: ind?.acoesAtrasadas ?? 0,
       icon: CalendarClock,
       tone: "text-critical",
+      to: "/acoes-corretivas",
     },
-  ];
+  ] as const;
+
 
   const vazio = !isLoading && (ind?.obras ?? 0) === 0 && (ind?.inspecoes ?? 0) === 0;
 
