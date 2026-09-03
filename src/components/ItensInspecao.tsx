@@ -27,6 +27,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { listarFotos } from "@/lib/fotos";
@@ -129,8 +130,10 @@ function ItemCard({
     prazo: "",
     responsavel: "",
     observacao: "",
+    resolvida: false,
   });
   const [erroFotos, setErroFotos] = useState(false);
+  const hoje = new Date().toISOString().slice(0, 10);
 
   const { data: fotos = [] } = useQuery({
     queryKey: ["fotos", "fotos_item_inspecao", item.id],
@@ -161,9 +164,11 @@ function ItemCard({
         categoria: ncForm.categoria || null,
         descricao: ncForm.descricao,
         severidade: ncForm.severidade,
-        prazo: ncForm.prazo || null,
+        prazo: ncForm.resolvida ? hoje : ncForm.prazo || null,
         responsavel: ncForm.responsavel || null,
         observacao: ncForm.observacao || null,
+        status: ncForm.resolvida ? "Concluída" : "Aberta",
+        data_conclusao: ncForm.resolvida ? hoje : null,
       });
       if (error) throw new Error(error.message);
       await atualizarItem(item.id, {
@@ -174,6 +179,7 @@ function ItemCard({
       });
     },
     onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["indicadores"] });
       qc.invalidateQueries({ queryKey: ["ncs-item", item.id] });
       qc.invalidateQueries({ queryKey: ["ncs", inspecaoId] });
       qc.invalidateQueries({ queryKey: ["ncs-todas"] });
@@ -413,9 +419,28 @@ function ItemCard({
                           id={`nc-prazo-${item.id}`}
                           type="date"
                           className="h-12"
-                          value={ncForm.prazo}
+                          disabled={ncForm.resolvida}
+                          value={ncForm.resolvida ? hoje : ncForm.prazo}
                           onChange={(e) => setNcForm({ ...ncForm, prazo: e.target.value })}
                         />
+                      </div>
+                      <div className="flex items-start gap-3 rounded-xl border bg-background p-3 sm:col-span-2">
+                        <Switch
+                          id={`nc-resolvida-${item.id}`}
+                          checked={ncForm.resolvida}
+                          onCheckedChange={(v) =>
+                            setNcForm({ ...ncForm, resolvida: v, prazo: v ? hoje : ncForm.prazo })
+                          }
+                        />
+                        <div className="space-y-0.5">
+                          <Label htmlFor={`nc-resolvida-${item.id}`}>
+                            Não conformidade tratada no local / Já resolvida
+                          </Label>
+                          <p className="text-xs text-muted-foreground">
+                            O prazo passa a ser hoje e a NC é registrada como Concluída. Anexe abaixo
+                            a foto da evidência da correção.
+                          </p>
+                        </div>
                       </div>
                       <div className="space-y-1.5 sm:col-span-2">
                         <Label htmlFor={`nc-resp-${item.id}`}>Responsável</Label>
@@ -446,7 +471,11 @@ function ItemCard({
                         tabela="fotos_item_inspecao"
                         coluna="item_inspecao_id"
                         valor={item.id}
-                        titulo="Fotos da não conformidade"
+                        titulo={
+                          ncForm.resolvida
+                            ? "Fotos da não conformidade e da correção"
+                            : "Fotos da não conformidade"
+                        }
                         rotuloUpload="+ Adicionar fotos"
                       />
                       {erroFotos ? (
@@ -457,7 +486,9 @@ function ItemCard({
                     </div>
 
                     <Button type="submit" size="lg" className="h-12 w-full" disabled={criarNC.isPending}>
-                      Salvar NC e ir para o próximo item
+                      {ncForm.resolvida
+                        ? "Salvar NC resolvida e ir para o próximo item"
+                        : "Salvar NC e ir para o próximo item"}
                     </Button>
                   </form>
                 )}
