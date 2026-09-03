@@ -38,7 +38,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
-import { formatarData, listarInspecoes, listarNCs, listarObras } from "@/lib/db";
+import { formatarData, listarInspecoes, listarNCs, listarObras, statusExibidoNC } from "@/lib/db";
 import { categoriasChecklist } from "@/lib/mock-data";
 
 export const Route = createFileRoute("/nao-conformidades")({
@@ -62,6 +62,7 @@ export const Route = createFileRoute("/nao-conformidades")({
 
 const SEVERIDADES = ["Baixa", "Média", "Alta", "Crítica"];
 const STATUS = ["Aberta", "Em tratativa", "Atrasada", "Concluída"];
+const STATUS_FILTRO = ["Aberta", "Em tratativa", "Vencida", "Concluída"];
 const TODOS = "todos";
 
 function NCPage() {
@@ -115,7 +116,7 @@ function NCPage() {
         const dataRef = nc.inspecoes?.data ?? nc.data_criacao.slice(0, 10);
         if (obra !== TODOS && nomeObra !== obra) return false;
         if (severidade !== TODOS && nc.severidade !== severidade) return false;
-        if (status !== TODOS && nc.status !== status) return false;
+        if (status !== TODOS && statusExibidoNC(nc) !== status) return false;
         if (de && dataRef < de) return false;
         if (ate && dataRef > ate) return false;
         return true;
@@ -298,7 +299,7 @@ function NCPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value={TODOS}>Todos</SelectItem>
-                {STATUS.map((s) => (
+                {STATUS_FILTRO.map((s) => (
                   <SelectItem key={s} value={s}>
                     {s}
                   </SelectItem>
@@ -356,7 +357,7 @@ function NCPage() {
                   </TableCell>
                   <TableCell>{formatarData(nc.prazo)}</TableCell>
                   <TableCell>
-                    <StatusBadge value={nc.status} />
+                    <StatusBadge value={statusExibidoNC(nc)} />
                   </TableCell>
                   <TableCell>
                     <div className="flex justify-end gap-2">
@@ -401,7 +402,7 @@ function NCPage() {
               <p className="text-sm text-muted-foreground">{nc.descricao}</p>
               <p className="text-sm">{nc.inspecoes?.obras?.nome ?? "Sem obra"}</p>
               <div className="flex flex-wrap items-center gap-3 text-sm">
-                <StatusBadge value={nc.status} />
+                <StatusBadge value={statusExibidoNC(nc)} />
                 <span className="text-muted-foreground">Prazo: {formatarData(nc.prazo)}</span>
               </div>
               <div className="flex flex-wrap gap-2">
