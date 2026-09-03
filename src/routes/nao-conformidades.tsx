@@ -404,12 +404,20 @@ function NCPage() {
                 <StatusBadge value={nc.status} />
                 <span className="text-muted-foreground">Prazo: {formatarData(nc.prazo)}</span>
               </div>
-              <FotoDialog
-                tabela="fotos_nao_conformidade"
-                coluna="nao_conformidade_id"
-                valor={nc.id}
-                titulo={`Fotos da NC ${nc.numero}`}
-              />
+              <div className="flex flex-wrap gap-2">
+                <FotoDialog
+                  tabela="fotos_nao_conformidade"
+                  coluna="nao_conformidade_id"
+                  valor={nc.id}
+                  titulo={`Fotos da NC ${nc.numero}`}
+                />
+                <ResolverNC
+                  ncId={nc.id}
+                  numero={nc.numero}
+                  concluida={nc.status === "Concluída"}
+                />
+              </div>
+
             </CardContent>
           </Card>
         ))}
