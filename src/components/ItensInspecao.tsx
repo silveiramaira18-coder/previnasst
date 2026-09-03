@@ -1,7 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+  Check,
   ChevronDown,
   ChevronUp,
+  ChevronsUpDown,
   ImageIcon,
   Pencil,
   Plus,
@@ -18,8 +20,21 @@ import { FotoManager } from "@/components/FotoManager";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -37,11 +52,12 @@ import {
   excluirItem,
   listarItens,
   reordenarItens,
-  NORMAS_COMUNS,
+  NORMAS_REGULAMENTADORAS,
   RESPOSTAS,
   statusDaResposta,
   type ItemInspecao,
 } from "@/lib/itens";
+import { cn } from "@/lib/utils";
 
 
 const SEVERIDADES = ["Crítico", "Médio", "Baixo"];
@@ -133,6 +149,7 @@ function ItemCard({
     resolvida: false,
   });
   const [erroFotos, setErroFotos] = useState(false);
+  const [abertoNR, setAbertoNR] = useState(false);
   const hoje = new Date().toISOString().slice(0, 10);
 
   const { data: fotos = [] } = useQuery({
@@ -355,20 +372,51 @@ function ItemCard({
                       />
                     </div>
                     <div className="space-y-1.5">
-                      <Label htmlFor={`nc-nr-${item.id}`}>NR relacionada</Label>
-                      <Input
-                        id={`nc-nr-${item.id}`}
-                        className="h-12"
-                        list={`nrs-${item.id}`}
-                        placeholder="Ex.: NR-35"
-                        value={ncForm.norma}
-                        onChange={(e) => setNcForm({ ...ncForm, norma: e.target.value })}
-                      />
-                      <datalist id={`nrs-${item.id}`}>
-                        {NORMAS_COMUNS.map((n) => (
-                          <option key={n} value={n} />
-                        ))}
-                      </datalist>
+                      <Label>NR relacionada</Label>
+                      <Popover open={abertoNR} onOpenChange={setAbertoNR}>
+                        <PopoverTrigger asChild>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            role="combobox"
+                            aria-expanded={abertoNR}
+                            className="h-12 w-full justify-between font-normal"
+                          >
+                            {ncForm.norma
+                              ? (NORMAS_REGULAMENTADORAS.find((n) => n.value === ncForm.norma)?.label ?? ncForm.norma)
+                              : "Selecione a NR..."}
+                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                          <Command>
+                            <CommandInput placeholder="Buscar por número ou texto..." />
+                            <CommandList>
+                              <CommandEmpty>Nenhuma NR encontrada.</CommandEmpty>
+                              <CommandGroup>
+                                {NORMAS_REGULAMENTADORAS.map((n) => (
+                                  <CommandItem
+                                    key={n.value}
+                                    value={`${n.value} ${n.label}`}
+                                    onSelect={() => {
+                                      setNcForm({ ...ncForm, norma: n.value });
+                                      setAbertoNR(false);
+                                    }}
+                                  >
+                                    <Check
+                                      className={cn(
+                                        "mr-2 h-4 w-4",
+                                        ncForm.norma === n.value ? "opacity-100" : "opacity-0",
+                                      )}
+                                    />
+                                    {n.label}
+                                  </CommandItem>
+                                ))}
+                              </CommandGroup>
+                            </CommandList>
+                          </Command>
+                        </PopoverContent>
+                      </Popover>
                     </div>
                     <div className="space-y-1.5">
                       <Label htmlFor={`nc-desc-${item.id}`}>Não conformidade encontrada</Label>
