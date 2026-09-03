@@ -117,6 +117,7 @@ function ItemCard({
   const [local, setLocal] = useState({
     local: item.local ?? "",
     resposta: item.resposta ?? "",
+    observacao: item.observacao ?? "",
   });
   const [modoEdicao, setModoEdicao] = useState(false);
   const [ncForm, setNcForm] = useState({
@@ -303,6 +304,20 @@ function ItemCard({
                 />
               </div>
             </div>
+
+            {local.resposta === "Conforme" ? (
+              <div className="space-y-1.5">
+                <Label htmlFor={`item-obs-${item.id}`}>Descrição / Observação (opcional)</Label>
+                <Textarea
+                  id={`item-obs-${item.id}`}
+                  rows={3}
+                  placeholder="Descrição / Observação (opcional)"
+                  value={local.observacao}
+                  onChange={(e) => setLocal({ ...local, observacao: e.target.value })}
+                  onBlur={() => salvar.mutate({ observacao: local.observacao || null })}
+                />
+              </div>
+            ) : null}
 
             {local.resposta === "Não conforme" ? (
               <div className="space-y-3">
