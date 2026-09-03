@@ -63,6 +63,29 @@ async function carregarImagem(caminho: string) {
   return { dataUrl, formato: blob.type.includes("png") ? "PNG" : "JPEG" };
 }
 
+/** Recorta a imagem no estilo object-fit: cover, mantendo a proporção original. */
+async function recortarCover(dataUrl: string, larguraAlvo: number, alturaAlvo: number) {
+  return await new Promise<string>((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      const escala = Math.max(larguraAlvo / img.width, alturaAlvo / img.height);
+      const canvas = document.createElement("canvas");
+      canvas.width = larguraAlvo;
+      canvas.height = alturaAlvo;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return resolve(dataUrl);
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, larguraAlvo, alturaAlvo);
+      const lg = img.width * escala;
+      const al = img.height * escala;
+      ctx.drawImage(img, (larguraAlvo - lg) / 2, (alturaAlvo - al) / 2, lg, al);
+      resolve(canvas.toDataURL("image/jpeg", 0.9));
+    };
+    img.onerror = () => resolve(dataUrl);
+    img.src = dataUrl;
+  });
+}
+
 export async function gerarPdfInspecao(inspecaoId: string) {
   const [inspecao, itens, ncs, resumo, perfil] = await Promise.all([
     obterInspecao(inspecaoId),
@@ -93,7 +116,11 @@ export async function gerarPdfInspecao(inspecaoId: string) {
         const fotos = await listarFotos("fotos_item_inspecao", "item_inspecao_id", item.id);
         const primeira = fotos[0];
         if (!primeira) return;
-        imagensPorItem.set(item.id, await carregarImagem(primeira.url));
+        const bruta = await carregarImagem(primeira.url);
+        imagensPorItem.set(item.id, {
+          dataUrl: await recortarCover(bruta.dataUrl, 600, 448),
+          formato: "JPEG",
+        });
       } catch (erro) {
         console.error("Falha ao carregar foto do item", erro);
       }
@@ -232,8 +259,8 @@ export async function gerarPdfInspecao(inspecaoId: string) {
 
   const executivo =
     totalNc === 0
-      ? `Foram inspecionados ${resumo.total} itens na obra ${nomeObra}, sem registro de não conformidades. O índice de conformidade apurado foi de ${resumo.conformidade.toFixed(1)}%, indicando aderência aos requisitos de segurança verificados nesta inspeção.`
-      : `Foram inspecionados ${resumo.total} itens na obra ${nomeObra}, com ${totalNc} não conformidade(s) registrada(s), sendo ${contagem["Crítico"]} de risco crítico, ${contagem["Médio"]} de risco médio e ${contagem["Baixo"]} de risco baixo. O índice de conformidade apurado foi de ${resumo.conformidade.toFixed(1)}%.${
+      ? `Foram inspecionados ${resumo.total} ${resumo.total === 1 ? "item" : "itens"} na obra ${nomeObra}, sem registro de não conformidades. O índice de conformidade apurado foi de ${resumo.conformidade.toFixed(1)}%, indicando aderência aos requisitos de segurança verificados nesta inspeção.`
+      : `Foram inspecionados ${resumo.total} ${resumo.total === 1 ? "item" : "itens"} na obra ${nomeObra}, com ${totalNc} ${totalNc === 1 ? "não conformidade registrada" : "não conformidades registradas"}, sendo ${contagem["Crítico"]} de risco crítico, ${contagem["Médio"]} de risco médio e ${contagem["Baixo"]} de risco baixo. O índice de conformidade apurado foi de ${resumo.conformidade.toFixed(1)}%.${
           categorias.length > 0
             ? ` As ocorrências concentram-se em: ${categorias.join(", ")}.`
             : ""
@@ -398,6 +425,7 @@ export async function gerarPdfInspecao(inspecaoId: string) {
     } else if (risco) {
       campos.push(["Risco potencial", risco]);
     }
+    if (!nc && item.observacao) campos.push(["Descrição / Observação", item.observacao]);
 
     // Medição do bloco inteiro (texto + foto) antes de desenhar → nunca quebra no meio.
     doc.setFontSize(11);

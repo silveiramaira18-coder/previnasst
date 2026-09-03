@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { HardHat, Loader2 } from "lucide-react";
+import { Eye, EyeOff, HardHat, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -41,6 +41,8 @@ function AuthPage() {
   const [empresa, setEmpresa] = useState("");
   const [funcao, setFuncao] = useState("");
   const [enviando, setEnviando] = useState(false);
+  const [verSenha, setVerSenha] = useState(false);
+  const [verSenha2, setVerSenha2] = useState(false);
 
   useEffect(() => {
     if (!loading && session) navigate({ to: "/" });
@@ -145,14 +147,24 @@ function AuthPage() {
                   </div>
                   <div className="space-y-1.5">
                     <Label htmlFor="senha">Senha</Label>
-                    <Input
-                      id="senha"
-                      type="password"
-                      required
-                      className="h-12"
-                      value={senha}
-                      onChange={(e) => setSenha(e.target.value)}
-                    />
+                    <div className="relative">
+                      <Input
+                        id="senha"
+                        type={verSenha ? "text" : "password"}
+                        required
+                        className="h-12 pr-12"
+                        value={senha}
+                        onChange={(e) => setSenha(e.target.value)}
+                      />
+                      <button
+                        type="button"
+                        aria-label={verSenha ? "Ocultar senha" : "Mostrar senha"}
+                        className="absolute inset-y-0 right-0 grid w-12 place-items-center text-muted-foreground transition-colors hover:text-foreground"
+                        onClick={() => setVerSenha((v) => !v)}
+                      >
+                        {verSenha ? <EyeOff className="size-5" /> : <Eye className="size-5" />}
+                      </button>
+                    </div>
                   </div>
                   <Button type="submit" size="lg" className="h-12 w-full" disabled={enviando}>
                     {enviando ? <Loader2 className="size-4 animate-spin" /> : "Entrar"}
@@ -216,15 +228,25 @@ function AuthPage() {
                   </div>
                   <div className="space-y-1.5">
                     <Label htmlFor="senha2">Senha</Label>
-                    <Input
-                      id="senha2"
-                      type="password"
-                      required
-                      minLength={6}
-                      className="h-12"
-                      value={senha}
-                      onChange={(e) => setSenha(e.target.value)}
-                    />
+                    <div className="relative">
+                      <Input
+                        id="senha2"
+                        type={verSenha2 ? "text" : "password"}
+                        required
+                        minLength={6}
+                        className="h-12 pr-12"
+                        value={senha}
+                        onChange={(e) => setSenha(e.target.value)}
+                      />
+                      <button
+                        type="button"
+                        aria-label={verSenha2 ? "Ocultar senha" : "Mostrar senha"}
+                        className="absolute inset-y-0 right-0 grid w-12 place-items-center text-muted-foreground transition-colors hover:text-foreground"
+                        onClick={() => setVerSenha2((v) => !v)}
+                      >
+                        {verSenha2 ? <EyeOff className="size-5" /> : <Eye className="size-5" />}
+                      </button>
+                    </div>
                   </div>
                   <Button type="submit" size="lg" className="h-12 w-full" disabled={enviando}>
                     {enviando ? <Loader2 className="size-4 animate-spin" /> : "Criar conta"}
