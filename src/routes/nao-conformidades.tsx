@@ -6,6 +6,8 @@ import { toast } from "sonner";
 
 import { FotoDialog } from "@/components/FotoDialog";
 import { PageHeader } from "@/components/PageHeader";
+import { ResolverNC } from "@/components/ResolverNC";
+
 import { StatusBadge } from "@/components/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -358,6 +360,11 @@ function NCPage() {
                   </TableCell>
                   <TableCell>
                     <div className="flex justify-end gap-2">
+                      <ResolverNC
+                        ncId={nc.id}
+                        numero={nc.numero}
+                        concluida={nc.status === "Concluída"}
+                      />
                       <FotoDialog
                         tabela="fotos_nao_conformidade"
                         coluna="nao_conformidade_id"
@@ -373,6 +380,7 @@ function NCPage() {
                       ) : null}
                     </div>
                   </TableCell>
+
                 </TableRow>
               ))}
             </TableBody>
@@ -396,12 +404,20 @@ function NCPage() {
                 <StatusBadge value={nc.status} />
                 <span className="text-muted-foreground">Prazo: {formatarData(nc.prazo)}</span>
               </div>
-              <FotoDialog
-                tabela="fotos_nao_conformidade"
-                coluna="nao_conformidade_id"
-                valor={nc.id}
-                titulo={`Fotos da NC ${nc.numero}`}
-              />
+              <div className="flex flex-wrap gap-2">
+                <FotoDialog
+                  tabela="fotos_nao_conformidade"
+                  coluna="nao_conformidade_id"
+                  valor={nc.id}
+                  titulo={`Fotos da NC ${nc.numero}`}
+                />
+                <ResolverNC
+                  ncId={nc.id}
+                  numero={nc.numero}
+                  concluida={nc.status === "Concluída"}
+                />
+              </div>
+
             </CardContent>
           </Card>
         ))}
