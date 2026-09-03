@@ -174,50 +174,45 @@ const contarTabela = async (tabela: string) => {
 };
 
 export async function carregarIndicadores(): Promise<Indicadores> {
-  const hoje = new Date().toISOString().slice(0, 10);
+  const hoje = hojeISO();
 
-  const [obras, inspecoes, ncs, ncsAbertas, acoes, acoesAbertas, acoesAtrasadas, itens] =
-    await Promise.all([
-      contarTabela("obras"),
-      contarTabela("inspecoes"),
-      contarTabela("nao_conformidades"),
-      supabase
-        .from("nao_conformidades")
-        .select("id", { count: "exact", head: true })
-        .neq("status", "Concluída"),
-      contarTabela("acoes_corretivas"),
-      supabase
-        .from("acoes_corretivas")
-        .select("id", { count: "exact", head: true })
-        .neq("status", "Concluída"),
-      supabase
-        .from("acoes_corretivas")
-        .select("id", { count: "exact", head: true })
-        .neq("status", "Concluída")
-        .lt("prazo", hoje),
-      supabase.from("itens_inspecao").select("resposta"),
-    ]);
+  const [obras, inspecoes, acoes, listaNcs, itens] = await Promise.all([
+    contarTabela("obras"),
+    contarTabela("inspecoes"),
+    contarTabela("acoes_corretivas"),
+    supabase.from("nao_conformidades").select("status, prazo"),
+    supabase.from("itens_inspecao").select("resposta"),
+  ]);
+
+  const ncs = (listaNcs.data ?? []) as { status: string; prazo: string | null }[];
+  const ncsConcluidas = ncs.filter((n) => n.status === "Concluída").length;
+  const abertas = ncs.filter((n) => n.status !== "Concluída");
+  const vencidas = abertas.filter((n) => !!n.prazo && n.prazo < hoje).length;
+  const abertasNoPrazo = abertas.length - vencidas;
 
   const lista = (itens.data ?? []) as { resposta: string | null }[];
-  const conformes = lista.filter((i) => i.resposta === "Conforme").length;
-  const naoConformes = lista.filter((i) => i.resposta === "Não conforme").length;
-  const pendentes = lista.filter((i) => !i.resposta).length;
+  const itensConformes = lista.filter((i) => i.resposta === "Conforme").length;
+
+  // Conformidade considera itens conformes + NCs já tratadas frente às NCs em aberto.
+  const conformes = itensConformes + ncsConcluidas;
+  const naoConformes = abertas.length;
   const avaliados = conformes + naoConformes;
 
   return {
     obras,
     inspecoes,
-    naoConformidades: ncs,
-    ncsAbertas: ncsAbertas.count ?? 0,
+    naoConformidades: abertas.length,
+    ncsAbertas: abertas.length,
     acoes,
-    acoesAbertas: acoesAbertas.count ?? 0,
-    acoesAtrasadas: acoesAtrasadas.count ?? 0,
+    acoesAbertas: abertasNoPrazo,
+    acoesAtrasadas: vencidas,
     conformes,
     naoConformes,
-    pendentes,
+    pendentes: abertasNoPrazo,
     conformidade: avaliados > 0 ? Math.round((conformes / avaliados) * 100) : 0,
   };
 }
+
 
 export type ResumoUsuario = {
   user_id: string;
