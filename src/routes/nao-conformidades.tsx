@@ -358,6 +358,11 @@ function NCPage() {
                   </TableCell>
                   <TableCell>
                     <div className="flex justify-end gap-2">
+                      <ResolverNC
+                        ncId={nc.id}
+                        numero={nc.numero}
+                        concluida={nc.status === "Concluída"}
+                      />
                       <FotoDialog
                         tabela="fotos_nao_conformidade"
                         coluna="nao_conformidade_id"
@@ -373,6 +378,7 @@ function NCPage() {
                       ) : null}
                     </div>
                   </TableCell>
+
                 </TableRow>
               ))}
             </TableBody>
