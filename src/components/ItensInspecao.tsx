@@ -149,6 +149,7 @@ function ItemCard({
     resolvida: false,
   });
   const [erroFotos, setErroFotos] = useState(false);
+  const [abertoNR, setAbertoNR] = useState(false);
   const hoje = new Date().toISOString().slice(0, 10);
 
   const { data: fotos = [] } = useQuery({
