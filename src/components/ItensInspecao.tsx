@@ -1,7 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+  Check,
   ChevronDown,
   ChevronUp,
+  ChevronsUpDown,
   ImageIcon,
   Pencil,
   Plus,
@@ -18,8 +20,21 @@ import { FotoManager } from "@/components/FotoManager";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -37,11 +52,12 @@ import {
   excluirItem,
   listarItens,
   reordenarItens,
-  NORMAS_COMUNS,
+  NORMAS_REGULAMENTADORAS,
   RESPOSTAS,
   statusDaResposta,
   type ItemInspecao,
 } from "@/lib/itens";
+import { cn } from "@/lib/utils";
 
 
 const SEVERIDADES = ["Crítico", "Médio", "Baixo"];
