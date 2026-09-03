@@ -401,10 +401,13 @@ export type Database = {
       }
       nao_conformidades: {
         Row: {
+          acao_imediata: boolean
           categoria: string | null
+          data_acao_imediata: string | null
           data_conclusao: string | null
           data_criacao: string
           descricao: string
+          descricao_acao_imediata: string | null
           id: string
           inspecao_id: string | null
           item_inspecao_id: string | null
@@ -412,16 +415,20 @@ export type Database = {
           obra_id: string | null
           observacao: string | null
           prazo: string | null
+          responsaveis: string[]
           responsavel: string | null
           severidade: string
           status: string
           user_id: string
         }
         Insert: {
+          acao_imediata?: boolean
           categoria?: string | null
+          data_acao_imediata?: string | null
           data_conclusao?: string | null
           data_criacao?: string
           descricao: string
+          descricao_acao_imediata?: string | null
           id?: string
           inspecao_id?: string | null
           item_inspecao_id?: string | null
@@ -429,16 +436,20 @@ export type Database = {
           obra_id?: string | null
           observacao?: string | null
           prazo?: string | null
+          responsaveis?: string[]
           responsavel?: string | null
           severidade?: string
           status?: string
           user_id?: string
         }
         Update: {
+          acao_imediata?: boolean
           categoria?: string | null
+          data_acao_imediata?: string | null
           data_conclusao?: string | null
           data_criacao?: string
           descricao?: string
+          descricao_acao_imediata?: string | null
           id?: string
           inspecao_id?: string | null
           item_inspecao_id?: string | null
@@ -446,6 +457,7 @@ export type Database = {
           obra_id?: string | null
           observacao?: string | null
           prazo?: string | null
+          responsaveis?: string[]
           responsavel?: string | null
           severidade?: string
           status?: string
