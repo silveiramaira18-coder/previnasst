@@ -2,6 +2,8 @@ import { supabase } from "@/integrations/supabase/client";
 
 export type Resposta = "Conforme" | "Não conforme" | "Não se aplica";
 
+export const NORMAS_COMUNS = ["NR-06", "NR-12", "NR-18", "NR-35"];
+
 export const RESPOSTAS: Resposta[] = ["Conforme", "Não conforme", "Não se aplica"];
 
 export type ItemInspecao = {
@@ -14,6 +16,8 @@ export type ItemInspecao = {
   pergunta: string | null;
   resposta: string | null;
   observacao: string | null;
+  norma_regulamentadora: string | null;
+  risco_potencial: string | null;
   status: string;
   data_criacao: string;
 };

@@ -1,21 +1,13 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Bell, Lock, ShieldAlert, SlidersHorizontal, UserRound } from "lucide-react";
+import { Bell, Lock, Moon, ShieldAlert, SlidersHorizontal, Sun, UserRound } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { IDIOMAS, useIdioma } from "@/lib/i18n";
 import {
   Dialog,
   DialogContent,
@@ -29,6 +21,7 @@ import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { excluirMinhaConta } from "@/lib/conta.functions";
 import { alterarSenha, usePerfil } from "@/lib/perfil";
+import { useTema } from "@/lib/tema";
 
 export const Route = createFileRoute("/configuracoes")({
   ssr: false,
@@ -52,7 +45,7 @@ export const Route = createFileRoute("/configuracoes")({
 function ConfigPage() {
   const navigate = useNavigate();
   const { perfil, adminPrincipal } = usePerfil();
-  const { idioma, setIdioma, t } = useIdioma();
+  const { tema, alternar } = useTema();
 
   const excluir = useServerFn(excluirMinhaConta);
 
@@ -118,25 +111,21 @@ function ConfigPage() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
-            <SlidersHorizontal className="size-4" /> {t("Idioma")}
+            {tema === "dark" ? <Moon className="size-4" /> : <Sun className="size-4" />} Aparência
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-2">
-          <p className="text-sm text-muted-foreground">
-            {t("Selecione o idioma da interface")}
-          </p>
-          <Select value={idioma} onValueChange={(v) => setIdioma(v as typeof idioma)}>
-            <SelectTrigger className="h-12 w-full sm:w-72">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {IDIOMAS.map((i) => (
-                <SelectItem key={i.valor} value={i.valor}>
-                  {i.rotulo}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        <CardContent className="flex items-center justify-between gap-4">
+          <div className="min-w-0">
+            <p className="font-medium">Tema escuro</p>
+            <p className="text-sm text-muted-foreground">
+              Alterna entre o tema claro e o escuro. A preferência fica salva neste dispositivo.
+            </p>
+          </div>
+          <Switch
+            checked={tema === "dark"}
+            onCheckedChange={alternar}
+            aria-label="Alternar tema escuro"
+          />
         </CardContent>
       </Card>
 
@@ -221,7 +210,7 @@ function ConfigPage() {
         </CardHeader>
         <CardContent className="space-y-1 text-sm text-muted-foreground">
           <p>Aplicativo: Previna SST</p>
-          <p>Idioma: {IDIOMAS.find((i) => i.valor === idioma)?.rotulo}</p>
+          <p>Idioma: Português (Brasil)</p>
           <p>
             Tipo de acesso:{" "}
             {adminPrincipal ? "Administradora principal (acesso global)" : "Usuário padrão"}

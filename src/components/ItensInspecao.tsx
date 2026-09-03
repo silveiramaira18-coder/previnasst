@@ -36,6 +36,7 @@ import {
   excluirItem,
   listarItens,
   reordenarItens,
+  NORMAS_COMUNS,
   RESPOSTAS,
   statusDaResposta,
   type ItemInspecao,
@@ -120,6 +121,8 @@ function ItemCard({
   const [modoEdicao, setModoEdicao] = useState(false);
   const [ncForm, setNcForm] = useState({
     categoria: item.categoria ?? "",
+    norma: item.norma_regulamentadora ?? "",
+    risco: item.risco_potencial ?? "",
     descricao: "",
     severidade: "Médio",
     prazo: "",
@@ -162,7 +165,12 @@ function ItemCard({
         observacao: ncForm.observacao || null,
       });
       if (error) throw new Error(error.message);
-      await atualizarItem(item.id, { status: "Não conforme", categoria: ncForm.categoria || null });
+      await atualizarItem(item.id, {
+        status: "Não conforme",
+        categoria: ncForm.categoria || null,
+        norma_regulamentadora: ncForm.norma || null,
+        risco_potencial: ncForm.risco || null,
+      });
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["ncs-item", item.id] });
@@ -199,6 +207,11 @@ function ItemCard({
                 <ImageIcon className="size-4" /> {fotos.length} fotos
               </span>
             </p>
+            {item.norma_regulamentadora ? (
+              <span className="mt-1 mr-2 inline-flex items-center rounded-lg border bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
+                {item.norma_regulamentadora}
+              </span>
+            ) : null}
             {ncs.length > 0 ? (
               <p className="mt-1 inline-flex items-center gap-1 rounded-lg bg-destructive/10 px-2 py-1 text-xs font-medium text-destructive">
                 <TriangleAlert className="size-3.5" /> NC registrada com {fotos.length} fotos
@@ -321,6 +334,22 @@ function ItemCard({
                       />
                     </div>
                     <div className="space-y-1.5">
+                      <Label htmlFor={`nc-nr-${item.id}`}>NR relacionada</Label>
+                      <Input
+                        id={`nc-nr-${item.id}`}
+                        className="h-12"
+                        list={`nrs-${item.id}`}
+                        placeholder="Ex.: NR-35"
+                        value={ncForm.norma}
+                        onChange={(e) => setNcForm({ ...ncForm, norma: e.target.value })}
+                      />
+                      <datalist id={`nrs-${item.id}`}>
+                        {NORMAS_COMUNS.map((n) => (
+                          <option key={n} value={n} />
+                        ))}
+                      </datalist>
+                    </div>
+                    <div className="space-y-1.5">
                       <Label htmlFor={`nc-desc-${item.id}`}>Não conformidade encontrada</Label>
                       <Textarea
                         id={`nc-desc-${item.id}`}
@@ -330,6 +359,20 @@ function ItemCard({
                         onChange={(e) => setNcForm({ ...ncForm, descricao: e.target.value })}
                       />
                     </div>
+                    <div className="space-y-1.5 rounded-xl border border-warning/40 bg-warning/10 p-3">
+                      <Label htmlFor={`nc-risco-${item.id}`}>Risco potencial</Label>
+                      <p className="text-xs text-muted-foreground">
+                        Consequência possível caso a não conformidade não seja corrigida.
+                      </p>
+                      <Textarea
+                        id={`nc-risco-${item.id}`}
+                        rows={2}
+                        placeholder="Ex.: Queda de altura com risco de lesão grave ou óbito"
+                        value={ncForm.risco}
+                        onChange={(e) => setNcForm({ ...ncForm, risco: e.target.value })}
+                      />
+                    </div>
+
                     <div className="grid gap-4 sm:grid-cols-2">
                       <div className="space-y-1.5">
                         <Label>Grau de severidade / risco</Label>
