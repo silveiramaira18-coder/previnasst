@@ -6,6 +6,8 @@ import { toast } from "sonner";
 
 import { FotoDialog } from "@/components/FotoDialog";
 import { PageHeader } from "@/components/PageHeader";
+import { ResolverNC } from "@/components/ResolverNC";
+
 import { StatusBadge } from "@/components/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
