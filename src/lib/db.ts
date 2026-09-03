@@ -138,6 +138,17 @@ export const formatarData = (iso: string | null) => {
 
 export const formatarHora = (h: string | null) => (h ? h.slice(0, 5) : "—");
 
+export const hojeISO = () => new Date().toISOString().slice(0, 10);
+
+/** NC aberta com prazo anterior a hoje. */
+export const ncVencida = (nc: { status: string; prazo: string | null }) =>
+  nc.status !== "Concluída" && !!nc.prazo && nc.prazo < hojeISO();
+
+/** Status exibido: "Vencida" quando o prazo expirou e a NC continua aberta. */
+export const statusExibidoNC = (nc: { status: string; prazo: string | null }) =>
+  ncVencida(nc) ? "Vencida" : nc.status;
+
+
 /* ---------- Indicadores do dashboard (respeitam as regras de acesso do banco) ---------- */
 
 export type Indicadores = {
