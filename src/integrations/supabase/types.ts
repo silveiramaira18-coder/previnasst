@@ -250,6 +250,7 @@ export type Database = {
         Row: {
           data: string
           data_criacao: string
+          engenheiro_responsavel: string | null
           horario: string | null
           id: string
           local: string | null
@@ -264,6 +265,7 @@ export type Database = {
         Insert: {
           data?: string
           data_criacao?: string
+          engenheiro_responsavel?: string | null
           horario?: string | null
           id?: string
           local?: string | null
@@ -278,6 +280,7 @@ export type Database = {
         Update: {
           data?: string
           data_criacao?: string
+          engenheiro_responsavel?: string | null
           horario?: string | null
           id?: string
           local?: string | null
@@ -345,6 +348,7 @@ export type Database = {
           inspecao_id: string
           local: string | null
           norma_regulamentadora: string | null
+          normas_regulamentadoras: string[]
           numero: number
           observacao: string | null
           ordem: number
@@ -362,6 +366,7 @@ export type Database = {
           inspecao_id: string
           local?: string | null
           norma_regulamentadora?: string | null
+          normas_regulamentadoras?: string[]
           numero?: number
           observacao?: string | null
           ordem?: number
@@ -379,6 +384,7 @@ export type Database = {
           inspecao_id?: string
           local?: string | null
           norma_regulamentadora?: string | null
+          normas_regulamentadoras?: string[]
           numero?: number
           observacao?: string | null
           ordem?: number
@@ -522,6 +528,44 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      pavimentos: {
+        Row: {
+          created_at: string
+          id: string
+          nome: string
+          obra_id: string
+          ordem: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          nome: string
+          obra_id: string
+          ordem?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          nome?: string
+          obra_id?: string
+          ordem?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pavimentos_obra_id_fkey"
+            columns: ["obra_id"]
+            isOneToOne: false
+            referencedRelation: "obras"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
