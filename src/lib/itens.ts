@@ -61,9 +61,20 @@ export type ItemInspecao = {
   resposta: string | null;
   observacao: string | null;
   norma_regulamentadora: string | null;
+  normas_regulamentadoras: string[];
   risco_potencial: string | null;
   status: string;
   data_criacao: string;
+};
+
+/** Lista de NRs do item (compatível com registros antigos de NR única). */
+export const normasDoItem = (item: {
+  normas_regulamentadoras?: string[] | null;
+  norma_regulamentadora?: string | null;
+}) => {
+  const lista = item.normas_regulamentadoras ?? [];
+  if (lista.length > 0) return lista;
+  return item.norma_regulamentadora ? [item.norma_regulamentadora] : [];
 };
 
 export async function listarItens(inspecaoId: string) {
@@ -76,10 +87,15 @@ export async function listarItens(inspecaoId: string) {
   return (data ?? []) as ItemInspecao[];
 }
 
-export async function criarItem(inspecaoId: string, ordem: number, numero: number) {
+export async function criarItem(
+  inspecaoId: string,
+  ordem: number,
+  numero: number,
+  local?: string | null,
+) {
   const { data, error } = await supabase
     .from("itens_inspecao")
-    .insert({ inspecao_id: inspecaoId, ordem, numero, status: "Pendente" })
+    .insert({ inspecao_id: inspecaoId, ordem, numero, status: "Pendente", local: local || null })
     .select("*")
     .single();
   if (error) throw new Error(error.message);

@@ -6,6 +6,7 @@ export type Obra = {
   empresa: string | null;
   endereco: string | null;
   responsavel: string | null;
+  engenheiro_responsavel?: string | null;
   status: string;
   data_criacao: string;
 };
@@ -17,12 +18,13 @@ export type Inspecao = {
   data: string;
   horario: string | null;
   responsavel: string | null;
+  engenheiro_responsavel?: string | null;
   local: string | null;
   tipo_inspecao: string | null;
   observacoes: string | null;
   status: string;
   data_criacao: string;
-  obras?: { nome: string } | null;
+  obras?: { nome: string; engenheiro_responsavel?: string | null } | null;
 };
 
 export type NaoConformidade = {
@@ -39,8 +41,17 @@ export type NaoConformidade = {
   item_inspecao_id?: string | null;
   obra_id?: string | null;
   responsavel?: string | null;
+  responsaveis?: string[] | null;
+  data_conclusao?: string | null;
+  acao_imediata?: boolean | null;
+  descricao_acao_imediata?: string | null;
+  data_acao_imediata?: string | null;
   inspecoes?: { numero: string; data: string; obras?: { nome: string } | null } | null;
 };
+
+/** Risco imediato sanado, mas plano de ação definitivo ainda pendente. */
+export const riscoNeutralizado = (nc: { status: string; acao_imediata?: boolean | null }) =>
+  !!nc.acao_imediata && nc.status !== "Concluída";
 
 export type AcaoCorretiva = {
   id: string;
@@ -84,7 +95,7 @@ export const listarInspecoes = async () =>
 export const obterInspecao = async (id: string) => {
   const { data, error } = await supabase
     .from("inspecoes")
-    .select("*, obras(nome)")
+    .select("*, obras(nome, engenheiro_responsavel)")
     .eq("id", id)
     .maybeSingle();
   if (error) throw new Error(error.message);
