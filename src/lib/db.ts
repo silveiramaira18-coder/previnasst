@@ -155,9 +155,53 @@ export const hojeISO = () => new Date().toISOString().slice(0, 10);
 export const ncVencida = (nc: { status: string; prazo: string | null }) =>
   nc.status !== "Concluída" && !!nc.prazo && nc.prazo < hojeISO();
 
+/** Status gravado quando há ação imediata mas a medida definitiva segue pendente. */
+export const STATUS_PARCIAL = "Parcialmente Concluída";
+
 /** Status exibido: "Vencida" quando o prazo expirou e a NC continua aberta. */
 export const statusExibidoNC = (nc: { status: string; prazo: string | null }) =>
-  ncVencida(nc) ? "Vencida" : nc.status;
+  ncVencida(nc) ? "Vencida" : nc.status === "Em andamento" ? STATUS_PARCIAL : nc.status;
+
+/** Diferença em dias entre o prazo e hoje (negativo = atrasado). */
+export const diasAtePrazo = (prazo: string | null) => {
+  if (!prazo) return null;
+  const um = 86_400_000;
+  const a = Date.parse(`${prazo.slice(0, 10)}T00:00:00Z`);
+  const b = Date.parse(`${hojeISO()}T00:00:00Z`);
+  return Math.round((a - b) / um);
+};
+
+export type AlertaPrazo = { tom: "vencida" | "hoje" | "prazo"; texto: string };
+
+/** Texto de alerta do prazo para telas e PDF. */
+export const alertaPrazo = (nc: {
+  status: string;
+  prazo: string | null;
+}): AlertaPrazo | null => {
+  if (nc.status === "Concluída" || !nc.prazo) return null;
+  const dias = diasAtePrazo(nc.prazo);
+  if (dias === null) return null;
+  if (dias < 0) {
+    const d = Math.abs(dias);
+    return { tom: "vencida", texto: `Vencida há ${d} ${d === 1 ? "dia" : "dias"}` };
+  }
+  if (dias === 0) return { tom: "hoje", texto: "Vence hoje" };
+  return { tom: "prazo", texto: `Faltam ${dias} ${dias === 1 ? "dia" : "dias"} para o prazo` };
+};
+
+/** NCs de uma obra que continuam pendentes (para acompanhamento em novos relatórios). */
+export const listarNCsPendentesDaObra = async (obraId: string, excetoInspecaoId?: string) => {
+  const { data, error } = await supabase
+    .from("nao_conformidades")
+    .select("*, inspecoes(numero, data, obras(nome))")
+    .eq("obra_id", obraId)
+    .neq("status", "Concluída")
+    .order("prazo", { ascending: true });
+  if (error) throw new Error(error.message);
+  const lista = (data ?? []) as NaoConformidade[];
+  return excetoInspecaoId ? lista.filter((n) => n.inspecao_id !== excetoInspecaoId) : lista;
+};
+
 
 
 /* ---------- Indicadores do dashboard (respeitam as regras de acesso do banco) ---------- */

@@ -7,6 +7,8 @@ const map: Record<string, string> = {
   Ativo: "bg-success/12 text-success border-success/30",
   "Em andamento": "bg-info/12 text-info border-info/30",
   "Em tratativa": "bg-info/12 text-info border-info/30",
+  "Parcialmente Concluída": "bg-info/15 text-info border-info/40 font-semibold",
+
   Aberta: "bg-warning/18 text-warning-foreground border-warning/40",
   Rascunho: "bg-muted text-muted-foreground border-border",
   Paralisada: "bg-muted text-muted-foreground border-border",
