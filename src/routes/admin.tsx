@@ -71,7 +71,7 @@ function AdminPage() {
   if (!adminPrincipal)
     return (
       <p className="text-sm text-muted-foreground">
-        Esta área é restrita à administradora principal.
+        Esta área é restrita aos administradores do sistema.
       </p>
     );
 
