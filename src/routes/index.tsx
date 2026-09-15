@@ -131,6 +131,7 @@ function Dashboard() {
       icon: CalendarClock,
       tone: "text-critical",
       to: "/acoes-corretivas",
+      search: { status: "atrasadas" as const },
     },
   ] as const;
 
