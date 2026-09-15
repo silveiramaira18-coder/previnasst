@@ -92,7 +92,7 @@ export const Route = createFileRoute("/api/public/hooks/cobranca-ncs")({
         const { data, error } = await supabase
           .from("nao_conformidades")
           .select(
-            "numero, descricao, severidade, prazo, status, responsaveis, inspecoes(obras(nome)), itens_inspecao(local)",
+            "numero, descricao, severidade, prazo, status, responsaveis, inspecoes(email_engenheiro, engenheiro_responsavel, obras(nome, email_engenheiro, engenheiro_responsavel)), itens_inspecao(local)",
           )
           .neq("status", "Concluída")
           .not("prazo", "is", null)
@@ -108,15 +108,25 @@ export const Route = createFileRoute("/api/public/hooks/cobranca-ncs")({
 
         const ncs = (data ?? []) as unknown as NCRow[];
 
-        // Agrupa por responsável (nome + e-mail extraídos da tag "Nome (Cargo) <email>")
+        // O destinatário é sempre o engenheiro responsável da inspeção (ou o da obra).
         const grupos = new Map<string, NCRow[]>();
         for (const nc of ncs) {
-          for (const tag of nc.responsaveis ?? []) {
-            if (!/<[^>]+>/.test(tag)) continue;
-            const lista = grupos.get(tag) ?? [];
-            lista.push(nc);
-            grupos.set(tag, lista);
-          }
+          const email = (
+            nc.inspecoes?.email_engenheiro ||
+            nc.inspecoes?.obras?.email_engenheiro ||
+            ""
+          )
+            .trim()
+            .toLowerCase();
+          if (!email) continue;
+          const nome =
+            nc.inspecoes?.engenheiro_responsavel ||
+            nc.inspecoes?.obras?.engenheiro_responsavel ||
+            "Engenheiro responsável";
+          const chave = `${nome} <${email}>`;
+          const lista = grupos.get(chave) ?? [];
+          lista.push(nc);
+          grupos.set(chave, lista);
         }
 
         const lovableKey = process.env["LOVABLE_API_KEY"];
