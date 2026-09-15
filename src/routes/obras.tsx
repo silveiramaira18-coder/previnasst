@@ -279,7 +279,7 @@ function ObrasPage() {
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
                         <GerenciarPavimentos obraId={o.id} obraNome={o.nome} />
-                        {adminPrincipal ? (
+                        {podeGerenciar(o) ? (
                           <>
                             <Button
                               variant="outline"
@@ -329,7 +329,7 @@ function ObrasPage() {
                 <span className="text-muted-foreground">{formatarData(o.data_criacao)}</span>
                 <div className="flex flex-wrap gap-2">
                   <GerenciarPavimentos obraId={o.id} obraNome={o.nome} />
-                  {adminPrincipal ? (
+                  {podeGerenciar(o) ? (
                     <>
                       <Button
                         variant="outline"
