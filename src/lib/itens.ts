@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { ncVencida } from "@/lib/db";
 
 export type Resposta = "Conforme" | "Não conforme" | "Não se aplica";
 
@@ -140,6 +141,8 @@ export type ResumoInspecao = {
   conformidade: number;
   fotos: number;
   ncs: number;
+  ncsAtrasadas: number;
+  ncsAVencer: number;
 };
 
 export async function resumoInspecao(inspecaoId: string): Promise<ResumoInspecao> {
@@ -156,16 +159,23 @@ export async function resumoInspecao(inspecaoId: string): Promise<ResumoInspecao
     fotosItens = count ?? 0;
   }
 
-  const [{ count: fotosGerais }, { count: ncs }] = await Promise.all([
+  const [{ count: fotosGerais }, { data: ncsLista }] = await Promise.all([
     supabase
       .from("fotos_inspecao")
       .select("id", { count: "exact", head: true })
       .eq("inspecao_id", inspecaoId),
     supabase
       .from("nao_conformidades")
-      .select("id", { count: "exact", head: true })
+      .select("id, status, prazo")
       .eq("inspecao_id", inspecaoId),
   ]);
+
+  const ncsDaInspecao = ncsLista ?? [];
+  // Atrasadas: prazo já vencido. A vencer: pendentes ainda dentro do prazo.
+  const ncsAtrasadas = ncsDaInspecao.filter((n) => ncVencida(n)).length;
+  const ncsAVencer = ncsDaInspecao.filter(
+    (n) => n.status !== "Concluída" && !ncVencida(n),
+  ).length;
 
   const conformes = itens.filter((i) => i.resposta === "Conforme").length;
   const naoConformes = itens.filter((i) => i.resposta === "Não conforme").length;
@@ -180,6 +190,8 @@ export async function resumoInspecao(inspecaoId: string): Promise<ResumoInspecao
     pendentes: itens.length - conformes - naoConformes - naoAplicaveis,
     conformidade: avaliados > 0 ? (conformes / avaliados) * 100 : 0,
     fotos: fotosItens + (fotosGerais ?? 0),
-    ncs: ncs ?? 0,
+    ncs: ncsDaInspecao.length,
+    ncsAtrasadas,
+    ncsAVencer,
   };
 }
