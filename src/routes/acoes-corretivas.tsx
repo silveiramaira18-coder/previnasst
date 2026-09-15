@@ -38,7 +38,11 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { formatarData, listarAcoes, listarNCs } from "@/lib/db";
 
+type BuscaAcoes = { status?: "atrasadas" };
+
 export const Route = createFileRoute("/acoes-corretivas")({
+  validateSearch: (search: Record<string, unknown>): BuscaAcoes =>
+    search["status"] === "atrasadas" ? { status: "atrasadas" } : {},
   head: () => ({
     meta: [
       { title: "Ações Corretivas — Previna SST" },
