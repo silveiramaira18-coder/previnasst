@@ -57,6 +57,7 @@ function montarHtml(responsavel: string, ncs: NCRow[]) {
         <p style="margin:0 0 6px;font-weight:700;color:#1F2937">NC ${escapar(nc.numero)} — ${escapar(nc.severidade)}</p>
         <p style="margin:0 0 4px;color:#57524A"><b>Obra:</b> ${escapar(nc.inspecoes?.obras?.nome ?? "—")} &nbsp;|&nbsp; <b>Pavimento/Setor:</b> ${escapar(nc.itens_inspecao?.local ?? "—")}</p>
         <p style="margin:0 0 8px;color:#1F2937">${escapar(nc.descricao)}</p>
+        <p style="margin:0 0 6px;color:#57524A"><b>Responsável pela resolução:</b> ${escapar((nc.responsaveis ?? []).join(", ") || "—")}</p>
         <p style="margin:0;font-weight:700;color:#B91C1C">${escapar(alerta(nc.prazo))}</p>
       </div>`,
     )
