@@ -36,6 +36,7 @@ import {
 } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
 import { formatarData, listarObras, type Obra } from "@/lib/db";
+import { usePerfil } from "@/lib/perfil";
 
 export const Route = createFileRoute("/obras")({
   head: () => ({
