@@ -202,6 +202,59 @@ function AcoesPage() {
         }
       />
 
+      <div className="flex flex-wrap gap-2">
+        <Button
+          variant={filtro === "todas" ? "default" : "outline"}
+          size="lg"
+          className="h-11"
+          onClick={() => setFiltro("todas")}
+        >
+          Todas as pendências ({pendentes.length})
+        </Button>
+        <Button
+          variant={filtro === "atrasadas" ? "default" : "outline"}
+          size="lg"
+          className="h-11"
+          onClick={() => setFiltro("atrasadas")}
+        >
+          Atrasadas ({atrasadas.length})
+        </Button>
+      </div>
+
+      <Card>
+        <CardContent className="space-y-3 p-4">
+          <p className="font-semibold">
+            {filtro === "atrasadas"
+              ? "Não conformidades com prazo vencido"
+              : "Não conformidades pendentes de tratativa"}
+          </p>
+          {ncsVisiveis.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              {filtro === "atrasadas"
+                ? "Nenhuma não conformidade com prazo vencido."
+                : "Nenhuma não conformidade pendente."}
+            </p>
+          ) : null}
+          {ncsVisiveis.map((nc) => (
+            <div key={nc.id} className="space-y-2 rounded-xl border p-4">
+              <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
+                <p className="truncate font-semibold">
+                  {nc.numero} · {nc.inspecoes?.obras?.nome ?? "Obra não informada"}
+                </p>
+                <StatusBadge value={statusExibidoNC(nc)} />
+              </div>
+              <p className="text-sm text-muted-foreground">{nc.descricao}</p>
+              <div className="flex flex-wrap items-center gap-2 text-sm">
+                <PrazoBadge nc={nc} />
+                <span className="text-muted-foreground">
+                  Prazo: {formatarData(nc.prazo)}
+                </span>
+              </div>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+
       {isLoading ? <p className="text-sm text-muted-foreground">Carregando...</p> : null}
       {!isLoading && acoes.length === 0 ? (
         <p className="text-sm text-muted-foreground">Nenhuma ação corretiva cadastrada ainda.</p>
