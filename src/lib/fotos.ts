@@ -32,6 +32,13 @@ export async function enviarFotos(
   valor: string,
   arquivos: File[],
 ) {
+  // Sem internet: guarda as fotos no aparelho e envia sozinho depois.
+  if (typeof navigator !== "undefined" && !navigator.onLine) {
+    const { enfileirarFotos } = await import("@/lib/sync");
+    await enfileirarFotos(tabela, coluna, valor, arquivos);
+    return;
+  }
+
   const { data: userData } = await supabase.auth.getUser();
   const userId = userData.user?.id;
   if (!userId) throw new Error("Sessão expirada. Entre novamente.");
