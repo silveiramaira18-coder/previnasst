@@ -8,6 +8,7 @@ export type Obra = {
   endereco: string | null;
   responsavel: string | null;
   engenheiro_responsavel?: string | null;
+  email_engenheiro?: string | null;
   status: string;
   data_criacao: string;
 };
