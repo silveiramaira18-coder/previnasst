@@ -26,6 +26,10 @@ export type Inspecao = {
   assinatura_nome?: string | null;
   assinatura_cargo?: string | null;
   assinatura_data?: string | null;
+  assinatura_obra?: string | null;
+  assinatura_obra_nome?: string | null;
+  assinatura_obra_cargo?: string | null;
+  assinatura_obra_data?: string | null;
   local: string | null;
   tipo_inspecao: string | null;
   observacoes: string | null;

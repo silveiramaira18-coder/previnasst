@@ -238,13 +238,24 @@ function DetalheInspecao() {
         </CardContent>
       </Card>
 
-      <AssinaturaInspecao
-        inspecaoId={id}
-        assinatura={inspecao.assinatura}
-        nomeInicial={inspecao.assinatura_nome ?? inspecao.responsavel}
-        cargoInicial={inspecao.assinatura_cargo}
-        dataAssinatura={inspecao.assinatura_data}
-      />
+      <div className="grid gap-6 lg:grid-cols-2">
+        <AssinaturaInspecao
+          inspecaoId={id}
+          variante="inspetor"
+          assinatura={inspecao.assinatura}
+          nomeInicial={inspecao.assinatura_nome ?? inspecao.responsavel}
+          cargoInicial={inspecao.assinatura_cargo}
+          dataAssinatura={inspecao.assinatura_data}
+        />
+        <AssinaturaInspecao
+          inspecaoId={id}
+          variante="obra"
+          assinatura={inspecao.assinatura_obra}
+          nomeInicial={inspecao.assinatura_obra_nome ?? inspecao.engenheiro_responsavel}
+          cargoInicial={inspecao.assinatura_obra_cargo}
+          dataAssinatura={inspecao.assinatura_obra_data}
+        />
+      </div>
     </div>
   );
 }

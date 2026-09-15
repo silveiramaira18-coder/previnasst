@@ -7,10 +7,32 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
+
+/** Cargos padrão de SST e obra para o bloco de assinatura. */
+export const CARGOS_ASSINATURA = [
+  "Técnico em Segurança do Trabalho (TST)",
+  "Engenheiro Civil / Engenheiro de Segurança",
+  "Mestre de Obras",
+  "Contramestre",
+  "Encarregado de Obra",
+  "Gerente de Produção / Supervisor",
+];
+
+const OUTRO_CARGO = "Outro";
 
 type Props = {
   inspecaoId: string;
+  /** "inspetor" grava nos campos da inspeção; "obra" nos campos do responsável pela obra. */
+  variante?: "inspetor" | "obra";
+  titulo?: string;
   assinatura?: string | null | undefined;
   nomeInicial?: string | null | undefined;
   cargoInicial?: string | null | undefined;
@@ -20,6 +42,8 @@ type Props = {
 /** Bloco de assinatura eletrônica do responsável/inspetor (dedo, caneta ou mouse). */
 export function AssinaturaInspecao({
   inspecaoId,
+  variante = "inspetor",
+  titulo,
   assinatura,
   nomeInicial,
   cargoInicial,
@@ -31,6 +55,11 @@ export function AssinaturaInspecao({
   const [temTraco, setTemTraco] = useState(false);
   const [nome, setNome] = useState(nomeInicial ?? "");
   const [cargo, setCargo] = useState(cargoInicial ?? "");
+  const [cargoOpcao, setCargoOpcao] = useState(
+    cargoInicial && !CARGOS_ASSINATURA.includes(cargoInicial)
+      ? OUTRO_CARGO
+      : (cargoInicial ?? ""),
+  );
   const [reassinar, setReassinar] = useState(!assinatura);
 
   useEffect(() => {
@@ -104,14 +133,26 @@ export function AssinaturaInspecao({
       ctx.fillRect(0, 0, plano.width, plano.height);
       ctx.drawImage(canvas, 0, 0);
 
+      const imagem = plano.toDataURL("image/png");
+      const agora = new Date().toISOString();
+      const valores =
+        variante === "obra"
+          ? {
+              assinatura_obra: imagem,
+              assinatura_obra_nome: nome.trim(),
+              assinatura_obra_cargo: cargo.trim() || null,
+              assinatura_obra_data: agora,
+            }
+          : {
+              assinatura: imagem,
+              assinatura_nome: nome.trim(),
+              assinatura_cargo: cargo.trim() || null,
+              assinatura_data: agora,
+            };
+
       const { error } = await supabase
         .from("inspecoes")
-        .update({
-          assinatura: plano.toDataURL("image/png"),
-          assinatura_nome: nome.trim(),
-          assinatura_cargo: cargo.trim() || null,
-          assinatura_data: new Date().toISOString(),
-        })
+        .update(valores)
         .eq("id", inspecaoId);
       if (error) throw new Error(error.message);
     },
@@ -126,7 +167,12 @@ export function AssinaturaInspecao({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">Assinatura do Responsável / Inspetor</CardTitle>
+        <CardTitle className="text-base">
+          {titulo ??
+            (variante === "obra"
+              ? "Assinatura do Responsável pela Obra"
+              : "Assinatura do Inspetor / Técnico Responsável")}
+        </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         {assinatura && !reassinar ? (
@@ -151,22 +197,43 @@ export function AssinaturaInspecao({
           <>
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-1.5">
-                <Label htmlFor="ass-nome">Nome de quem assina</Label>
+                <Label htmlFor={`ass-nome-${variante}`}>Nome de quem assina</Label>
                 <Input
-                  id="ass-nome"
+                  id={`ass-nome-${variante}`}
                   className="h-12"
                   value={nome}
                   onChange={(e) => setNome(e.target.value)}
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="ass-cargo">Cargo</Label>
-                <Input
-                  id="ass-cargo"
-                  className="h-12"
-                  value={cargo}
-                  onChange={(e) => setCargo(e.target.value)}
-                />
+                <Label>Cargo</Label>
+                <Select
+                  value={cargoOpcao}
+                  onValueChange={(v) => {
+                    setCargoOpcao(v);
+                    setCargo(v === OUTRO_CARGO ? "" : v);
+                  }}
+                >
+                  <SelectTrigger className="h-12">
+                    <SelectValue placeholder="Selecione o cargo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {CARGOS_ASSINATURA.map((c) => (
+                      <SelectItem key={c} value={c}>
+                        {c}
+                      </SelectItem>
+                    ))}
+                    <SelectItem value={OUTRO_CARGO}>Outro</SelectItem>
+                  </SelectContent>
+                </Select>
+                {cargoOpcao === OUTRO_CARGO ? (
+                  <Input
+                    className="h-12"
+                    placeholder="Informe o cargo"
+                    value={cargo}
+                    onChange={(e) => setCargo(e.target.value)}
+                  />
+                ) : null}
               </div>
             </div>
 
