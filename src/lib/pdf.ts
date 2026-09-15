@@ -315,28 +315,38 @@ export async function gerarPdfInspecao(inspecaoId: string) {
   /* ---------------- Resumo em cards ---------------- */
 
   titulo("Resumo da inspeção");
-  const cards: { valor: string; rotulo: string }[] = [
+  const cards: { valor: string; rotulo: string; corValor?: RGB }[] = [
     { valor: String(resumo.total), rotulo: "Itens inspecionados" },
     { valor: String(resumo.conformes), rotulo: "Conformes" },
     { valor: String(resumo.naoConformes), rotulo: "Não conformes" },
     { valor: `${resumo.conformidade.toFixed(0)}%`, rotulo: "Conformidade" },
+    {
+      valor: String(resumo.ncsAtrasadas),
+      rotulo: "NCs atrasadas",
+      corValor: [178, 22, 22] as RGB,
+    },
+    { valor: String(resumo.ncsAVencer), rotulo: "NCs a vencer", corValor: [200, 118, 8] as RGB },
   ];
-  const gapCards = 10;
-  const largCard = (limite - gapCards * 3) / 4;
+  const gapCards = 8;
+  const largCard = (limite - gapCards * 5) / 6;
   quebrarSeNecessario(72);
   cards.forEach((c, i) => {
     const x = margem + i * (largCard + gapCards);
     fundo(TINTA.branco);
-    doc.setDrawColor(TINTA.borda[0], TINTA.borda[1], TINTA.borda[2]);
+    if (c.corValor) doc.setDrawColor(c.corValor[0], c.corValor[1], c.corValor[2]);
+    else doc.setDrawColor(TINTA.borda[0], TINTA.borda[1], TINTA.borda[2]);
     doc.roundedRect(x, y, largCard, 58, 6, 6, "FD");
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(22);
-    cor(TINTA.texto);
+    doc.setFontSize(20);
+    cor(c.corValor ?? TINTA.texto);
     doc.text(c.valor, x + largCard / 2, y + 30, { align: "center" });
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(7.5);
-    cor(TINTA.rotulo);
-    doc.text(c.rotulo.toUpperCase(), x + largCard / 2, y + 46, { align: "center", maxWidth: largCard - 8 });
+    doc.setFontSize(7);
+    cor(c.corValor ?? TINTA.rotulo);
+    doc.text(c.rotulo.toUpperCase(), x + largCard / 2, y + 46, {
+      align: "center",
+      maxWidth: largCard - 6,
+    });
   });
   y += 74;
 
@@ -694,10 +704,15 @@ export async function gerarPdfInspecao(inspecaoId: string) {
     },
     {
       titulo: "Responsável pela obra — ciência do relatório",
-      nome: "",
-      detalhe: "",
-      imagem: null as string | null,
-      dataAssinatura: null as string | null,
+      nome:
+        (inspecao as { assinatura_obra_nome?: string | null }).assinatura_obra_nome ||
+        engenheiro ||
+        "",
+      detalhe:
+        (inspecao as { assinatura_obra_cargo?: string | null }).assinatura_obra_cargo || "",
+      imagem: (inspecao as { assinatura_obra?: string | null }).assinatura_obra ?? null,
+      dataAssinatura:
+        (inspecao as { assinatura_obra_data?: string | null }).assinatura_obra_data ?? null,
     },
   ];
 
