@@ -56,6 +56,7 @@ function NovaInspecao() {
     data: new Date().toISOString().slice(0, 10),
     horario: "",
     responsavel: "",
+    engenheiro_responsavel: "",
     tipo_inspecao: "",
     observacoes: "",
   });
@@ -70,6 +71,7 @@ function NovaInspecao() {
         data: form.data,
         horario: form.horario || null,
         responsavel: form.responsavel || null,
+        engenheiro_responsavel: form.engenheiro_responsavel || null,
         tipo_inspecao:
           (form.tipo_inspecao === "Outro" ? tipoOutro.trim() : form.tipo_inspecao) || null,
         observacoes: form.observacoes || null,
@@ -139,7 +141,18 @@ function NovaInspecao() {
         <CardContent className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-1.5 sm:col-span-2">
             <Label htmlFor="obra">Obra</Label>
-            <Select value={form.obra_id} onValueChange={(v) => setForm({ ...form, obra_id: v })}>
+            <Select
+              value={form.obra_id}
+              onValueChange={(v) => {
+                const obra = obras.find((o) => o.id === v);
+                setForm({
+                  ...form,
+                  obra_id: v,
+                  engenheiro_responsavel:
+                    form.engenheiro_responsavel || obra?.engenheiro_responsavel || "",
+                });
+              }}
+            >
               <SelectTrigger id="obra" className="h-12 w-full">
                 <SelectValue placeholder="Selecione a obra" />
               </SelectTrigger>
@@ -185,6 +198,16 @@ function NovaInspecao() {
               placeholder="Nome do profissional"
               value={form.responsavel}
               onChange={(e) => setForm({ ...form, responsavel: e.target.value })}
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="engenheiro">Engenheiro responsável pela obra</Label>
+            <Input
+              id="engenheiro"
+              className="h-12"
+              placeholder="Nome do engenheiro"
+              value={form.engenheiro_responsavel}
+              onChange={(e) => setForm({ ...form, engenheiro_responsavel: e.target.value })}
             />
           </div>
           <div className="space-y-1.5 sm:col-span-2">

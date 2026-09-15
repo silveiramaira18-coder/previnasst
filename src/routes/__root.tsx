@@ -14,6 +14,7 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AppSidebar } from "@/components/AppSidebar";
+import { StatusRede } from "@/components/StatusRede";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { Toaster } from "@/components/ui/sonner";
 import { Button } from "@/components/ui/button";
@@ -177,6 +178,7 @@ function RootComponent() {
                 <Link to="/" className="font-display text-base font-bold">
                   Previna SST
                 </Link>
+                <StatusRede />
                 <BotaoTema />
                 <Button
                   variant="ghost"

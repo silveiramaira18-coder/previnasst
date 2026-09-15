@@ -4,6 +4,7 @@ import { Plus, Building2, Pencil, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
+import { GerenciarPavimentos } from "@/components/GerenciarPavimentos";
 import { RequerPermissao } from "@/components/RequerPermissao";
 import { PageHeader } from "@/components/PageHeader";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -274,6 +275,7 @@ function ObrasPage() {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
+                        <GerenciarPavimentos obraId={o.id} obraNome={o.nome} />
                         <Button
                           variant="outline"
                           size="sm"
@@ -318,7 +320,8 @@ function ObrasPage() {
               </p>
               <div className="flex flex-wrap items-center justify-between gap-2 pt-1 text-sm">
                 <span className="text-muted-foreground">{formatarData(o.data_criacao)}</span>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
+                  <GerenciarPavimentos obraId={o.id} obraNome={o.nome} />
                   <Button variant="outline" size="sm" className="gap-1" onClick={() => abrirEdicao(o)}>
                     <Pencil className="size-3.5" /> Editar
                   </Button>
