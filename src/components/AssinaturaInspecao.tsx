@@ -19,7 +19,8 @@ import { supabase } from "@/integrations/supabase/client";
 /** Cargos padrão de SST e obra para o bloco de assinatura. */
 export const CARGOS_ASSINATURA = [
   "Técnico em Segurança do Trabalho (TST)",
-  "Engenheiro Civil / Engenheiro de Segurança",
+  "Engenheiro Civil",
+  "Engenheiro de Segurança do Trabalho",
   "Mestre de Obras",
   "Contramestre",
   "Encarregado de Obra",
