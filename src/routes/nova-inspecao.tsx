@@ -21,7 +21,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
-import { listarObras } from "@/lib/db";
+import { PrazoBadge } from "@/components/PrazoBadge";
+import { formatarData, listarNCsPendentesDaObra, listarObras, statusExibidoNC } from "@/lib/db";
+import { StatusBadge } from "@/components/StatusBadge";
 import { criarItem } from "@/lib/itens";
 
 
@@ -62,6 +64,13 @@ function NovaInspecao() {
   });
 
   const { data: obras = [] } = useQuery({ queryKey: ["obras"], queryFn: listarObras });
+
+  // Pendências de relatórios anteriores da mesma obra, para acompanhamento.
+  const { data: pendentes = [] } = useQuery({
+    queryKey: ["ncs-pendentes", form.obra_id, inspecaoId],
+    queryFn: () => listarNCsPendentesDaObra(form.obra_id, inspecaoId ?? undefined),
+    enabled: !!form.obra_id,
+  });
 
   const salvar = useMutation({
     mutationFn: async () => {
@@ -265,6 +274,32 @@ function NovaInspecao() {
           </div>
         </CardContent>
       </Card>
+
+      {pendentes.length > 0 ? (
+        <Card className="border-warning/50">
+          <CardHeader>
+            <CardTitle className="text-base">
+              Pendências de inspeções anteriores nesta obra ({pendentes.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {pendentes.map((nc) => (
+              <div key={nc.id} className="space-y-1 rounded-xl border p-3">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="font-semibold">{nc.numero}</span>
+                  <StatusBadge value={statusExibidoNC(nc)} />
+                  <PrazoBadge nc={nc} />
+                </div>
+                <p className="text-sm text-muted-foreground">{nc.descricao}</p>
+                <p className="text-xs text-muted-foreground">
+                  Registrada em {formatarData(nc.data_criacao.slice(0, 10))} · pendência sem solução
+                  definitiva
+                </p>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      ) : null}
 
       <Card>
         <CardHeader>
