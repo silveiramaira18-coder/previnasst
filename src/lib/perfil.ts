@@ -96,7 +96,7 @@ export async function carregarPerfil(): Promise<Perfil | null> {
     supabase.from("user_roles").select("role").eq("user_id", user.id),
   ]);
 
-  const adminPrincipal = (user.email ?? "").toLowerCase() === EMAIL_ADMIN_PRINCIPAL;
+  const adminPrincipal = ehEmailAdmin(user.email);
   const lista = (papeis ?? []).map((p) => p.role as Papel);
   const papel: Papel = adminPrincipal
     ? "admin"
