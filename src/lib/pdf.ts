@@ -771,6 +771,21 @@ export async function gerarPdfInspecao(inspecaoId: string) {
         ny += 4;
       }
 
+      if (fotosNc.length > 0) {
+        let fx = xNc;
+        const fy = topoNc + alturaNc - padCard - fotoAltNc;
+        for (const foto of fotosNc) {
+          try {
+            doc.addImage(foto.dataUrl, foto.formato, fx, fy, fotoLargNc, fotoAltNc);
+            doc.setDrawColor(TINTA.borda[0], TINTA.borda[1], TINTA.borda[2]);
+            doc.roundedRect(fx, fy, fotoLargNc, fotoAltNc, 6, 6, "S");
+          } catch (erro) {
+            console.error("Falha ao embutir foto da pendência no PDF", erro);
+          }
+          fx += fotoLargNc + espacoFoto;
+        }
+      }
+
       y = topoNc + alturaNc + 12;
     }
   }
