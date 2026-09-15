@@ -70,8 +70,45 @@ export const Route = createFileRoute("/nao-conformidades")({
 
 const SEVERIDADES = ["Baixa", "Média", "Alta", "Crítica"];
 const STATUS = ["Aberta", "Em tratativa", "Atrasada", "Concluída"];
-const STATUS_FILTRO = ["Aberta", "Parcialmente Concluída", "Vencida", "Concluída"];
 const TODOS = "todos";
+
+type ChaveStatus =
+  | "todas"
+  | "abertas"
+  | "parciais"
+  | "concluidas"
+  | "atrasadas"
+  | "a-vencer";
+
+const FILTROS_STATUS: { chave: ChaveStatus; rotulo: string }[] = [
+  { chave: "todas", rotulo: "Todas" },
+  { chave: "abertas", rotulo: "Abertas / Em Andamento" },
+  { chave: "parciais", rotulo: "Parcialmente Concluídas" },
+  { chave: "concluidas", rotulo: "Concluídas" },
+  { chave: "atrasadas", rotulo: "Atrasadas / Vencidas" },
+  { chave: "a-vencer", rotulo: "A Vencer" },
+];
+
+/** Aplica a regra de cada filtro rápido de status. */
+function combinaStatus(nc: NaoConformidade, chave: ChaveStatus) {
+  const concluida = nc.status === "Concluída";
+  const vencida = ncVencida(nc);
+  const dias = diasAtePrazo(nc.prazo);
+  switch (chave) {
+    case "concluidas":
+      return concluida;
+    case "atrasadas":
+      return vencida;
+    case "parciais":
+      return !concluida && !vencida && statusExibidoNC(nc) === STATUS_PARCIAL;
+    case "abertas":
+      return !concluida && !vencida && statusExibidoNC(nc) !== STATUS_PARCIAL;
+    case "a-vencer":
+      return !concluida && !vencida && dias !== null && dias >= 0 && dias <= 7;
+    default:
+      return true;
+  }
+}
 
 function NCPage() {
   const qc = useQueryClient();
