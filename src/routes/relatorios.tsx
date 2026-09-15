@@ -4,6 +4,7 @@ import { FileText, FileBarChart, FileClock, FileWarning } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { usePerfil } from "@/lib/perfil";
 
 export const Route = createFileRoute("/relatorios")({
   head: () => ({
