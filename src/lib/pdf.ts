@@ -310,7 +310,7 @@ export async function gerarPdfInspecao(inspecaoId: string) {
     doc.text(parte, margem + 12, y);
     y += 13;
   }
-  y += 16;
+  y += 10;
 
   /* ---------------- Resumo em cards ---------------- */
 
@@ -327,28 +327,28 @@ export async function gerarPdfInspecao(inspecaoId: string) {
     },
     { valor: String(resumo.ncsAVencer), rotulo: "NCs a vencer", corValor: [200, 118, 8] as RGB },
   ];
-  const gapCards = 8;
+  const gapCards = 6;
   const largCard = (limite - gapCards * 5) / 6;
-  quebrarSeNecessario(72);
+  quebrarSeNecessario(62);
   cards.forEach((c, i) => {
     const x = margem + i * (largCard + gapCards);
     fundo(TINTA.branco);
     if (c.corValor) doc.setDrawColor(c.corValor[0], c.corValor[1], c.corValor[2]);
     else doc.setDrawColor(TINTA.borda[0], TINTA.borda[1], TINTA.borda[2]);
-    doc.roundedRect(x, y, largCard, 58, 6, 6, "FD");
+    doc.roundedRect(x, y, largCard, 48, 6, 6, "FD");
     doc.setFont("helvetica", "bold");
     doc.setFontSize(20);
     cor(c.corValor ?? TINTA.texto);
-    doc.text(c.valor, x + largCard / 2, y + 30, { align: "center" });
+    doc.text(c.valor, x + largCard / 2, y + 24, { align: "center" });
     doc.setFont("helvetica", "bold");
     doc.setFontSize(7);
     cor(c.corValor ?? TINTA.rotulo);
-    doc.text(c.rotulo.toUpperCase(), x + largCard / 2, y + 46, {
+    doc.text(c.rotulo.toUpperCase(), x + largCard / 2, y + 40, {
       align: "center",
       maxWidth: largCard - 6,
     });
   });
-  y += 74;
+  y += 60;
 
   /* ---------------- Barra de severidade ---------------- */
 
