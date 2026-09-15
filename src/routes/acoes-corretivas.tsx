@@ -82,6 +82,10 @@ function AcoesPage() {
   const { data: acoes = [], isLoading } = useQuery({ queryKey: ["acoes"], queryFn: listarAcoes });
   const { data: ncs = [] } = useQuery({ queryKey: ["ncs-todas"], queryFn: listarNCs });
 
+  const pendentes = ncs.filter((n) => n.status !== "Concluída");
+  const atrasadas = pendentes.filter((n) => ncVencida(n));
+  const ncsVisiveis = filtro === "atrasadas" ? atrasadas : pendentes;
+
   const criar = useMutation({
     mutationFn: async () => {
       if (!form.nao_conformidade_id) throw new Error("Selecione a não conformidade.");
