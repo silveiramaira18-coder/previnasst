@@ -48,6 +48,16 @@ const modelos = [
 ];
 
 function RelatoriosPage() {
+  const { adminPrincipal, isLoading } = usePerfil();
+
+  if (isLoading) return <p className="text-sm text-muted-foreground">Carregando...</p>;
+  if (!adminPrincipal)
+    return (
+      <p className="text-sm text-muted-foreground">
+        Esta área é restrita aos administradores do sistema.
+      </p>
+    );
+
   return (
     <div className="space-y-6">
       <PageHeader
