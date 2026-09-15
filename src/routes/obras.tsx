@@ -63,6 +63,7 @@ const vazio = {
   empresa: "",
   responsavel: "",
   engenheiro_responsavel: "",
+  email_engenheiro: "",
   status: "Em andamento",
 };
 
@@ -90,6 +91,7 @@ function ObrasPage() {
       empresa: o.empresa ?? "",
       responsavel: o.responsavel ?? "",
       engenheiro_responsavel: o.engenheiro_responsavel ?? "",
+      email_engenheiro: o.email_engenheiro ?? "",
       status: o.status ?? "Em andamento",
     });
     setAberto(true);
@@ -102,6 +104,7 @@ function ObrasPage() {
         empresa: form.empresa || null,
         responsavel: form.responsavel || null,
         engenheiro_responsavel: form.engenheiro_responsavel || null,
+        email_engenheiro: form.email_engenheiro || null,
         status: form.status,
       };
       if (editandoId) {
@@ -199,16 +202,30 @@ function ObrasPage() {
                 onChange={(e) => setForm({ ...form, responsavel: e.target.value })}
               />
             </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="eng">Engenheiro responsável pela obra</Label>
-              <Input
-                id="eng"
-                maxLength={140}
-                className="h-12"
-                placeholder="Nome do engenheiro"
-                value={form.engenheiro_responsavel}
-                onChange={(e) => setForm({ ...form, engenheiro_responsavel: e.target.value })}
-              />
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-1.5">
+                <Label htmlFor="eng">Engenheiro responsável pela obra</Label>
+                <Input
+                  id="eng"
+                  maxLength={140}
+                  className="h-12"
+                  placeholder="Nome do engenheiro"
+                  value={form.engenheiro_responsavel}
+                  onChange={(e) => setForm({ ...form, engenheiro_responsavel: e.target.value })}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="eng-email">E-mail do engenheiro responsável</Label>
+                <Input
+                  id="eng-email"
+                  type="email"
+                  maxLength={140}
+                  className="h-12"
+                  placeholder="engenheiro@empresa.com.br"
+                  value={form.email_engenheiro}
+                  onChange={(e) => setForm({ ...form, email_engenheiro: e.target.value })}
+                />
+              </div>
             </div>
             <div className="space-y-1.5">
               <Label>Status</Label>
