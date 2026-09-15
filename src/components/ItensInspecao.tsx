@@ -33,7 +33,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
-import { hojeISO, statusExibidoNC, type NaoConformidade } from "@/lib/db";
+import { emailsDosResponsaveis, hojeISO, statusExibidoNC, type NaoConformidade } from "@/lib/db";
 import { listarFotos } from "@/lib/fotos";
 import {
   atualizarItem,
@@ -138,6 +138,7 @@ function FormularioNC({
         prazo: form.prazo || null,
         responsaveis: form.responsaveis,
         responsavel: form.responsaveis.join(", ") || null,
+        emails_responsaveis: emailsDosResponsaveis(form.responsaveis),
         observacao: form.observacao || null,
         acao_imediata: form.acaoImediata,
         descricao_acao_imediata: form.acaoImediata ? form.descricaoAcaoImediata || null : null,
