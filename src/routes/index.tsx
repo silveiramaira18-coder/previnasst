@@ -192,7 +192,12 @@ function Dashboard() {
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {cards.map((c) => (
-          <Link key={c.label} to={c.to} className="block focus-visible:outline-none">
+          <Link
+            key={c.label}
+            to={c.to}
+            search={"search" in c ? c.search : undefined}
+            className="block focus-visible:outline-none"
+          >
             <Card className="h-full transition-colors hover:bg-secondary">
               <CardContent className="flex items-center gap-4 p-5">
                 <div className="grid size-11 shrink-0 place-items-center rounded-xl bg-secondary">
