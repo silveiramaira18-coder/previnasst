@@ -195,7 +195,7 @@ function Dashboard() {
           <Link
             key={c.label}
             to={c.to}
-            search={"search" in c ? c.search : undefined}
+            search={"search" in c ? c.search : {}}
             className="block focus-visible:outline-none"
           >
             <Card className="h-full transition-colors hover:bg-secondary">
