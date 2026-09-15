@@ -36,6 +36,7 @@ import {
 } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
 import { formatarData, listarObras, type Obra } from "@/lib/db";
+import { usePerfil } from "@/lib/perfil";
 
 export const Route = createFileRoute("/obras")({
   head: () => ({
@@ -67,6 +68,7 @@ const vazio = {
 
 function ObrasPage() {
   const qc = useQueryClient();
+  const { adminPrincipal } = usePerfil();
   const [aberto, setAberto] = useState(false);
   const [editandoId, setEditandoId] = useState<string | null>(null);
   const [obraExcluir, setObraExcluir] = useState<Obra | null>(null);
@@ -276,22 +278,26 @@ function ObrasPage() {
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
                         <GerenciarPavimentos obraId={o.id} obraNome={o.nome} />
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="gap-1"
-                          onClick={() => abrirEdicao(o)}
-                        >
-                          <Pencil className="size-3.5" /> Editar
-                        </Button>
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          className="gap-1"
-                          onClick={() => setObraExcluir(o)}
-                        >
-                          <Trash2 className="size-3.5" /> Excluir
-                        </Button>
+                        {adminPrincipal ? (
+                          <>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="gap-1"
+                              onClick={() => abrirEdicao(o)}
+                            >
+                              <Pencil className="size-3.5" /> Editar
+                            </Button>
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              className="gap-1"
+                              onClick={() => setObraExcluir(o)}
+                            >
+                              <Trash2 className="size-3.5" /> Excluir
+                            </Button>
+                          </>
+                        ) : null}
                       </div>
                     </TableCell>
                   </TableRow>
@@ -322,17 +328,26 @@ function ObrasPage() {
                 <span className="text-muted-foreground">{formatarData(o.data_criacao)}</span>
                 <div className="flex flex-wrap gap-2">
                   <GerenciarPavimentos obraId={o.id} obraNome={o.nome} />
-                  <Button variant="outline" size="sm" className="gap-1" onClick={() => abrirEdicao(o)}>
-                    <Pencil className="size-3.5" /> Editar
-                  </Button>
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    className="gap-1"
-                    onClick={() => setObraExcluir(o)}
-                  >
-                    <Trash2 className="size-3.5" /> Excluir
-                  </Button>
+                  {adminPrincipal ? (
+                    <>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="gap-1"
+                        onClick={() => abrirEdicao(o)}
+                      >
+                        <Pencil className="size-3.5" /> Editar
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        className="gap-1"
+                        onClick={() => setObraExcluir(o)}
+                      >
+                        <Trash2 className="size-3.5" /> Excluir
+                      </Button>
+                    </>
+                  ) : null}
                 </div>
               </div>
             </CardContent>

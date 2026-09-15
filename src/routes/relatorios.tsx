@@ -4,6 +4,7 @@ import { FileText, FileBarChart, FileClock, FileWarning } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { usePerfil } from "@/lib/perfil";
 
 export const Route = createFileRoute("/relatorios")({
   head: () => ({
@@ -48,6 +49,16 @@ const modelos = [
 ];
 
 function RelatoriosPage() {
+  const { adminPrincipal, isLoading } = usePerfil();
+
+  if (isLoading) return <p className="text-sm text-muted-foreground">Carregando...</p>;
+  if (!adminPrincipal)
+    return (
+      <p className="text-sm text-muted-foreground">
+        Esta área é restrita aos administradores do sistema.
+      </p>
+    );
+
   return (
     <div className="space-y-6">
       <PageHeader
