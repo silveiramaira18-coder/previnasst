@@ -341,20 +341,14 @@ function NCPage() {
             </Select>
           </div>
           <div className="space-y-1.5">
-            <Label>Status</Label>
-            <Select value={status} onValueChange={setStatus}>
-              <SelectTrigger className="h-12 w-full">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={TODOS}>Todos</SelectItem>
-                {STATUS_FILTRO.map((s) => (
-                  <SelectItem key={s} value={s}>
-                    {s}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Label htmlFor="busca">Buscar (código ou descrição)</Label>
+            <Input
+              id="busca"
+              className="h-12"
+              placeholder="Ex.: NC-0019 ou guarda-corpo"
+              value={busca}
+              onChange={(e) => setBusca(e.target.value)}
+            />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="de">De</Label>
