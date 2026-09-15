@@ -374,7 +374,7 @@ export async function gerarPdfInspecao(inspecaoId: string) {
       }
       x += larg;
     }
-    y += alturaBarra + 18;
+    y += alturaBarra + 14;
     let lx = margem;
     for (const nivel of NIVEIS_RISCO) {
       const qtd = contagem[nivel];
@@ -387,7 +387,7 @@ export async function gerarPdfInspecao(inspecaoId: string) {
       doc.text(texto, lx + 15, y);
       lx += doc.getTextWidth(texto) + 34;
     }
-    y += 18;
+    y += 14;
   }
 
   /* ---------------- Critério de classificação ---------------- */
