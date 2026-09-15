@@ -442,7 +442,7 @@ export async function gerarPdfInspecao(inspecaoId: string) {
   const alturaProf = 22 + Math.max(linhasEsq, linhasDir) * 13 + 2 * 18 + 8;
 
   // O bloco inteiro fica junto: se não couber, começa na página seguinte.
-  quebrarSeNecessario(alturaProf + 34);
+  quebrarSeNecessario(alturaProf + 22);
   titulo("Profissional responsável pela inspeção");
 
   const topoProf = y - 6;
@@ -467,7 +467,7 @@ export async function gerarPdfInspecao(inspecaoId: string) {
       doc.text(parte, x, yy);
       yy += 13;
     }
-    return yy + 6;
+    return yy + 5;
   };
 
   const yEsq = campoColuna("Nome", nomeProf, parX, topoProf + 18);
@@ -476,7 +476,7 @@ export async function gerarPdfInspecao(inspecaoId: string) {
   const yDir = campoColuna("Contato (e-mail)", emailProf, dirX, topoProf + 18);
   campoColuna("Contato (telefone)", telProf, dirX, yDir);
 
-  y = topoProf + alturaProf + 12;
+  y = topoProf + alturaProf + 6;
 
   /* ---------------- Quebra de página: inspeção começa no topo da página seguinte ---------------- */
 
