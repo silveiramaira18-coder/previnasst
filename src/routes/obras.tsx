@@ -68,6 +68,7 @@ const vazio = {
 
 function ObrasPage() {
   const qc = useQueryClient();
+  const { adminPrincipal } = usePerfil();
   const [aberto, setAberto] = useState(false);
   const [editandoId, setEditandoId] = useState<string | null>(null);
   const [obraExcluir, setObraExcluir] = useState<Obra | null>(null);
