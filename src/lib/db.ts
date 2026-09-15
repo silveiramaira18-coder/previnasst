@@ -174,11 +174,23 @@ export const formatarData = (iso: string | null) => {
 
 export const formatarHora = (h: string | null) => (h ? h.slice(0, 5) : "—");
 
-export const hojeISO = () => new Date().toISOString().slice(0, 10);
+/** Data de hoje (ano-mês-dia) no fuso local, sem horário. */
+export const hojeISO = () => {
+  const d = new Date();
+  const mes = String(d.getMonth() + 1).padStart(2, "0");
+  const dia = String(d.getDate()).padStart(2, "0");
+  return `${d.getFullYear()}-${mes}-${dia}`;
+};
 
-/** NC aberta com prazo anterior a hoje. */
+/** Status que encerram a NC — não contam como pendentes nem como atrasadas. */
+export const STATUS_CONCLUIDOS = ["Concluída", "Concluida", "Resolvida", "Encerrada"];
+
+export const ncConcluida = (nc: { status: string }) =>
+  STATUS_CONCLUIDOS.some((s) => s.toLowerCase() === (nc.status ?? "").trim().toLowerCase());
+
+/** NC não concluída com prazo anterior a hoje (comparação só por ano-mês-dia). */
 export const ncVencida = (nc: { status: string; prazo: string | null }) =>
-  nc.status !== "Concluída" && !!nc.prazo && nc.prazo < hojeISO();
+  !ncConcluida(nc) && !!nc.prazo && nc.prazo.slice(0, 10) < hojeISO();
 
 /** Status gravado quando há ação imediata mas a medida definitiva segue pendente. */
 export const STATUS_PARCIAL = "Parcialmente Concluída";
