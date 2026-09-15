@@ -68,7 +68,8 @@ const vazio = {
 
 function ObrasPage() {
   const qc = useQueryClient();
-  const { adminPrincipal } = usePerfil();
+  const { adminPrincipal, perfil } = usePerfil();
+  const podeGerenciar = (o: Obra) => adminPrincipal || (!!perfil && o.user_id === perfil.id);
   const [aberto, setAberto] = useState(false);
   const [editandoId, setEditandoId] = useState<string | null>(null);
   const [obraExcluir, setObraExcluir] = useState<Obra | null>(null);
@@ -278,7 +279,7 @@ function ObrasPage() {
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
                         <GerenciarPavimentos obraId={o.id} obraNome={o.nome} />
-                        {adminPrincipal ? (
+                        {podeGerenciar(o) ? (
                           <>
                             <Button
                               variant="outline"
@@ -328,7 +329,7 @@ function ObrasPage() {
                 <span className="text-muted-foreground">{formatarData(o.data_criacao)}</span>
                 <div className="flex flex-wrap gap-2">
                   <GerenciarPavimentos obraId={o.id} obraNome={o.nome} />
-                  {adminPrincipal ? (
+                  {podeGerenciar(o) ? (
                     <>
                       <Button
                         variant="outline"

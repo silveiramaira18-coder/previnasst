@@ -2,6 +2,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 export type Obra = {
   id: string;
+  user_id?: string | null;
   nome: string;
   empresa: string | null;
   endereco: string | null;
