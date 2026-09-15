@@ -33,7 +33,13 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
-import { emailsDosResponsaveis, hojeISO, statusExibidoNC, type NaoConformidade } from "@/lib/db";
+import {
+  emailsDosResponsaveis,
+  hojeISO,
+  ncConcluida,
+  statusExibidoNC,
+  type NaoConformidade,
+} from "@/lib/db";
 import { listarFotos } from "@/lib/fotos";
 import {
   atualizarItem,
@@ -149,6 +155,34 @@ function FormularioNC({
         const { error } = await supabase.from("nao_conformidades").update(payload).eq("id", nc.id);
         if (error) throw new Error(error.message);
       } else {
+        // Evita duplicar uma NC ativa do mesmo pavimento/setor e categoria.
+        if (obraId) {
+          const { data: existentes } = await supabase
+            .from("nao_conformidades")
+            .select("numero, status, categoria, itens_inspecao(local)")
+            .eq("obra_id", obraId);
+          const duplicada = (existentes ?? []).find((e) => {
+            const registro = e as {
+              numero: string;
+              status: string;
+              categoria: string | null;
+              itens_inspecao: { local: string | null } | null;
+            };
+            if (ncConcluida(registro)) return false;
+            const mesmaCategoria =
+              (registro.categoria ?? "").trim().toLowerCase() ===
+              (form.categoria ?? "").trim().toLowerCase();
+            const mesmoLocal =
+              (registro.itens_inspecao?.local ?? "").trim().toLowerCase() ===
+              (item.local ?? "").trim().toLowerCase();
+            return mesmaCategoria && mesmoLocal;
+          }) as { numero: string } | undefined;
+          if (duplicada) {
+            throw new Error(
+              `Já existe a não conformidade ${duplicada.numero} em aberto para este pavimento/setor e categoria. Atualize o registro existente em vez de criar outro.`,
+            );
+          }
+        }
         const { error } = await supabase.from("nao_conformidades").insert(payload);
         if (error) throw new Error(error.message);
       }

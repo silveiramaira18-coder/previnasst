@@ -425,10 +425,58 @@ export async function gerarPdfInspecao(inspecaoId: string) {
   campo("Data / horário", `${formatarData(inspecao.data)} · ${formatarHora(inspecao.horario)}`);
   campo("Tipo de inspeção", inspecao.tipo_inspecao ?? "—");
 
+  /* -------- Profissional responsável: card único com duas colunas -------- */
+
+  const nomeProf = perfil?.nome || inspecao.responsavel || "—";
+  const cargoProf = perfil?.cargo || "—";
+  const emailProf = perfil?.email || "—";
+  const telProf = perfil?.telefone || "—";
+
+  const colLarg = (limite - 36) / 2;
+  const medir = (texto: string) =>
+    (doc.splitTextToSize(texto, colLarg) as string[]).length;
+
+  // Altura do card: a coluna mais alta entre esquerda (Nome/Cargo) e direita (Contato).
+  const linhasEsq = medir(nomeProf) + medir(cargoProf);
+  const linhasDir = medir(emailProf) + medir(telProf);
+  const alturaProf = 22 + Math.max(linhasEsq, linhasDir) * 13 + 2 * 18 + 8;
+
+  // O bloco inteiro fica junto: se não couber, começa na página seguinte.
+  quebrarSeNecessario(alturaProf + 34);
   titulo("Profissional responsável pela inspeção");
-  campo("Nome", perfil?.nome || inspecao.responsavel || "—");
-  campo("Cargo", perfil?.cargo || "—");
-  campo("Contato", [perfil?.email, perfil?.telefone].filter(Boolean).join(" · ") || "—");
+
+  const topoProf = y - 6;
+  fundo(TINTA.fundoSuave);
+  doc.setDrawColor(TINTA.borda[0], TINTA.borda[1], TINTA.borda[2]);
+  doc.roundedRect(margem, topoProf, limite, alturaProf, 6, 6, "FD");
+
+  const parX = margem + 12;
+  const dirX = margem + 24 + colLarg;
+
+  /** Rótulo/valor dentro de uma coluna do card; devolve o novo y da coluna. */
+  const campoColuna = (rotulo: string, valor: string, x: number, yy: number) => {
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(7.5);
+    cor(TINTA.rotulo);
+    doc.text(rotulo.toUpperCase(), x, yy);
+    yy += 11;
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+    cor(TINTA.texto);
+    for (const parte of doc.splitTextToSize(valor || "—", colLarg - 12) as string[]) {
+      doc.text(parte, x, yy);
+      yy += 13;
+    }
+    return yy + 6;
+  };
+
+  const yEsq = campoColuna("Nome", nomeProf, parX, topoProf + 18);
+  campoColuna("Cargo", cargoProf, parX, yEsq);
+
+  const yDir = campoColuna("Contato (e-mail)", emailProf, dirX, topoProf + 18);
+  campoColuna("Contato (telefone)", telProf, dirX, yDir);
+
+  y = topoProf + alturaProf + 12;
 
   /* ---------------- Quebra de página: inspeção começa no topo da página seguinte ---------------- */
 

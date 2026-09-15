@@ -174,11 +174,23 @@ export const formatarData = (iso: string | null) => {
 
 export const formatarHora = (h: string | null) => (h ? h.slice(0, 5) : "—");
 
-export const hojeISO = () => new Date().toISOString().slice(0, 10);
+/** Data de hoje (ano-mês-dia) no fuso local, sem horário. */
+export const hojeISO = () => {
+  const d = new Date();
+  const mes = String(d.getMonth() + 1).padStart(2, "0");
+  const dia = String(d.getDate()).padStart(2, "0");
+  return `${d.getFullYear()}-${mes}-${dia}`;
+};
 
-/** NC aberta com prazo anterior a hoje. */
+/** Status que encerram a NC — não contam como pendentes nem como atrasadas. */
+export const STATUS_CONCLUIDOS = ["Concluída", "Concluida", "Resolvida", "Encerrada"];
+
+export const ncConcluida = (nc: { status: string }) =>
+  STATUS_CONCLUIDOS.some((s) => s.toLowerCase() === (nc.status ?? "").trim().toLowerCase());
+
+/** NC não concluída com prazo anterior a hoje (comparação só por ano-mês-dia). */
 export const ncVencida = (nc: { status: string; prazo: string | null }) =>
-  nc.status !== "Concluída" && !!nc.prazo && nc.prazo < hojeISO();
+  !ncConcluida(nc) && !!nc.prazo && nc.prazo.slice(0, 10) < hojeISO();
 
 /** Status gravado quando há ação imediata mas a medida definitiva segue pendente. */
 export const STATUS_PARCIAL = "Parcialmente Concluída";
@@ -203,7 +215,7 @@ export const alertaPrazo = (nc: {
   status: string;
   prazo: string | null;
 }): AlertaPrazo | null => {
-  if (nc.status === "Concluída" || !nc.prazo) return null;
+  if (ncConcluida(nc) || !nc.prazo) return null;
   const dias = diasAtePrazo(nc.prazo);
   if (dias === null) return null;
   if (dias < 0) {
@@ -222,7 +234,7 @@ export const alertaPrazoDestaque = (
   nc: { status: string; prazo: string | null },
   comEmoji = false,
 ): AlertaPrazo | null => {
-  if (nc.status === "Concluída" || !nc.prazo) return null;
+  if (ncConcluida(nc) || !nc.prazo) return null;
   const dias = diasAtePrazo(nc.prazo);
   if (dias === null) return null;
   if (dias < 0) {
@@ -245,10 +257,9 @@ export const listarNCsPendentesDaObra = async (obraId: string, excetoInspecaoId?
     .from("nao_conformidades")
     .select("*, inspecoes(numero, data, obras(nome))")
     .eq("obra_id", obraId)
-    .neq("status", "Concluída")
     .order("prazo", { ascending: true });
   if (error) throw new Error(error.message);
-  const lista = (data ?? []) as NaoConformidade[];
+  const lista = ((data ?? []) as NaoConformidade[]).filter((n) => !ncConcluida(n));
   return excetoInspecaoId ? lista.filter((n) => n.inspecao_id !== excetoInspecaoId) : lista;
 };
 

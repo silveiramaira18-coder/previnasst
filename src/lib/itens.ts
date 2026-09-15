@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import { ncVencida } from "@/lib/db";
+import { listarNCsPendentesDaObra, ncConcluida, ncVencida } from "@/lib/db";
 
 export type Resposta = "Conforme" | "Não conforme" | "Não se aplica";
 
@@ -171,11 +171,27 @@ export async function resumoInspecao(inspecaoId: string): Promise<ResumoInspecao
   ]);
 
   const ncsDaInspecao = ncsLista ?? [];
-  // Atrasadas: prazo já vencido. A vencer: pendentes ainda dentro do prazo.
-  const ncsAtrasadas = ncsDaInspecao.filter((n) => ncVencida(n)).length;
-  const ncsAVencer = ncsDaInspecao.filter(
-    (n) => n.status !== "Concluída" && !ncVencida(n),
-  ).length;
+
+  // O relatório também acompanha as pendências anteriores da mesma obra:
+  // os indicadores de prazo consideram esse conjunto completo.
+  const { data: inspecaoDados } = await supabase
+    .from("inspecoes")
+    .select("obra_id")
+    .eq("id", inspecaoId)
+    .maybeSingle();
+
+  const pendentesObra = inspecaoDados?.obra_id
+    ? await listarNCsPendentesDaObra(inspecaoDados.obra_id, inspecaoId)
+    : [];
+
+  const todasNCs = [
+    ...ncsDaInspecao.map((n) => ({ id: n.id, status: n.status, prazo: n.prazo })),
+    ...pendentesObra.map((n) => ({ id: n.id, status: n.status, prazo: n.prazo })),
+  ].filter((n, idx, arr) => arr.findIndex((o) => o.id === n.id) === idx);
+
+  // Atrasadas: não concluída e prazo (ano-mês-dia) anterior a hoje.
+  const ncsAtrasadas = todasNCs.filter((n) => ncVencida(n)).length;
+  const ncsAVencer = todasNCs.filter((n) => !ncConcluida(n) && !ncVencida(n)).length;
 
   const conformes = itens.filter((i) => i.resposta === "Conforme").length;
   const naoConformes = itens.filter((i) => i.resposta === "Não conforme").length;
