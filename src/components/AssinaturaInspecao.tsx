@@ -133,13 +133,22 @@ export function AssinaturaInspecao({
       ctx.fillRect(0, 0, plano.width, plano.height);
       ctx.drawImage(canvas, 0, 0);
 
-      const prefixo = variante === "obra" ? "assinatura_obra" : "assinatura";
-      const valores = {
-        [prefixo]: plano.toDataURL("image/png"),
-        [`${prefixo}_nome`]: nome.trim(),
-        [`${prefixo}_cargo`]: cargo.trim() || null,
-        [`${prefixo}_data`]: new Date().toISOString(),
-      };
+      const imagem = plano.toDataURL("image/png");
+      const agora = new Date().toISOString();
+      const valores =
+        variante === "obra"
+          ? {
+              assinatura_obra: imagem,
+              assinatura_obra_nome: nome.trim(),
+              assinatura_obra_cargo: cargo.trim() || null,
+              assinatura_obra_data: agora,
+            }
+          : {
+              assinatura: imagem,
+              assinatura_nome: nome.trim(),
+              assinatura_cargo: cargo.trim() || null,
+              assinatura_data: agora,
+            };
 
       const { error } = await supabase
         .from("inspecoes")
