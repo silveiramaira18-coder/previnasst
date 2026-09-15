@@ -30,6 +30,13 @@ const CORES: Record<NivelRisco, RGB> = {
   Baixo: [21, 106, 58],
 };
 
+/** Cor do destaque de prazo: vermelho para atrasada/hoje, laranja para a vencer. */
+const CorPrazo: Record<"vencida" | "hoje" | "prazo", RGB> = {
+  vencida: [178, 22, 22],
+  hoje: [178, 22, 22],
+  prazo: [200, 118, 8],
+};
+
 const TINTA = {
   texto: [17, 20, 24] as RGB,
   rotulo: [87, 82, 74] as RGB,
