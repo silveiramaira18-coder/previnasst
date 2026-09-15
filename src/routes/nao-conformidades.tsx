@@ -40,12 +40,16 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { PrazoBadge } from "@/components/PrazoBadge";
 import {
+  diasAtePrazo,
   formatarData,
   listarInspecoes,
   listarNCs,
   listarObras,
+  ncVencida,
   riscoNeutralizado,
   statusExibidoNC,
+  STATUS_PARCIAL,
+  type NaoConformidade,
 } from "@/lib/db";
 import { categoriasChecklist } from "@/lib/mock-data";
 
