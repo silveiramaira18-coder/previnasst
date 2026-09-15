@@ -17,19 +17,28 @@ type Props = { value: string[]; onChange: (valores: string[]) => void };
 /** Responsáveis por resolver a NC: nome + cargo, exibidos como tags. */
 export function ResponsaveisInput({ value, onChange }: Props) {
   const [nome, setNome] = useState("");
+  const [email, setEmail] = useState("");
   const [cargo, setCargo] = useState(CARGOS_RESPONSAVEIS[0] ?? "");
+  const [erro, setErro] = useState("");
 
   const adicionar = () => {
     const limpo = nome.trim();
-    const texto = limpo ? `${limpo} (${cargo})` : cargo;
-    if (!texto || value.includes(texto)) return;
+    const mail = email.trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail)) {
+      setErro("Informe um e-mail válido para o responsável.");
+      return;
+    }
+    const texto = `${limpo ? `${limpo} (${cargo})` : cargo} <${mail}>`;
+    if (value.includes(texto)) return;
+    setErro("");
     onChange([...value, texto]);
     setNome("");
+    setEmail("");
   };
 
   return (
     <div className="space-y-2">
-      <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]">
+      <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
         <Input
           className="h-12"
           placeholder="Nome (opcional)"
@@ -54,10 +63,26 @@ export function ResponsaveisInput({ value, onChange }: Props) {
             ))}
           </SelectContent>
         </Select>
+      </div>
+      <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
+        <Input
+          className="h-12"
+          type="email"
+          placeholder="E-mail do responsável (obrigatório)"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              adicionar();
+            }
+          }}
+        />
         <Button type="button" variant="outline" className="h-12 gap-1" onClick={adicionar}>
           <Plus className="size-4" /> Adicionar
         </Button>
       </div>
+      {erro ? <p className="text-sm font-medium text-destructive">{erro}</p> : null}
 
       {value.length > 0 ? (
         <div className="flex flex-wrap gap-2">

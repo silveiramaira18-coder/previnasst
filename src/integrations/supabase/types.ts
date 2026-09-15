@@ -414,6 +414,7 @@ export type Database = {
           data_criacao: string
           descricao: string
           descricao_acao_imediata: string | null
+          emails_responsaveis: string[]
           id: string
           inspecao_id: string | null
           item_inspecao_id: string | null
@@ -425,6 +426,7 @@ export type Database = {
           responsavel: string | null
           severidade: string
           status: string
+          ultimo_email_cobranca: string | null
           user_id: string
         }
         Insert: {
@@ -435,6 +437,7 @@ export type Database = {
           data_criacao?: string
           descricao: string
           descricao_acao_imediata?: string | null
+          emails_responsaveis?: string[]
           id?: string
           inspecao_id?: string | null
           item_inspecao_id?: string | null
@@ -446,6 +449,7 @@ export type Database = {
           responsavel?: string | null
           severidade?: string
           status?: string
+          ultimo_email_cobranca?: string | null
           user_id?: string
         }
         Update: {
@@ -456,6 +460,7 @@ export type Database = {
           data_criacao?: string
           descricao?: string
           descricao_acao_imediata?: string | null
+          emails_responsaveis?: string[]
           id?: string
           inspecao_id?: string | null
           item_inspecao_id?: string | null
@@ -467,6 +472,7 @@ export type Database = {
           responsavel?: string | null
           severidade?: string
           status?: string
+          ultimo_email_cobranca?: string | null
           user_id?: string
         }
         Relationships: [

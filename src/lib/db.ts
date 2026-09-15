@@ -49,6 +49,16 @@ export type NaoConformidade = {
   inspecoes?: { numero: string; data: string; obras?: { nome: string } | null } | null;
 };
 
+/** Extrai os e-mails informados nas tags de responsáveis ("Nome (Cargo) <email>"). */
+export const emailsDosResponsaveis = (responsaveis: string[] | null | undefined) =>
+  Array.from(
+    new Set(
+      (responsaveis ?? [])
+        .map((r) => r.match(/<([^>]+)>/)?.[1]?.trim().toLowerCase())
+        .filter((e): e is string => !!e),
+    ),
+  );
+
 /** Risco imediato sanado, mas plano de ação definitivo ainda pendente. */
 export const riscoNeutralizado = (nc: { status: string; acao_imediata?: boolean | null }) =>
   !!nc.acao_imediata && nc.status !== "Concluída";
