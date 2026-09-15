@@ -56,7 +56,13 @@ export const Route = createFileRoute("/obras")({
 
 const STATUS = ["Em andamento", "Concluída", "Pausada", "Cancelada"];
 
-const vazio = { nome: "", empresa: "", responsavel: "", status: "Em andamento" };
+const vazio = {
+  nome: "",
+  empresa: "",
+  responsavel: "",
+  engenheiro_responsavel: "",
+  status: "Em andamento",
+};
 
 function ObrasPage() {
   const qc = useQueryClient();
@@ -79,6 +85,7 @@ function ObrasPage() {
       nome: o.nome ?? "",
       empresa: o.empresa ?? "",
       responsavel: o.responsavel ?? "",
+      engenheiro_responsavel: o.engenheiro_responsavel ?? "",
       status: o.status ?? "Em andamento",
     });
     setAberto(true);
@@ -90,6 +97,7 @@ function ObrasPage() {
         nome: form.nome,
         empresa: form.empresa || null,
         responsavel: form.responsavel || null,
+        engenheiro_responsavel: form.engenheiro_responsavel || null,
         status: form.status,
       };
       if (editandoId) {
@@ -185,6 +193,17 @@ function ObrasPage() {
                 placeholder="Profissional responsável pela obra"
                 value={form.responsavel}
                 onChange={(e) => setForm({ ...form, responsavel: e.target.value })}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="eng">Engenheiro responsável pela obra</Label>
+              <Input
+                id="eng"
+                maxLength={140}
+                className="h-12"
+                placeholder="Nome do engenheiro"
+                value={form.engenheiro_responsavel}
+                onChange={(e) => setForm({ ...form, engenheiro_responsavel: e.target.value })}
               />
             </div>
             <div className="space-y-1.5">
