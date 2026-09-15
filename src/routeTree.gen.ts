@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AcoesCorretivasRouteImport } from './routes/acoes-corretivas'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ChecklistsRouteImport } from './routes/checklists'
 import { Route as ConfiguracoesRouteImport } from './routes/configuracoes'
@@ -19,6 +20,7 @@ import { Route as NovaInspecaoRouteImport } from './routes/nova-inspecao'
 import { Route as ObrasRouteImport } from './routes/obras'
 import { Route as PerfilRouteImport } from './routes/perfil'
 import { Route as RelatoriosRouteImport } from './routes/relatorios'
+import { Route as SuporteRouteImport } from './routes/suporte'
 import { Route as InspecoesIndexRouteImport } from './routes/inspecoes.index'
 import { Route as InspecoesIdRouteImport } from './routes/inspecoes.$id'
 
@@ -30,6 +32,11 @@ const IndexRoute = IndexRouteImport.update({
 const AcoesCorretivasRoute = AcoesCorretivasRouteImport.update({
   id: '/acoes-corretivas',
   path: '/acoes-corretivas',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -72,6 +79,11 @@ const RelatoriosRoute = RelatoriosRouteImport.update({
   path: '/relatorios',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SuporteRoute = SuporteRouteImport.update({
+  id: '/suporte',
+  path: '/suporte',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const InspecoesIndexRoute = InspecoesIndexRouteImport.update({
   id: '/inspecoes/',
   path: '/inspecoes/',
@@ -86,6 +98,7 @@ const InspecoesIdRoute = InspecoesIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/acoes-corretivas': typeof AcoesCorretivasRoute
+  '/admin': typeof AdminRoute
   '/auth': typeof AuthRoute
   '/checklists': typeof ChecklistsRoute
   '/configuracoes': typeof ConfiguracoesRoute
@@ -94,12 +107,14 @@ export interface FileRoutesByFullPath {
   '/obras': typeof ObrasRoute
   '/perfil': typeof PerfilRoute
   '/relatorios': typeof RelatoriosRoute
+  '/suporte': typeof SuporteRoute
   '/inspecoes/$id': typeof InspecoesIdRoute
   '/inspecoes/': typeof InspecoesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/acoes-corretivas': typeof AcoesCorretivasRoute
+  '/admin': typeof AdminRoute
   '/auth': typeof AuthRoute
   '/checklists': typeof ChecklistsRoute
   '/configuracoes': typeof ConfiguracoesRoute
@@ -108,6 +123,7 @@ export interface FileRoutesByTo {
   '/obras': typeof ObrasRoute
   '/perfil': typeof PerfilRoute
   '/relatorios': typeof RelatoriosRoute
+  '/suporte': typeof SuporteRoute
   '/inspecoes/$id': typeof InspecoesIdRoute
   '/inspecoes': typeof InspecoesIndexRoute
 }
@@ -115,6 +131,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/acoes-corretivas': typeof AcoesCorretivasRoute
+  '/admin': typeof AdminRoute
   '/auth': typeof AuthRoute
   '/checklists': typeof ChecklistsRoute
   '/configuracoes': typeof ConfiguracoesRoute
@@ -123,6 +140,7 @@ export interface FileRoutesById {
   '/obras': typeof ObrasRoute
   '/perfil': typeof PerfilRoute
   '/relatorios': typeof RelatoriosRoute
+  '/suporte': typeof SuporteRoute
   '/inspecoes/$id': typeof InspecoesIdRoute
   '/inspecoes/': typeof InspecoesIndexRoute
 }
@@ -131,6 +149,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/acoes-corretivas'
+    | '/admin'
     | '/auth'
     | '/checklists'
     | '/configuracoes'
@@ -139,12 +158,14 @@ export interface FileRouteTypes {
     | '/obras'
     | '/perfil'
     | '/relatorios'
+    | '/suporte'
     | '/inspecoes/$id'
     | '/inspecoes/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/acoes-corretivas'
+    | '/admin'
     | '/auth'
     | '/checklists'
     | '/configuracoes'
@@ -153,12 +174,14 @@ export interface FileRouteTypes {
     | '/obras'
     | '/perfil'
     | '/relatorios'
+    | '/suporte'
     | '/inspecoes/$id'
     | '/inspecoes'
   id:
     | '__root__'
     | '/'
     | '/acoes-corretivas'
+    | '/admin'
     | '/auth'
     | '/checklists'
     | '/configuracoes'
@@ -167,6 +190,7 @@ export interface FileRouteTypes {
     | '/obras'
     | '/perfil'
     | '/relatorios'
+    | '/suporte'
     | '/inspecoes/$id'
     | '/inspecoes/'
   fileRoutesById: FileRoutesById
@@ -174,6 +198,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AcoesCorretivasRoute: typeof AcoesCorretivasRoute
+  AdminRoute: typeof AdminRoute
   AuthRoute: typeof AuthRoute
   ChecklistsRoute: typeof ChecklistsRoute
   ConfiguracoesRoute: typeof ConfiguracoesRoute
@@ -182,6 +207,7 @@ export interface RootRouteChildren {
   ObrasRoute: typeof ObrasRoute
   PerfilRoute: typeof PerfilRoute
   RelatoriosRoute: typeof RelatoriosRoute
+  SuporteRoute: typeof SuporteRoute
   InspecoesIdRoute: typeof InspecoesIdRoute
   InspecoesIndexRoute: typeof InspecoesIndexRoute
 }
@@ -200,6 +226,13 @@ declare module '@tanstack/react-router' {
       path: '/acoes-corretivas'
       fullPath: '/acoes-corretivas'
       preLoaderRoute: typeof AcoesCorretivasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -258,6 +291,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RelatoriosRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/suporte': {
+      id: '/suporte'
+      path: '/suporte'
+      fullPath: '/suporte'
+      preLoaderRoute: typeof SuporteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/inspecoes/': {
       id: '/inspecoes/'
       path: '/inspecoes'
@@ -278,6 +318,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AcoesCorretivasRoute: AcoesCorretivasRoute,
+  AdminRoute: AdminRoute,
   AuthRoute: AuthRoute,
   ChecklistsRoute: ChecklistsRoute,
   ConfiguracoesRoute: ConfiguracoesRoute,
@@ -286,6 +327,7 @@ const rootRouteChildren: RootRouteChildren = {
   ObrasRoute: ObrasRoute,
   PerfilRoute: PerfilRoute,
   RelatoriosRoute: RelatoriosRoute,
+  SuporteRoute: SuporteRoute,
   InspecoesIdRoute: InspecoesIdRoute,
   InspecoesIndexRoute: InspecoesIndexRoute,
 }

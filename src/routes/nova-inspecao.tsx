@@ -21,7 +21,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
-import { listarObras } from "@/lib/db";
+import { PrazoBadge } from "@/components/PrazoBadge";
+import { formatarData, listarNCsPendentesDaObra, listarObras, statusExibidoNC } from "@/lib/db";
+import { StatusBadge } from "@/components/StatusBadge";
 import { criarItem } from "@/lib/itens";
 
 
@@ -56,11 +58,19 @@ function NovaInspecao() {
     data: new Date().toISOString().slice(0, 10),
     horario: "",
     responsavel: "",
+    engenheiro_responsavel: "",
     tipo_inspecao: "",
     observacoes: "",
   });
 
   const { data: obras = [] } = useQuery({ queryKey: ["obras"], queryFn: listarObras });
+
+  // Pendências de relatórios anteriores da mesma obra, para acompanhamento.
+  const { data: pendentes = [] } = useQuery({
+    queryKey: ["ncs-pendentes", form.obra_id, inspecaoId],
+    queryFn: () => listarNCsPendentesDaObra(form.obra_id, inspecaoId ?? undefined),
+    enabled: !!form.obra_id,
+  });
 
   const salvar = useMutation({
     mutationFn: async () => {
@@ -70,6 +80,7 @@ function NovaInspecao() {
         data: form.data,
         horario: form.horario || null,
         responsavel: form.responsavel || null,
+        engenheiro_responsavel: form.engenheiro_responsavel || null,
         tipo_inspecao:
           (form.tipo_inspecao === "Outro" ? tipoOutro.trim() : form.tipo_inspecao) || null,
         observacoes: form.observacoes || null,
@@ -139,7 +150,18 @@ function NovaInspecao() {
         <CardContent className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-1.5 sm:col-span-2">
             <Label htmlFor="obra">Obra</Label>
-            <Select value={form.obra_id} onValueChange={(v) => setForm({ ...form, obra_id: v })}>
+            <Select
+              value={form.obra_id}
+              onValueChange={(v) => {
+                const obra = obras.find((o) => o.id === v);
+                setForm({
+                  ...form,
+                  obra_id: v,
+                  engenheiro_responsavel:
+                    form.engenheiro_responsavel || obra?.engenheiro_responsavel || "",
+                });
+              }}
+            >
               <SelectTrigger id="obra" className="h-12 w-full">
                 <SelectValue placeholder="Selecione a obra" />
               </SelectTrigger>
@@ -185,6 +207,16 @@ function NovaInspecao() {
               placeholder="Nome do profissional"
               value={form.responsavel}
               onChange={(e) => setForm({ ...form, responsavel: e.target.value })}
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="engenheiro">Engenheiro responsável pela obra</Label>
+            <Input
+              id="engenheiro"
+              className="h-12"
+              placeholder="Nome do engenheiro"
+              value={form.engenheiro_responsavel}
+              onChange={(e) => setForm({ ...form, engenheiro_responsavel: e.target.value })}
             />
           </div>
           <div className="space-y-1.5 sm:col-span-2">
@@ -242,6 +274,32 @@ function NovaInspecao() {
           </div>
         </CardContent>
       </Card>
+
+      {pendentes.length > 0 ? (
+        <Card className="border-warning/50">
+          <CardHeader>
+            <CardTitle className="text-base">
+              Pendências de inspeções anteriores nesta obra ({pendentes.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {pendentes.map((nc) => (
+              <div key={nc.id} className="space-y-1 rounded-xl border p-3">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="font-semibold">{nc.numero}</span>
+                  <StatusBadge value={statusExibidoNC(nc)} />
+                  <PrazoBadge nc={nc} />
+                </div>
+                <p className="text-sm text-muted-foreground">{nc.descricao}</p>
+                <p className="text-xs text-muted-foreground">
+                  Registrada em {formatarData(nc.data_criacao.slice(0, 10))} · pendência sem solução
+                  definitiva
+                </p>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      ) : null}
 
       <Card>
         <CardHeader>

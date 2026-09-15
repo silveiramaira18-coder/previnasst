@@ -10,6 +10,8 @@ import {
   Settings,
   HardHat,
   UserRound,
+  LifeBuoy,
+  ShieldCheck,
 } from "lucide-react";
 
 import { AvatarPerfil } from "@/components/AvatarPerfil";
@@ -42,7 +44,9 @@ const items = [
   },
   { title: "Não Conformidades", to: "/nao-conformidades", icon: TriangleAlert },
   { title: "Relatórios", to: "/relatorios", icon: FileText, somenteAdminPrincipal: true },
+  { title: "Painel Administrativo", to: "/admin", icon: ShieldCheck, somenteAdminPrincipal: true },
   { title: "Meu Perfil", to: "/perfil", icon: UserRound },
+  { title: "Suporte", to: "/suporte", icon: LifeBuoy },
   { title: "Configurações", to: "/configuracoes", icon: Settings },
 ] as const;
 

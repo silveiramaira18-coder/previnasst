@@ -38,7 +38,15 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
-import { formatarData, listarInspecoes, listarNCs, listarObras, statusExibidoNC } from "@/lib/db";
+import { PrazoBadge } from "@/components/PrazoBadge";
+import {
+  formatarData,
+  listarInspecoes,
+  listarNCs,
+  listarObras,
+  riscoNeutralizado,
+  statusExibidoNC,
+} from "@/lib/db";
 import { categoriasChecklist } from "@/lib/mock-data";
 
 export const Route = createFileRoute("/nao-conformidades")({
@@ -62,7 +70,7 @@ export const Route = createFileRoute("/nao-conformidades")({
 
 const SEVERIDADES = ["Baixa", "Média", "Alta", "Crítica"];
 const STATUS = ["Aberta", "Em tratativa", "Atrasada", "Concluída"];
-const STATUS_FILTRO = ["Aberta", "Em tratativa", "Vencida", "Concluída"];
+const STATUS_FILTRO = ["Aberta", "Parcialmente Concluída", "Vencida", "Concluída"];
 const TODOS = "todos";
 
 function NCPage() {
@@ -355,9 +363,21 @@ function NCPage() {
                   <TableCell>
                     <StatusBadge value={nc.severidade} />
                   </TableCell>
-                  <TableCell>{formatarData(nc.prazo)}</TableCell>
                   <TableCell>
-                    <StatusBadge value={statusExibidoNC(nc)} />
+                    <div className="space-y-1">
+                      <span>{formatarData(nc.prazo)}</span>
+                      <PrazoBadge nc={nc} className="block w-fit" />
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="space-y-1">
+                      <StatusBadge value={statusExibidoNC(nc)} />
+                      {riscoNeutralizado(nc) ? (
+                        <p className="text-xs font-medium text-success">
+                          Ação imediata: concluída · Ação definitiva: pendente
+                        </p>
+                      ) : null}
+                    </div>
                   </TableCell>
                   <TableCell>
                     <div className="flex justify-end gap-2">
@@ -404,7 +424,13 @@ function NCPage() {
               <div className="flex flex-wrap items-center gap-3 text-sm">
                 <StatusBadge value={statusExibidoNC(nc)} />
                 <span className="text-muted-foreground">Prazo: {formatarData(nc.prazo)}</span>
+                <PrazoBadge nc={nc} />
               </div>
+              {riscoNeutralizado(nc) ? (
+                <p className="text-xs font-medium text-success">
+                  Ação imediata: concluída (risco sanado) · Ação definitiva: pendente
+                </p>
+              ) : null}
               <div className="flex flex-wrap gap-2">
                 <FotoDialog
                   tabela="fotos_nao_conformidade"
