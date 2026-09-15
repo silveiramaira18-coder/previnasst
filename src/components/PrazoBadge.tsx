@@ -11,7 +11,7 @@ export function PrazoBadge({
   nc: { status: string; prazo: string | null };
   className?: string;
 }) {
-  const alerta = alertaPrazo(nc);
+  const alerta = alertaPrazoDestaque(nc, true);
   if (!alerta) return null;
 
   const estilo =
