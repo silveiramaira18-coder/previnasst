@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 
 import { AvatarPerfil } from "@/components/AvatarPerfil";
+import { BotaoInstalarApp } from "@/components/BotaoInstalarApp";
 import {
   Sidebar,
   SidebarContent,
@@ -109,6 +110,7 @@ export function AppSidebar() {
       </SidebarContent>
 
       <SidebarFooter className="border-t border-sidebar-border p-4">
+        <BotaoInstalarApp variante="menu" onAcao={() => isMobile && setOpenMobile(false)} />
         {perfil ? (
           <Link
             to="/perfil"

@@ -14,6 +14,7 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AppSidebar } from "@/components/AppSidebar";
+import { BotaoInstalarApp } from "@/components/BotaoInstalarApp";
 import { StatusRede } from "@/components/StatusRede";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { Toaster } from "@/components/ui/sonner";
@@ -92,6 +93,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "theme-color", content: "#0F172A" },
       { name: "mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
+      { name: "application-name", content: "Previna SST" },
       { name: "apple-mobile-web-app-title", content: "Previna SST" },
       { title: "Previna SST — Inspeções de Segurança do Trabalho" },
       {
@@ -179,6 +182,7 @@ function RootComponent() {
                   Previna SST
                 </Link>
                 <StatusRede />
+                <BotaoInstalarApp />
                 <BotaoTema />
                 <Button
                   variant="ghost"

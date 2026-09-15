@@ -47,12 +47,4 @@ export function limparRascunho(chave: string) {
   }
 }
 
-/** Registra o service worker que mantém o app aberto mesmo sem internet. */
-export function registrarServiceWorker() {
-  if (typeof window === "undefined" || !("serviceWorker" in navigator)) return;
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("/sw.js").catch((erro) => {
-      console.error("Falha ao registrar o modo offline", erro);
-    });
-  });
-}
+export { registrarServiceWorker } from "@/lib/pwa";
