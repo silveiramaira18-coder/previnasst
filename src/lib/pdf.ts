@@ -533,6 +533,8 @@ export async function gerarPdfInspecao(inspecaoId: string) {
       resposta === "Conforme" ? CORES["Baixo"] : resposta === "Não conforme" ? CORES["Crítico"] : [120, 124, 130],
     ) + 6;
     if (nivel) cx += chip(`Risco ${nivel}`, cx, cy + 4, CORES[nivel]) + 6;
+    const destaquePrazo = nc ? alertaPrazoDestaque(nc) : null;
+    if (destaquePrazo) cx += chip(destaquePrazo.texto, cx, cy + 4, CorPrazo[destaquePrazo.tom]) + 6;
     if (norma) chip(norma, cx, cy + 4, TINTA.rotulo);
     cy += 20;
 
