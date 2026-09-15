@@ -1,6 +1,6 @@
 import { AlarmClock, TriangleAlert } from "lucide-react";
 
-import { alertaPrazo, formatarData } from "@/lib/db";
+import { alertaPrazoDestaque, formatarData } from "@/lib/db";
 import { cn } from "@/lib/utils";
 
 /** Contador de prazo em destaque: vermelho para atrasadas, âmbar para as a vencer. */
