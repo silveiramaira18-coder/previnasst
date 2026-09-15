@@ -470,13 +470,11 @@ export async function gerarPdfInspecao(inspecaoId: string) {
     return yy + 6;
   };
 
-  let yEsq = topoProf + 18;
-  yEsq = campoColuna("Nome", nomeProf, parX, yEsq);
-  yEsq = campoColuna("Cargo", cargoProf, parX, yEsq);
+  const yEsq = campoColuna("Nome", nomeProf, parX, topoProf + 18);
+  campoColuna("Cargo", cargoProf, parX, yEsq);
 
-  let yDir = topoProf + 18;
-  yDir = campoColuna("Contato (e-mail)", emailProf, dirX, yDir);
-  yDir = campoColuna("Contato (telefone)", telProf, dirX, yDir);
+  const yDir = campoColuna("Contato (e-mail)", emailProf, dirX, topoProf + 18);
+  campoColuna("Contato (telefone)", telProf, dirX, yDir);
 
   y = topoProf + alturaProf + 12;
 
