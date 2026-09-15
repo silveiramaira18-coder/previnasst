@@ -34,7 +34,7 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import {
-  emailsDosResponsaveis,
+  
   hojeISO,
   ncConcluida,
   statusExibidoNC,
