@@ -23,6 +23,7 @@ import { Route as RelatoriosRouteImport } from './routes/relatorios'
 import { Route as SuporteRouteImport } from './routes/suporte'
 import { Route as InspecoesIndexRouteImport } from './routes/inspecoes.index'
 import { Route as InspecoesIdRouteImport } from './routes/inspecoes.$id'
+import { Route as ApiPublicHooksCobrancaNcsRouteImport } from './routes/api/public/hooks/cobranca-ncs'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -94,6 +95,12 @@ const InspecoesIdRoute = InspecoesIdRouteImport.update({
   path: '/inspecoes/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicHooksCobrancaNcsRoute =
+  ApiPublicHooksCobrancaNcsRouteImport.update({
+    id: '/api/public/hooks/cobranca-ncs',
+    path: '/api/public/hooks/cobranca-ncs',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -110,6 +117,7 @@ export interface FileRoutesByFullPath {
   '/suporte': typeof SuporteRoute
   '/inspecoes/$id': typeof InspecoesIdRoute
   '/inspecoes/': typeof InspecoesIndexRoute
+  '/api/public/hooks/cobranca-ncs': typeof ApiPublicHooksCobrancaNcsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -126,6 +134,7 @@ export interface FileRoutesByTo {
   '/suporte': typeof SuporteRoute
   '/inspecoes/$id': typeof InspecoesIdRoute
   '/inspecoes': typeof InspecoesIndexRoute
+  '/api/public/hooks/cobranca-ncs': typeof ApiPublicHooksCobrancaNcsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -143,6 +152,7 @@ export interface FileRoutesById {
   '/suporte': typeof SuporteRoute
   '/inspecoes/$id': typeof InspecoesIdRoute
   '/inspecoes/': typeof InspecoesIndexRoute
+  '/api/public/hooks/cobranca-ncs': typeof ApiPublicHooksCobrancaNcsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -161,6 +171,7 @@ export interface FileRouteTypes {
     | '/suporte'
     | '/inspecoes/$id'
     | '/inspecoes/'
+    | '/api/public/hooks/cobranca-ncs'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -177,6 +188,7 @@ export interface FileRouteTypes {
     | '/suporte'
     | '/inspecoes/$id'
     | '/inspecoes'
+    | '/api/public/hooks/cobranca-ncs'
   id:
     | '__root__'
     | '/'
@@ -193,6 +205,7 @@ export interface FileRouteTypes {
     | '/suporte'
     | '/inspecoes/$id'
     | '/inspecoes/'
+    | '/api/public/hooks/cobranca-ncs'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -210,6 +223,7 @@ export interface RootRouteChildren {
   SuporteRoute: typeof SuporteRoute
   InspecoesIdRoute: typeof InspecoesIdRoute
   InspecoesIndexRoute: typeof InspecoesIndexRoute
+  ApiPublicHooksCobrancaNcsRoute: typeof ApiPublicHooksCobrancaNcsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -312,6 +326,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof InspecoesIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/cobranca-ncs': {
+      id: '/api/public/hooks/cobranca-ncs'
+      path: '/api/public/hooks/cobranca-ncs'
+      fullPath: '/api/public/hooks/cobranca-ncs'
+      preLoaderRoute: typeof ApiPublicHooksCobrancaNcsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -330,6 +351,7 @@ const rootRouteChildren: RootRouteChildren = {
   SuporteRoute: SuporteRoute,
   InspecoesIdRoute: InspecoesIdRoute,
   InspecoesIndexRoute: InspecoesIndexRoute,
+  ApiPublicHooksCobrancaNcsRoute: ApiPublicHooksCobrancaNcsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
