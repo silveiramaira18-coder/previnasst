@@ -407,7 +407,7 @@ export async function gerarPdfInspecao(inspecaoId: string) {
     doc.text(texto, margem + largChip + 8, y, { maxWidth: limite - largChip - 8 });
     y += 18;
   }
-  y += 6;
+  y += 4;
 
   /* ---------------- Identificação ---------------- */
 
