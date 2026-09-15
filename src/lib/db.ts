@@ -215,7 +215,7 @@ export const alertaPrazo = (nc: {
   status: string;
   prazo: string | null;
 }): AlertaPrazo | null => {
-  if (nc.status === "Concluída" || !nc.prazo) return null;
+  if (ncConcluida(nc) || !nc.prazo) return null;
   const dias = diasAtePrazo(nc.prazo);
   if (dias === null) return null;
   if (dias < 0) {
@@ -234,7 +234,7 @@ export const alertaPrazoDestaque = (
   nc: { status: string; prazo: string | null },
   comEmoji = false,
 ): AlertaPrazo | null => {
-  if (nc.status === "Concluída" || !nc.prazo) return null;
+  if (ncConcluida(nc) || !nc.prazo) return null;
   const dias = diasAtePrazo(nc.prazo);
   if (dias === null) return null;
   if (dias < 0) {
@@ -257,10 +257,9 @@ export const listarNCsPendentesDaObra = async (obraId: string, excetoInspecaoId?
     .from("nao_conformidades")
     .select("*, inspecoes(numero, data, obras(nome))")
     .eq("obra_id", obraId)
-    .neq("status", "Concluída")
     .order("prazo", { ascending: true });
   if (error) throw new Error(error.message);
-  const lista = (data ?? []) as NaoConformidade[];
+  const lista = ((data ?? []) as NaoConformidade[]).filter((n) => !ncConcluida(n));
   return excetoInspecaoId ? lista.filter((n) => n.inspecao_id !== excetoInspecaoId) : lista;
 };
 
