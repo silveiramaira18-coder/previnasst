@@ -1,6 +1,6 @@
 import { AlarmClock, TriangleAlert } from "lucide-react";
 
-import { alertaPrazo, formatarData } from "@/lib/db";
+import { alertaPrazoDestaque, formatarData } from "@/lib/db";
 import { cn } from "@/lib/utils";
 
 /** Contador de prazo em destaque: vermelho para atrasadas, âmbar para as a vencer. */
@@ -11,7 +11,7 @@ export function PrazoBadge({
   nc: { status: string; prazo: string | null };
   className?: string;
 }) {
-  const alerta = alertaPrazo(nc);
+  const alerta = alertaPrazoDestaque(nc, true);
   if (!alerta) return null;
 
   const estilo =

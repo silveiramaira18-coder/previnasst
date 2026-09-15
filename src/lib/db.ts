@@ -200,6 +200,31 @@ export const alertaPrazo = (nc: {
   return { tom: "prazo", texto: `Faltam ${dias} ${dias === 1 ? "dia" : "dias"} para o prazo` };
 };
 
+/**
+ * Alerta de prazo em destaque, calculado sempre em relação à data de hoje
+ * (data de emissão do relatório). Use emoji apenas nas telas — o PDF não renderiza emojis.
+ */
+export const alertaPrazoDestaque = (
+  nc: { status: string; prazo: string | null },
+  comEmoji = false,
+): AlertaPrazo | null => {
+  if (nc.status === "Concluída" || !nc.prazo) return null;
+  const dias = diasAtePrazo(nc.prazo);
+  if (dias === null) return null;
+  if (dias < 0) {
+    const d = Math.abs(dias);
+    return {
+      tom: "vencida",
+      texto: `${comEmoji ? "🚨 " : ""}ATRASADA HÁ ${d} ${d === 1 ? "DIA" : "DIAS"}`,
+    };
+  }
+  if (dias === 0) return { tom: "hoje", texto: `${comEmoji ? "⚠️ " : ""}VENCE HOJE` };
+  return {
+    tom: "prazo",
+    texto: `${comEmoji ? "⏳ " : ""}VENCE EM ${dias} ${dias === 1 ? "DIA" : "DIAS"}`,
+  };
+};
+
 /** NCs de uma obra que continuam pendentes (para acompanhamento em novos relatórios). */
 export const listarNCsPendentesDaObra = async (obraId: string, excetoInspecaoId?: string) => {
   const { data, error } = await supabase
