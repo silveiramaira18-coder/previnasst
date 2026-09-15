@@ -11,10 +11,10 @@ import { supabase } from "@/integrations/supabase/client";
 
 type Props = {
   inspecaoId: string;
-  assinatura?: string | null;
-  nomeInicial?: string | null;
-  cargoInicial?: string | null;
-  dataAssinatura?: string | null;
+  assinatura?: string | null | undefined;
+  nomeInicial?: string | null | undefined;
+  cargoInicial?: string | null | undefined;
+  dataAssinatura?: string | null | undefined;
 };
 
 /** Bloco de assinatura eletrônica do responsável/inspetor (dedo, caneta ou mouse). */
