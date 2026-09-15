@@ -408,6 +408,10 @@ export async function gerarPdfInspecao(inspecaoId: string) {
     `${nomeObra}${inspecao.local ? ` — ${inspecao.local}` : ""}`,
   );
   campo("Engenheiro responsável pela obra", engenheiro || "—");
+  campo(
+    "E-mail do engenheiro responsável",
+    (inspecao as { email_engenheiro?: string | null }).email_engenheiro || "—",
+  );
   campo("Data / horário", `${formatarData(inspecao.data)} · ${formatarHora(inspecao.horario)}`);
   campo("Tipo de inspeção", inspecao.tipo_inspecao ?? "—");
 
@@ -666,7 +670,7 @@ export async function gerarPdfInspecao(inspecaoId: string) {
 
   /* ---------------- Validação e ciência ---------------- */
 
-  const alturaValidacao = 130;
+  const alturaValidacao = 165;
   if (y + alturaValidacao > alturaPagina - margem) {
     doc.addPage();
     y = margem;
