@@ -300,8 +300,9 @@ function FormularioNC({
               Ação Imediata / Intervenção no Local Realizada?
             </Label>
             <p className="text-xs text-muted-foreground">
-              O risco imediato é sanado no local, mas a NC segue "Em andamento" até a baixa da
-              medida definitiva no painel de Não Conformidades.
+              Ação imediata concluída no local (risco sanado). A NC ficará marcada como
+              "Parcialmente Concluída" até a realização e baixa da medida definitiva (ex.:
+              treinamento) no painel de Não Conformidades.
             </p>
           </div>
         </div>

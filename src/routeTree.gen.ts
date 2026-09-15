@@ -19,6 +19,7 @@ import { Route as NovaInspecaoRouteImport } from './routes/nova-inspecao'
 import { Route as ObrasRouteImport } from './routes/obras'
 import { Route as PerfilRouteImport } from './routes/perfil'
 import { Route as RelatoriosRouteImport } from './routes/relatorios'
+import { Route as SuporteRouteImport } from './routes/suporte'
 import { Route as InspecoesIndexRouteImport } from './routes/inspecoes.index'
 import { Route as InspecoesIdRouteImport } from './routes/inspecoes.$id'
 
@@ -72,6 +73,11 @@ const RelatoriosRoute = RelatoriosRouteImport.update({
   path: '/relatorios',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SuporteRoute = SuporteRouteImport.update({
+  id: '/suporte',
+  path: '/suporte',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const InspecoesIndexRoute = InspecoesIndexRouteImport.update({
   id: '/inspecoes/',
   path: '/inspecoes/',
@@ -94,6 +100,7 @@ export interface FileRoutesByFullPath {
   '/obras': typeof ObrasRoute
   '/perfil': typeof PerfilRoute
   '/relatorios': typeof RelatoriosRoute
+  '/suporte': typeof SuporteRoute
   '/inspecoes/$id': typeof InspecoesIdRoute
   '/inspecoes/': typeof InspecoesIndexRoute
 }
@@ -108,6 +115,7 @@ export interface FileRoutesByTo {
   '/obras': typeof ObrasRoute
   '/perfil': typeof PerfilRoute
   '/relatorios': typeof RelatoriosRoute
+  '/suporte': typeof SuporteRoute
   '/inspecoes/$id': typeof InspecoesIdRoute
   '/inspecoes': typeof InspecoesIndexRoute
 }
@@ -123,6 +131,7 @@ export interface FileRoutesById {
   '/obras': typeof ObrasRoute
   '/perfil': typeof PerfilRoute
   '/relatorios': typeof RelatoriosRoute
+  '/suporte': typeof SuporteRoute
   '/inspecoes/$id': typeof InspecoesIdRoute
   '/inspecoes/': typeof InspecoesIndexRoute
 }
@@ -139,6 +148,7 @@ export interface FileRouteTypes {
     | '/obras'
     | '/perfil'
     | '/relatorios'
+    | '/suporte'
     | '/inspecoes/$id'
     | '/inspecoes/'
   fileRoutesByTo: FileRoutesByTo
@@ -153,6 +163,7 @@ export interface FileRouteTypes {
     | '/obras'
     | '/perfil'
     | '/relatorios'
+    | '/suporte'
     | '/inspecoes/$id'
     | '/inspecoes'
   id:
@@ -167,6 +178,7 @@ export interface FileRouteTypes {
     | '/obras'
     | '/perfil'
     | '/relatorios'
+    | '/suporte'
     | '/inspecoes/$id'
     | '/inspecoes/'
   fileRoutesById: FileRoutesById
@@ -182,6 +194,7 @@ export interface RootRouteChildren {
   ObrasRoute: typeof ObrasRoute
   PerfilRoute: typeof PerfilRoute
   RelatoriosRoute: typeof RelatoriosRoute
+  SuporteRoute: typeof SuporteRoute
   InspecoesIdRoute: typeof InspecoesIdRoute
   InspecoesIndexRoute: typeof InspecoesIndexRoute
 }
@@ -258,6 +271,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RelatoriosRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/suporte': {
+      id: '/suporte'
+      path: '/suporte'
+      fullPath: '/suporte'
+      preLoaderRoute: typeof SuporteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/inspecoes/': {
       id: '/inspecoes/'
       path: '/inspecoes'
@@ -286,6 +306,7 @@ const rootRouteChildren: RootRouteChildren = {
   ObrasRoute: ObrasRoute,
   PerfilRoute: PerfilRoute,
   RelatoriosRoute: RelatoriosRoute,
+  SuporteRoute: SuporteRoute,
   InspecoesIdRoute: InspecoesIdRoute,
   InspecoesIndexRoute: InspecoesIndexRoute,
 }
