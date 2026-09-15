@@ -153,6 +153,28 @@ export async function gerarPdfInspecao(inspecaoId: string) {
     }),
   );
 
+  // Fotos originais das NCs pendentes de inspeções anteriores (galeria no card).
+  const fotosPorPendencia = new Map<string, { dataUrl: string; formato: string }[]>();
+  await Promise.all(
+    pendenciasAnteriores.map(async (nc) => {
+      try {
+        let fotos = await listarFotos("fotos_nao_conformidade", "nao_conformidade_id", nc.id);
+        if (fotos.length === 0 && nc.item_inspecao_id) {
+          fotos = await listarFotos("fotos_item_inspecao", "item_inspecao_id", nc.item_inspecao_id);
+        }
+        const selecionadas = fotos.slice(0, 3);
+        const carregadas: { dataUrl: string; formato: string }[] = [];
+        for (const foto of selecionadas) {
+          const bruta = await carregarImagem(foto.url);
+          carregadas.push({ dataUrl: await recortarCover(bruta.dataUrl, 480, 360), formato: "JPEG" });
+        }
+        if (carregadas.length > 0) fotosPorPendencia.set(nc.id, carregadas);
+      } catch (erro) {
+        console.error("Falha ao carregar fotos da pendência", erro);
+      }
+    }),
+  );
+
   const doc = new jsPDF({ unit: "pt", format: "a4" });
   const larguraPagina = doc.internal.pageSize.getWidth();
   const alturaPagina = doc.internal.pageSize.getHeight();
@@ -689,11 +711,17 @@ export async function gerarPdfInspecao(inspecaoId: string) {
       ];
 
       const largTexto = limite - padCard * 2 - 6;
+      const fotosNc = fotosPorPendencia.get(nc.id) ?? [];
+      const espacoFoto = 8;
+      const fotoLargNc =
+        fotosNc.length > 0 ? (largTexto - espacoFoto * (fotosNc.length - 1)) / fotosNc.length : 0;
+      const fotoAltNc = fotosNc.length > 0 ? Math.round(fotoLargNc * 0.75) : 0;
       let alturaNc = 16 + 20;
       for (const [, valor] of camposNc) {
         doc.setFontSize(9.5);
         alturaNc += 10 + (doc.splitTextToSize(valor || "—", largTexto) as string[]).length * 12 + 4;
       }
+      if (fotosNc.length > 0) alturaNc += 12 + fotoAltNc;
       alturaNc += padCard * 2;
 
       if (y + alturaNc > alturaPagina - margem) {
@@ -741,6 +769,21 @@ export async function gerarPdfInspecao(inspecaoId: string) {
           ny += 12;
         }
         ny += 4;
+      }
+
+      if (fotosNc.length > 0) {
+        let fx = xNc;
+        const fy = topoNc + alturaNc - padCard - fotoAltNc;
+        for (const foto of fotosNc) {
+          try {
+            doc.addImage(foto.dataUrl, foto.formato, fx, fy, fotoLargNc, fotoAltNc);
+            doc.setDrawColor(TINTA.borda[0], TINTA.borda[1], TINTA.borda[2]);
+            doc.roundedRect(fx, fy, fotoLargNc, fotoAltNc, 6, 6, "S");
+          } catch (erro) {
+            console.error("Falha ao embutir foto da pendência no PDF", erro);
+          }
+          fx += fotoLargNc + espacoFoto;
+        }
       }
 
       y = topoNc + alturaNc + 12;

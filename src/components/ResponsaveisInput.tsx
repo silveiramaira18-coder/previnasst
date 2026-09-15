@@ -17,23 +17,20 @@ type Props = { value: string[]; onChange: (valores: string[]) => void };
 /** Responsáveis por resolver a NC: nome + cargo, exibidos como tags. */
 export function ResponsaveisInput({ value, onChange }: Props) {
   const [nome, setNome] = useState("");
-  const [email, setEmail] = useState("");
   const [cargo, setCargo] = useState(CARGOS_RESPONSAVEIS[0] ?? "");
   const [erro, setErro] = useState("");
 
   const adicionar = () => {
     const limpo = nome.trim();
-    const mail = email.trim().toLowerCase();
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail)) {
-      setErro("Informe um e-mail válido para o responsável.");
+    if (!limpo && !cargo) {
+      setErro("Informe o nome ou o cargo do responsável.");
       return;
     }
-    const texto = `${limpo ? `${limpo} (${cargo})` : cargo} <${mail}>`;
+    const texto = limpo ? `${limpo} (${cargo})` : cargo;
     if (value.includes(texto)) return;
     setErro("");
     onChange([...value, texto]);
     setNome("");
-    setEmail("");
   };
 
   return (
@@ -41,7 +38,7 @@ export function ResponsaveisInput({ value, onChange }: Props) {
       <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
         <Input
           className="h-12"
-          placeholder="Nome (opcional)"
+          placeholder="Nome do responsável"
           value={nome}
           onChange={(e) => setNome(e.target.value)}
           onKeyDown={(e) => {
@@ -64,24 +61,15 @@ export function ResponsaveisInput({ value, onChange }: Props) {
           </SelectContent>
         </Select>
       </div>
-      <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
-        <Input
-          className="h-12"
-          type="email"
-          placeholder="E-mail do responsável (obrigatório)"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              e.preventDefault();
-              adicionar();
-            }
-          }}
-        />
+      <div className="flex justify-end">
         <Button type="button" variant="outline" className="h-12 gap-1" onClick={adicionar}>
-          <Plus className="size-4" /> Adicionar
+          <Plus className="size-4" /> Adicionar responsável
         </Button>
       </div>
+      <p className="text-xs text-muted-foreground">
+        As cobranças por e-mail são enviadas ao e-mail do engenheiro responsável informado na
+        inspeção.
+      </p>
       {erro ? <p className="text-sm font-medium text-destructive">{erro}</p> : null}
 
       {value.length > 0 ? (

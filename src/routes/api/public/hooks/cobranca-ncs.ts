@@ -18,7 +18,11 @@ type NCRow = {
   prazo: string | null;
   status: string;
   responsaveis: string[] | null;
-  inspecoes: { obras: { nome: string } | null } | null;
+  inspecoes: {
+    email_engenheiro: string | null;
+    engenheiro_responsavel: string | null;
+    obras: { nome: string; email_engenheiro: string | null; engenheiro_responsavel: string | null } | null;
+  } | null;
   itens_inspecao: { local: string | null } | null;
 };
 
@@ -53,6 +57,7 @@ function montarHtml(responsavel: string, ncs: NCRow[]) {
         <p style="margin:0 0 6px;font-weight:700;color:#1F2937">NC ${escapar(nc.numero)} — ${escapar(nc.severidade)}</p>
         <p style="margin:0 0 4px;color:#57524A"><b>Obra:</b> ${escapar(nc.inspecoes?.obras?.nome ?? "—")} &nbsp;|&nbsp; <b>Pavimento/Setor:</b> ${escapar(nc.itens_inspecao?.local ?? "—")}</p>
         <p style="margin:0 0 8px;color:#1F2937">${escapar(nc.descricao)}</p>
+        <p style="margin:0 0 6px;color:#57524A"><b>Responsável pela resolução:</b> ${escapar((nc.responsaveis ?? []).join(", ") || "—")}</p>
         <p style="margin:0;font-weight:700;color:#B91C1C">${escapar(alerta(nc.prazo))}</p>
       </div>`,
     )
@@ -88,7 +93,7 @@ export const Route = createFileRoute("/api/public/hooks/cobranca-ncs")({
         const { data, error } = await supabase
           .from("nao_conformidades")
           .select(
-            "numero, descricao, severidade, prazo, status, responsaveis, inspecoes(obras(nome)), itens_inspecao(local)",
+            "numero, descricao, severidade, prazo, status, responsaveis, inspecoes(email_engenheiro, engenheiro_responsavel, obras(nome, email_engenheiro, engenheiro_responsavel)), itens_inspecao(local)",
           )
           .neq("status", "Concluída")
           .not("prazo", "is", null)
@@ -104,15 +109,25 @@ export const Route = createFileRoute("/api/public/hooks/cobranca-ncs")({
 
         const ncs = (data ?? []) as unknown as NCRow[];
 
-        // Agrupa por responsável (nome + e-mail extraídos da tag "Nome (Cargo) <email>")
+        // O destinatário é sempre o engenheiro responsável da inspeção (ou o da obra).
         const grupos = new Map<string, NCRow[]>();
         for (const nc of ncs) {
-          for (const tag of nc.responsaveis ?? []) {
-            if (!/<[^>]+>/.test(tag)) continue;
-            const lista = grupos.get(tag) ?? [];
-            lista.push(nc);
-            grupos.set(tag, lista);
-          }
+          const email = (
+            nc.inspecoes?.email_engenheiro ||
+            nc.inspecoes?.obras?.email_engenheiro ||
+            ""
+          )
+            .trim()
+            .toLowerCase();
+          if (!email) continue;
+          const nome =
+            nc.inspecoes?.engenheiro_responsavel ||
+            nc.inspecoes?.obras?.engenheiro_responsavel ||
+            "Engenheiro responsável";
+          const chave = `${nome} <${email}>`;
+          const lista = grupos.get(chave) ?? [];
+          lista.push(nc);
+          grupos.set(chave, lista);
         }
 
         const lovableKey = process.env["LOVABLE_API_KEY"];
