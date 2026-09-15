@@ -430,10 +430,31 @@ export async function gerarPdfInspecao(inspecaoId: string) {
   campo("Cargo", perfil?.cargo || "—");
   campo("Contato", [perfil?.email, perfil?.telefone].filter(Boolean).join(" · ") || "—");
 
+  /* ---------------- Quebra de página: inspeção começa no topo da página seguinte ---------------- */
+
+  doc.addPage();
+  y = margem;
+
+  /* ---------------- Observações gerais (quadro destacado) ---------------- */
+
   if (inspecao.observacoes) {
-    titulo("Observações gerais");
-    linha(inspecao.observacoes);
-    y += 4;
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9.5);
+    cor(TINTA.texto);
+    const linhasObs = doc.splitTextToSize(inspecao.observacoes, limite - 24) as string[];
+    const alturaObs = 30 + linhasObs.length * 13 + 14;
+    fundo(TINTA.fundoSuave);
+    doc.setDrawColor(TINTA.borda[0], TINTA.borda[1], TINTA.borda[2]);
+    doc.roundedRect(margem, y, limite, alturaObs, 6, 6, "FD");
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(11);
+    cor(TINTA.destaque);
+    doc.text("OBSERVAÇÕES GERAIS", margem + 12, y + 18);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9.5);
+    cor(TINTA.texto);
+    doc.text(linhasObs, margem + 12, y + 34);
+    y += alturaObs + 16;
   }
 
   /* ---------------- Itens da inspeção (cards inquebráveis) ---------------- */
