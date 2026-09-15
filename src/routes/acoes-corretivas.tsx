@@ -36,7 +36,14 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
-import { formatarData, listarAcoes, listarNCs } from "@/lib/db";
+import { PrazoBadge } from "@/components/PrazoBadge";
+import {
+  formatarData,
+  listarAcoes,
+  listarNCs,
+  ncVencida,
+  statusExibidoNC,
+} from "@/lib/db";
 
 type BuscaAcoes = { status?: "atrasadas" };
 
