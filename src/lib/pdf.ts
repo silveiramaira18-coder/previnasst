@@ -122,6 +122,11 @@ export async function gerarPdfInspecao(inspecaoId: string) {
       (inspecao as { engenheiro_responsavel?: string | null }).engenheiro_responsavel ?? null;
   }
 
+  // Pendências de inspeções anteriores da mesma obra (não concluídas).
+  const pendenciasAnteriores = inspecao.obra_id
+    ? await listarNCsPendentesDaObra(inspecao.obra_id, inspecaoId)
+    : [];
+
   // Pré-carrega as imagens de cada item para conseguir medir o bloco antes de desenhar.
   const imagensPorItem = new Map<string, { dataUrl: string; formato: string }>();
   await Promise.all(
