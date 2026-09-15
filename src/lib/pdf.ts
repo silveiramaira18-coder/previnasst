@@ -201,7 +201,7 @@ export async function gerarPdfInspecao(inspecaoId: string) {
 
   /** Par rótulo/valor com rótulo em cinza escuro (legível em P&B). */
   const campo = (rotulo: string, valor: string) => {
-    quebrarSeNecessario(24);
+    quebrarSeNecessario(22);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(7.5);
     cor(TINTA.rotulo);
@@ -216,7 +216,7 @@ export async function gerarPdfInspecao(inspecaoId: string) {
       doc.text(parte, margem, y);
       y += 13;
     }
-    y += 4;
+    y += 2;
   };
 
   const chip = (texto: string, x: number, yy: number, fill: RGB, textoBranco = true) => {
