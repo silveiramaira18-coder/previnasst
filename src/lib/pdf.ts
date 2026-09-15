@@ -2,7 +2,14 @@ import { jsPDF } from "jspdf";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
-import { formatarData, formatarHora, listarNCsDaInspecao, obterInspecao } from "@/lib/db";
+import {
+  alertaPrazo,
+  formatarData,
+  formatarHora,
+  listarNCsDaInspecao,
+  obterInspecao,
+  statusExibidoNC,
+} from "@/lib/db";
 import { enviarRelatorioParaDrive } from "@/lib/drive.functions";
 import { listarFotos, urlAssinada } from "@/lib/fotos";
 import { listarItens, resumoInspecao } from "@/lib/itens";
