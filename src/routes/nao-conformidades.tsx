@@ -118,7 +118,8 @@ function NCPage() {
   const qc = useQueryClient();
   const [obra, setObra] = useState(TODOS);
   const [severidade, setSeveridade] = useState(TODOS);
-  const [status, setStatus] = useState(TODOS);
+  const [status, setStatus] = useState<ChaveStatus>("todas");
+  const [busca, setBusca] = useState("");
   const [de, setDe] = useState("");
   const [ate, setAte] = useState("");
   const [aberto, setAberto] = useState(false);
@@ -158,25 +159,37 @@ function NCPage() {
     onError: (e: Error) => toast.error("Erro ao registrar", { description: e.message }),
   });
 
-  const filtradas = useMemo(
+  // Filtros base (tudo menos o status), para contar cada filtro rápido.
+  const base = useMemo(
     () =>
       ncs.filter((nc) => {
         const nomeObra = nc.inspecoes?.obras?.nome ?? "";
         const dataRef = nc.inspecoes?.data ?? nc.data_criacao.slice(0, 10);
+        const termo = busca.trim().toLowerCase();
         if (obra !== TODOS && nomeObra !== obra) return false;
         if (severidade !== TODOS && nc.severidade !== severidade) return false;
-        if (status !== TODOS && statusExibidoNC(nc) !== status) return false;
         if (de && dataRef < de) return false;
         if (ate && dataRef > ate) return false;
+        if (
+          termo &&
+          !`${nc.numero} ${nc.descricao} ${nc.categoria ?? ""}`.toLowerCase().includes(termo)
+        )
+          return false;
         return true;
       }),
-    [ncs, obra, severidade, status, de, ate],
+    [ncs, obra, severidade, de, ate, busca],
+  );
+
+  const filtradas = useMemo(
+    () => base.filter((nc) => combinaStatus(nc, status)),
+    [base, status],
   );
 
   const limpar = () => {
     setObra(TODOS);
     setSeveridade(TODOS);
-    setStatus(TODOS);
+    setStatus("todas");
+    setBusca("");
     setDe("");
     setAte("");
   };
