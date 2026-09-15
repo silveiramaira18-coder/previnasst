@@ -105,7 +105,12 @@ export async function gerarPdfInspecao(inspecaoId: string) {
       .eq("id", inspecao.obra_id)
       .maybeSingle();
     empresa = data?.empresa ?? null;
-    engenheiro = (data as { engenheiro_responsavel?: string | null } | null)?.engenheiro_responsavel ?? null;
+    engenheiro =
+      (data as { engenheiro_responsavel?: string | null } | null)?.engenheiro_responsavel ?? null;
+  }
+  if (!engenheiro) {
+    engenheiro =
+      (inspecao as { engenheiro_responsavel?: string | null }).engenheiro_responsavel ?? null;
   }
 
   // Pré-carrega as imagens de cada item para conseguir medir o bloco antes de desenhar.
@@ -254,7 +259,11 @@ export async function gerarPdfInspecao(inspecaoId: string) {
   });
   const totalNc = ncs.length;
   const categorias = Array.from(
-    new Set(ncs.map((n) => n.categoria).filter((c): c is string => !!c)),
+    new Set(
+      ncs
+        .map((n) => (n.categoria ?? "").trim())
+        .filter((c): c is string => c.length > 0),
+    ),
   );
 
   const executivo =
@@ -394,7 +403,7 @@ export async function gerarPdfInspecao(inspecaoId: string) {
 
   /* ---------------- Itens da inspeção (cards inquebráveis) ---------------- */
 
-  titulo("Itens da inspeção");
+  titulo("PAVIMENTO/TIPO");
   if (itens.length === 0) linha("Nenhum item registrado.");
 
   const padCard = 12;
@@ -417,7 +426,29 @@ export async function gerarPdfInspecao(inspecaoId: string) {
 
     const campos: [string, string][] = [];
     if (nc) {
-      campos.push(["Responsável", nc.responsavel || "—"]);
+      const responsaveis =
+        nc.responsaveis && nc.responsaveis.length > 0
+          ? nc.responsaveis.join(", ")
+          : nc.responsavel || "—";
+      campos.push(["Responsável", responsaveis]);
+      campos.push([
+        "Status da NC",
+        nc.status === "Concluída"
+          ? "Concluída"
+          : nc.acao_imediata
+            ? "Parcialmente Concluída · Ação imediata concluída (risco sanado) · Ação definitiva pendente"
+            : statusExibidoNC(nc),
+      ]);
+      if (nc.acao_imediata && nc.descricao_acao_imediata)
+        campos.push(["Ação imediata realizada", nc.descricao_acao_imediata]);
+      const alerta = alertaPrazo(nc);
+      if (alerta)
+        campos.push([
+          alerta.tom === "vencida" ? "ATENÇÃO — prazo" : "Pendente — prazo",
+          alerta.tom === "vencida"
+            ? `NÃO CONFORMIDADE ATRASADA: ${alerta.texto.toUpperCase()} (prazo limite ${formatarData(nc.prazo)})`
+            : `${alerta.texto.toUpperCase()} (data limite ${formatarData(nc.prazo)})`,
+        ]);
       campos.push(["Prazo para correção", prazoTexto]);
       if (risco) campos.push(["Risco potencial", risco]);
       campos.push(["Não conformidade encontrada", nc.descricao]);
