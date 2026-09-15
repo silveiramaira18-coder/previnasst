@@ -252,6 +252,10 @@ export type Database = {
           assinatura_cargo: string | null
           assinatura_data: string | null
           assinatura_nome: string | null
+          assinatura_obra: string | null
+          assinatura_obra_cargo: string | null
+          assinatura_obra_data: string | null
+          assinatura_obra_nome: string | null
           data: string
           data_criacao: string
           email_engenheiro: string | null
@@ -272,6 +276,10 @@ export type Database = {
           assinatura_cargo?: string | null
           assinatura_data?: string | null
           assinatura_nome?: string | null
+          assinatura_obra?: string | null
+          assinatura_obra_cargo?: string | null
+          assinatura_obra_data?: string | null
+          assinatura_obra_nome?: string | null
           data?: string
           data_criacao?: string
           email_engenheiro?: string | null
@@ -292,6 +300,10 @@ export type Database = {
           assinatura_cargo?: string | null
           assinatura_data?: string | null
           assinatura_nome?: string | null
+          assinatura_obra?: string | null
+          assinatura_obra_cargo?: string | null
+          assinatura_obra_data?: string | null
+          assinatura_obra_nome?: string | null
           data?: string
           data_criacao?: string
           email_engenheiro?: string | null
