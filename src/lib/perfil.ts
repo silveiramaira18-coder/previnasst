@@ -4,8 +4,15 @@ import { supabase } from "@/integrations/supabase/client";
 
 export type Papel = "admin" | "inspetor" | "responsavel";
 
-/** Único e-mail com privilégios de administradora principal (também validado no banco). */
-export const EMAIL_ADMIN_PRINCIPAL = "silveiramaira18@gmail.com";
+/** Únicos e-mails com privilégios de administrador (também validados no banco). */
+export const EMAILS_ADMIN = ["silveiramaira18@gmail.com", "previnasst2@gmail.com"] as const;
+
+/** Compatibilidade: e-mail da administradora principal. */
+export const EMAIL_ADMIN_PRINCIPAL = EMAILS_ADMIN[0];
+
+export function ehEmailAdmin(email?: string | null) {
+  return EMAILS_ADMIN.includes((email ?? "").trim().toLowerCase() as (typeof EMAILS_ADMIN)[number]);
+}
 
 export const rotuloPapel: Record<Papel, string> = {
   admin: "Administradora principal",
