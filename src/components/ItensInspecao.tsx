@@ -144,7 +144,8 @@ function FormularioNC({
         prazo: form.prazo || null,
         responsaveis: form.responsaveis,
         responsavel: form.responsaveis.join(", ") || null,
-        emails_responsaveis: emailsDosResponsaveis(form.responsaveis),
+        // O e-mail de cobrança é herdado do engenheiro responsável da inspeção/obra.
+        emails_responsaveis: [],
         observacao: form.observacao || null,
         acao_imediata: form.acaoImediata,
         descricao_acao_imediata: form.acaoImediata ? form.descricaoAcaoImediata || null : null,

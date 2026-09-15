@@ -18,7 +18,11 @@ type NCRow = {
   prazo: string | null;
   status: string;
   responsaveis: string[] | null;
-  inspecoes: { obras: { nome: string } | null } | null;
+  inspecoes: {
+    email_engenheiro: string | null;
+    engenheiro_responsavel: string | null;
+    obras: { nome: string; email_engenheiro: string | null; engenheiro_responsavel: string | null } | null;
+  } | null;
   itens_inspecao: { local: string | null } | null;
 };
 
