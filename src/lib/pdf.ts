@@ -572,6 +572,98 @@ export async function gerarPdfInspecao(inspecaoId: string) {
     y = topo + alturaCard + 12;
   }
 
+  /* ---------- Acompanhamento de pendências de inspeções anteriores ---------- */
+
+  titulo("Acompanhamento de Pendências de Inspeções Anteriores");
+  if (pendenciasAnteriores.length === 0) {
+    linha("Não há não conformidades pendentes de inspeções anteriores nesta obra.");
+    y += 4;
+  } else {
+    linha(
+      `${pendenciasAnteriores.length} ${
+        pendenciasAnteriores.length === 1
+          ? "não conformidade registrada em inspeção anterior segue"
+          : "não conformidades registradas em inspeções anteriores seguem"
+      } sem conclusão até a data de emissão deste relatório.`,
+      { cor: TINTA.rotulo },
+    );
+    y += 6;
+
+    for (const nc of pendenciasAnteriores) {
+      const nivelNc = nivelRisco(nc.severidade);
+      const destaque = alertaPrazoDestaque(nc);
+      const responsaveis =
+        nc.responsaveis && nc.responsaveis.length > 0
+          ? nc.responsaveis.join(", ")
+          : nc.responsavel || "—";
+
+      const camposNc: [string, string][] = [
+        ["Não conformidade", nc.descricao],
+        ["Origem", `Inspeção ${nc.inspecoes?.numero ?? "—"} de ${formatarData(nc.inspecoes?.data ?? null)}`],
+        ["Responsável", responsaveis],
+        ["Prazo para adequação", formatarData(nc.prazo)],
+        ["Situação", statusExibidoNC(nc)],
+      ];
+
+      const largTexto = limite - padCard * 2 - 6;
+      let alturaNc = 16 + 20;
+      for (const [, valor] of camposNc) {
+        doc.setFontSize(9.5);
+        alturaNc += 10 + (doc.splitTextToSize(valor || "—", largTexto) as string[]).length * 12 + 4;
+      }
+      alturaNc += padCard * 2;
+
+      if (y + alturaNc > alturaPagina - margem) {
+        doc.addPage();
+        y = margem;
+      }
+
+      const topoNc = y;
+      fundo(TINTA.branco);
+      doc.setDrawColor(TINTA.borda[0], TINTA.borda[1], TINTA.borda[2]);
+      doc.roundedRect(margem, topoNc, limite, alturaNc, 8, 8, "FD");
+      fundo(destaque ? CorPrazo[destaque.tom] : CORES[nivelNc]);
+      doc.roundedRect(margem, topoNc, 6, alturaNc, 3, 3, "F");
+
+      const xNc = margem + padCard + 6;
+      let ny = topoNc + padCard + 12;
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(11);
+      cor(TINTA.texto);
+      doc.text(
+        `${nc.numero}${nc.categoria ? ` — ${nc.categoria}` : ""}`,
+        xNc,
+        ny,
+        { maxWidth: largTexto },
+      );
+      ny += 14;
+
+      let nx = xNc;
+      nx += chip(`Risco ${nivelNc}`, nx, ny + 4, CORES[nivelNc]) + 6;
+      if (destaque) chip(destaque.texto, nx, ny + 4, CorPrazo[destaque.tom]);
+      ny += 20;
+
+      for (const [rotulo, valor] of camposNc) {
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(7.5);
+        cor(TINTA.rotulo);
+        doc.text(rotulo.toUpperCase(), xNc, ny);
+        ny += 10;
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(9.5);
+        cor(TINTA.texto);
+        for (const parte of doc.splitTextToSize(valor || "—", largTexto) as string[]) {
+          doc.text(parte, xNc, ny);
+          ny += 12;
+        }
+        ny += 4;
+      }
+
+      y = topoNc + alturaNc + 12;
+    }
+  }
+
   /* ---------------- Validação e ciência ---------------- */
 
   const alturaValidacao = 130;
