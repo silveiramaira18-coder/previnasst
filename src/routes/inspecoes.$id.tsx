@@ -5,6 +5,7 @@ import { ArrowLeft, CheckCircle2, Download, Pencil, Trash2 } from "lucide-react"
 import { useState } from "react";
 import { toast } from "sonner";
 
+import { AssinaturaInspecao } from "@/components/AssinaturaInspecao";
 import { ItensInspecao } from "@/components/ItensInspecao";
 import { ItensInspecaoView } from "@/components/ItensInspecaoView";
 import { ResumoInspecao } from "@/components/ResumoInspecao";
@@ -112,6 +113,8 @@ function DetalheInspecao() {
     ["Data", formatarData(inspecao.data)],
     ["Horário", formatarHora(inspecao.horario)],
     ["Responsável", inspecao.responsavel ?? "—"],
+    ["Engenheiro responsável", inspecao.engenheiro_responsavel ?? "—"],
+    ["E-mail do engenheiro", inspecao.email_engenheiro ?? "—"],
     ["Local / setor", inspecao.local ?? "—"],
     ["Tipo", inspecao.tipo_inspecao ?? "—"],
   ] as const;
@@ -235,6 +238,13 @@ function DetalheInspecao() {
         </CardContent>
       </Card>
 
+      <AssinaturaInspecao
+        inspecaoId={id}
+        assinatura={inspecao.assinatura}
+        nomeInicial={inspecao.assinatura_nome ?? inspecao.responsavel}
+        cargoInicial={inspecao.assinatura_cargo}
+        dataAssinatura={inspecao.assinatura_data}
+      />
     </div>
   );
 }
