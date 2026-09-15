@@ -430,11 +430,34 @@ export async function gerarPdfInspecao(inspecaoId: string) {
   campo("Cargo", perfil?.cargo || "—");
   campo("Contato", [perfil?.email, perfil?.telefone].filter(Boolean).join(" · ") || "—");
 
+  /* ---------------- Observações gerais (quadro destacado) ---------------- */
+
   if (inspecao.observacoes) {
-    titulo("Observações gerais");
-    linha(inspecao.observacoes);
-    y += 4;
+    quebrarSeNecessario(60);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9.5);
+    cor(TINTA.texto);
+    const linhasObs = doc.splitTextToSize(inspecao.observacoes, limite - 24) as string[];
+    const alturaObs = 30 + linhasObs.length * 13 + 14;
+    quebrarSeNecessario(alturaObs);
+    fundo(FUNDO.card);
+    doc.setDrawColor(...BORDA);
+    doc.roundedRect(margem, y, limite, alturaObs, 6, 6, "FD");
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(11);
+    cor(TINTA.forte);
+    doc.text("OBSERVAÇÕES GERAIS", margem + 12, y + 18);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9.5);
+    cor(TINTA.texto);
+    doc.text(linhasObs, margem + 12, y + 34);
+    y += alturaObs + 16;
   }
+
+  /* ---------------- Quebra de página: NCs começam no topo da página seguinte ---------------- */
+
+  doc.addPage();
+  y = margem;
 
   /* ---------------- Itens da inspeção (cards inquebráveis) ---------------- */
 
