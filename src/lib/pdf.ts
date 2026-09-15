@@ -711,11 +711,17 @@ export async function gerarPdfInspecao(inspecaoId: string) {
       ];
 
       const largTexto = limite - padCard * 2 - 6;
+      const fotosNc = fotosPorPendencia.get(nc.id) ?? [];
+      const espacoFoto = 8;
+      const fotoLargNc =
+        fotosNc.length > 0 ? (largTexto - espacoFoto * (fotosNc.length - 1)) / fotosNc.length : 0;
+      const fotoAltNc = fotosNc.length > 0 ? Math.round(fotoLargNc * 0.75) : 0;
       let alturaNc = 16 + 20;
       for (const [, valor] of camposNc) {
         doc.setFontSize(9.5);
         alturaNc += 10 + (doc.splitTextToSize(valor || "—", largTexto) as string[]).length * 12 + 4;
       }
+      if (fotosNc.length > 0) alturaNc += 12 + fotoAltNc;
       alturaNc += padCard * 2;
 
       if (y + alturaNc > alturaPagina - margem) {
