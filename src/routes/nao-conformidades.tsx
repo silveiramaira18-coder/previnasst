@@ -379,6 +379,21 @@ function NCPage() {
         </CardContent>
       </Card>
 
+      <div className="flex flex-wrap gap-2">
+        {FILTROS_STATUS.map((f) => (
+          <Button
+            key={f.chave}
+            type="button"
+            size="sm"
+            variant={status === f.chave ? "default" : "outline"}
+            className="rounded-full"
+            onClick={() => setStatus(f.chave)}
+          >
+            {f.rotulo} ({base.filter((nc) => combinaStatus(nc, f.chave)).length})
+          </Button>
+        ))}
+      </div>
+
       {isLoading ? <p className="text-sm text-muted-foreground">Carregando...</p> : null}
       <p className="text-sm text-muted-foreground">
         {filtradas.length} não conformidade(s) encontrada(s).
