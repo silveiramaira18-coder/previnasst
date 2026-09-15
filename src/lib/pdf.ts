@@ -4,9 +4,11 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import {
   alertaPrazo,
+  alertaPrazoDestaque,
   formatarData,
   formatarHora,
   listarNCsDaInspecao,
+  listarNCsPendentesDaObra,
   obterInspecao,
   statusExibidoNC,
 } from "@/lib/db";
