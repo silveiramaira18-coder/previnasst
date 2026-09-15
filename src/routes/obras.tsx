@@ -328,17 +328,26 @@ function ObrasPage() {
                 <span className="text-muted-foreground">{formatarData(o.data_criacao)}</span>
                 <div className="flex flex-wrap gap-2">
                   <GerenciarPavimentos obraId={o.id} obraNome={o.nome} />
-                  <Button variant="outline" size="sm" className="gap-1" onClick={() => abrirEdicao(o)}>
-                    <Pencil className="size-3.5" /> Editar
-                  </Button>
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    className="gap-1"
-                    onClick={() => setObraExcluir(o)}
-                  >
-                    <Trash2 className="size-3.5" /> Excluir
-                  </Button>
+                  {adminPrincipal ? (
+                    <>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="gap-1"
+                        onClick={() => abrirEdicao(o)}
+                      >
+                        <Pencil className="size-3.5" /> Editar
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        className="gap-1"
+                        onClick={() => setObraExcluir(o)}
+                      >
+                        <Trash2 className="size-3.5" /> Excluir
+                      </Button>
+                    </>
+                  ) : null}
                 </div>
               </div>
             </CardContent>
