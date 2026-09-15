@@ -9,7 +9,7 @@ export const excluirMinhaConta = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const email = String(context.claims?.["email"] ?? "").toLowerCase();
-    if (email === EMAIL_ADMIN_PRINCIPAL) {
+    if (EMAILS_ADMIN.includes(email)) {
       throw new Error("A conta da administradora principal não pode ser excluída pelo sistema.");
     }
 
