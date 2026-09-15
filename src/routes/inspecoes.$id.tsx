@@ -309,9 +309,8 @@ function DetalheInspecao() {
                     setForm({
                       ...form,
                       obra_id: v,
-                      engenheiro_responsavel:
-                        form.engenheiro_responsavel || obra?.engenheiro_responsavel || "",
-                      email_engenheiro: form.email_engenheiro || obra?.email_engenheiro || "",
+                      engenheiro_responsavel: obra?.engenheiro_responsavel ?? "",
+                      email_engenheiro: obra?.email_engenheiro ?? "",
                     });
                   }}
                 >
