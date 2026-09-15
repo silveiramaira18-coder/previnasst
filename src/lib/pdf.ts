@@ -408,6 +408,10 @@ export async function gerarPdfInspecao(inspecaoId: string) {
     `${nomeObra}${inspecao.local ? ` — ${inspecao.local}` : ""}`,
   );
   campo("Engenheiro responsável pela obra", engenheiro || "—");
+  campo(
+    "E-mail do engenheiro responsável",
+    (inspecao as { email_engenheiro?: string | null }).email_engenheiro || "—",
+  );
   campo("Data / horário", `${formatarData(inspecao.data)} · ${formatarHora(inspecao.horario)}`);
   campo("Tipo de inspeção", inspecao.tipo_inspecao ?? "—");
 
@@ -666,48 +670,77 @@ export async function gerarPdfInspecao(inspecaoId: string) {
 
   /* ---------------- Validação e ciência ---------------- */
 
-  const alturaValidacao = 130;
+  const alturaValidacao = 165;
   if (y + alturaValidacao > alturaPagina - margem) {
     doc.addPage();
     y = margem;
   }
   titulo("Validação e ciência");
 
+  const assinaturaImagem = (inspecao as { assinatura?: string | null }).assinatura ?? null;
+  const assinaturaNome = (inspecao as { assinatura_nome?: string | null }).assinatura_nome ?? null;
+  const assinaturaCargo =
+    (inspecao as { assinatura_cargo?: string | null }).assinatura_cargo ?? null;
+  const assinaturaData = (inspecao as { assinatura_data?: string | null }).assinatura_data ?? null;
+
   const largAss = (limite - 24) / 2;
   const assinaturas = [
     {
       titulo: "Técnico responsável pela inspeção",
-      nome: perfil?.nome || inspecao.responsavel || "",
-      detalhe: perfil?.cargo || "",
+      nome: assinaturaNome || perfil?.nome || inspecao.responsavel || "",
+      detalhe: assinaturaCargo || perfil?.cargo || "",
+      imagem: assinaturaImagem,
+      dataAssinatura: assinaturaData,
     },
-    { titulo: "Responsável pela obra — ciência do relatório", nome: "", detalhe: "" },
+    {
+      titulo: "Responsável pela obra — ciência do relatório",
+      nome: "",
+      detalhe: "",
+      imagem: null as string | null,
+      dataAssinatura: null as string | null,
+    },
   ];
 
   assinaturas.forEach((a, i) => {
     const x = margem + i * (largAss + 24);
     const base = y + 46;
+    if (a.imagem) {
+      try {
+        const alturaImg = 34;
+        doc.addImage(a.imagem, "PNG", x, base - alturaImg - 10, largAss * 0.7, alturaImg);
+      } catch (erro) {
+        console.error(erro);
+      }
+    }
     doc.setDrawColor(TINTA.rotulo[0], TINTA.rotulo[1], TINTA.rotulo[2]);
     doc.setLineWidth(0.8);
     doc.line(x, base, x + largAss, base);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(9);
     cor(TINTA.texto);
-    doc.text(a.nome || " ", x, base - 6, { maxWidth: largAss });
+    doc.text(a.nome || " ", x, base + 12, { maxWidth: largAss });
     doc.setFont("helvetica", "bold");
     doc.setFontSize(7.5);
     cor(TINTA.rotulo);
-    doc.text(a.titulo.toUpperCase(), x, base + 13, { maxWidth: largAss });
+    doc.text(a.titulo.toUpperCase(), x, base + 24, { maxWidth: largAss });
     if (a.detalhe) {
       doc.setFont("helvetica", "normal");
       doc.setFontSize(8.5);
-      doc.text(a.detalhe, x, base + 26, { maxWidth: largAss });
+      doc.text(a.detalhe, x, base + 36, { maxWidth: largAss });
     }
     doc.setFont("helvetica", "normal");
     doc.setFontSize(8.5);
     cor(TINTA.rotulo);
-    doc.text("Data: ____ / ____ / ________", x, base + 42);
+    doc.text(
+      a.dataAssinatura
+        ? `Assinado eletronicamente em ${new Date(a.dataAssinatura).toLocaleString("pt-BR")}`
+        : "Data: ____ / ____ / ________",
+      x,
+      base + 50,
+      { maxWidth: largAss },
+    );
   });
-  y += 110;
+  y += 130;
 
   const nomeArquivo = `Relatorio_${inspecao.numero}_${nomeObra
     .normalize("NFD")

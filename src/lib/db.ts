@@ -8,6 +8,7 @@ export type Obra = {
   endereco: string | null;
   responsavel: string | null;
   engenheiro_responsavel?: string | null;
+  email_engenheiro?: string | null;
   status: string;
   data_criacao: string;
 };
@@ -20,12 +21,21 @@ export type Inspecao = {
   horario: string | null;
   responsavel: string | null;
   engenheiro_responsavel?: string | null;
+  email_engenheiro?: string | null;
+  assinatura?: string | null;
+  assinatura_nome?: string | null;
+  assinatura_cargo?: string | null;
+  assinatura_data?: string | null;
   local: string | null;
   tipo_inspecao: string | null;
   observacoes: string | null;
   status: string;
   data_criacao: string;
-  obras?: { nome: string; engenheiro_responsavel?: string | null } | null;
+  obras?: {
+    nome: string;
+    engenheiro_responsavel?: string | null;
+    email_engenheiro?: string | null;
+  } | null;
 };
 
 export type NaoConformidade = {
@@ -106,7 +116,7 @@ export const listarInspecoes = async () =>
 export const obterInspecao = async (id: string) => {
   const { data, error } = await supabase
     .from("inspecoes")
-    .select("*, obras(nome, engenheiro_responsavel)")
+    .select("*, obras(nome, engenheiro_responsavel, email_engenheiro)")
     .eq("id", id)
     .maybeSingle();
   if (error) throw new Error(error.message);

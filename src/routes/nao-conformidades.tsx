@@ -40,12 +40,16 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { PrazoBadge } from "@/components/PrazoBadge";
 import {
+  diasAtePrazo,
   formatarData,
   listarInspecoes,
   listarNCs,
   listarObras,
+  ncVencida,
   riscoNeutralizado,
   statusExibidoNC,
+  STATUS_PARCIAL,
+  type NaoConformidade,
 } from "@/lib/db";
 import { categoriasChecklist } from "@/lib/mock-data";
 
@@ -70,14 +74,52 @@ export const Route = createFileRoute("/nao-conformidades")({
 
 const SEVERIDADES = ["Baixa", "Média", "Alta", "Crítica"];
 const STATUS = ["Aberta", "Em tratativa", "Atrasada", "Concluída"];
-const STATUS_FILTRO = ["Aberta", "Parcialmente Concluída", "Vencida", "Concluída"];
 const TODOS = "todos";
+
+type ChaveStatus =
+  | "todas"
+  | "abertas"
+  | "parciais"
+  | "concluidas"
+  | "atrasadas"
+  | "a-vencer";
+
+const FILTROS_STATUS: { chave: ChaveStatus; rotulo: string }[] = [
+  { chave: "todas", rotulo: "Todas" },
+  { chave: "abertas", rotulo: "Abertas / Em Andamento" },
+  { chave: "parciais", rotulo: "Parcialmente Concluídas" },
+  { chave: "concluidas", rotulo: "Concluídas" },
+  { chave: "atrasadas", rotulo: "Atrasadas / Vencidas" },
+  { chave: "a-vencer", rotulo: "A Vencer" },
+];
+
+/** Aplica a regra de cada filtro rápido de status. */
+function combinaStatus(nc: NaoConformidade, chave: ChaveStatus) {
+  const concluida = nc.status === "Concluída";
+  const vencida = ncVencida(nc);
+  const dias = diasAtePrazo(nc.prazo);
+  switch (chave) {
+    case "concluidas":
+      return concluida;
+    case "atrasadas":
+      return vencida;
+    case "parciais":
+      return !concluida && !vencida && statusExibidoNC(nc) === STATUS_PARCIAL;
+    case "abertas":
+      return !concluida && !vencida && statusExibidoNC(nc) !== STATUS_PARCIAL;
+    case "a-vencer":
+      return !concluida && !vencida && dias !== null && dias >= 0 && dias <= 7;
+    default:
+      return true;
+  }
+}
 
 function NCPage() {
   const qc = useQueryClient();
   const [obra, setObra] = useState(TODOS);
   const [severidade, setSeveridade] = useState(TODOS);
-  const [status, setStatus] = useState(TODOS);
+  const [status, setStatus] = useState<ChaveStatus>("todas");
+  const [busca, setBusca] = useState("");
   const [de, setDe] = useState("");
   const [ate, setAte] = useState("");
   const [aberto, setAberto] = useState(false);
@@ -117,25 +159,37 @@ function NCPage() {
     onError: (e: Error) => toast.error("Erro ao registrar", { description: e.message }),
   });
 
-  const filtradas = useMemo(
+  // Filtros base (tudo menos o status), para contar cada filtro rápido.
+  const base = useMemo(
     () =>
       ncs.filter((nc) => {
         const nomeObra = nc.inspecoes?.obras?.nome ?? "";
         const dataRef = nc.inspecoes?.data ?? nc.data_criacao.slice(0, 10);
+        const termo = busca.trim().toLowerCase();
         if (obra !== TODOS && nomeObra !== obra) return false;
         if (severidade !== TODOS && nc.severidade !== severidade) return false;
-        if (status !== TODOS && statusExibidoNC(nc) !== status) return false;
         if (de && dataRef < de) return false;
         if (ate && dataRef > ate) return false;
+        if (
+          termo &&
+          !`${nc.numero} ${nc.descricao} ${nc.categoria ?? ""}`.toLowerCase().includes(termo)
+        )
+          return false;
         return true;
       }),
-    [ncs, obra, severidade, status, de, ate],
+    [ncs, obra, severidade, de, ate, busca],
+  );
+
+  const filtradas = useMemo(
+    () => base.filter((nc) => combinaStatus(nc, status)),
+    [base, status],
   );
 
   const limpar = () => {
     setObra(TODOS);
     setSeveridade(TODOS);
-    setStatus(TODOS);
+    setStatus("todas");
+    setBusca("");
     setDe("");
     setAte("");
   };
@@ -300,20 +354,14 @@ function NCPage() {
             </Select>
           </div>
           <div className="space-y-1.5">
-            <Label>Status</Label>
-            <Select value={status} onValueChange={setStatus}>
-              <SelectTrigger className="h-12 w-full">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={TODOS}>Todos</SelectItem>
-                {STATUS_FILTRO.map((s) => (
-                  <SelectItem key={s} value={s}>
-                    {s}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Label htmlFor="busca">Buscar (código ou descrição)</Label>
+            <Input
+              id="busca"
+              className="h-12"
+              placeholder="Ex.: NC-0019 ou guarda-corpo"
+              value={busca}
+              onChange={(e) => setBusca(e.target.value)}
+            />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="de">De</Label>
@@ -330,6 +378,21 @@ function NCPage() {
           </div>
         </CardContent>
       </Card>
+
+      <div className="flex flex-wrap gap-2">
+        {FILTROS_STATUS.map((f) => (
+          <Button
+            key={f.chave}
+            type="button"
+            size="sm"
+            variant={status === f.chave ? "default" : "outline"}
+            className="rounded-full"
+            onClick={() => setStatus(f.chave)}
+          >
+            {f.rotulo} ({base.filter((nc) => combinaStatus(nc, f.chave)).length})
+          </Button>
+        ))}
+      </div>
 
       {isLoading ? <p className="text-sm text-muted-foreground">Carregando...</p> : null}
       <p className="text-sm text-muted-foreground">

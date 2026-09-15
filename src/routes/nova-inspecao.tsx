@@ -59,6 +59,7 @@ function NovaInspecao() {
     horario: "",
     responsavel: "",
     engenheiro_responsavel: "",
+    email_engenheiro: "",
     tipo_inspecao: "",
     observacoes: "",
   });
@@ -81,6 +82,7 @@ function NovaInspecao() {
         horario: form.horario || null,
         responsavel: form.responsavel || null,
         engenheiro_responsavel: form.engenheiro_responsavel || null,
+        email_engenheiro: form.email_engenheiro || null,
         tipo_inspecao:
           (form.tipo_inspecao === "Outro" ? tipoOutro.trim() : form.tipo_inspecao) || null,
         observacoes: form.observacoes || null,
@@ -159,6 +161,7 @@ function NovaInspecao() {
                   obra_id: v,
                   engenheiro_responsavel:
                     form.engenheiro_responsavel || obra?.engenheiro_responsavel || "",
+                  email_engenheiro: form.email_engenheiro || obra?.email_engenheiro || "",
                 });
               }}
             >
@@ -218,6 +221,20 @@ function NovaInspecao() {
               value={form.engenheiro_responsavel}
               onChange={(e) => setForm({ ...form, engenheiro_responsavel: e.target.value })}
             />
+          </div>
+          <div className="space-y-1.5 sm:col-span-2">
+            <Label htmlFor="engenheiro-email">E-mail do engenheiro responsável</Label>
+            <Input
+              id="engenheiro-email"
+              className="h-12"
+              placeholder="engenheiro@empresa.com.br"
+              value={form.email_engenheiro}
+              onChange={(e) => setForm({ ...form, email_engenheiro: e.target.value })}
+            />
+            <p className="text-xs text-muted-foreground">
+              Preenchido automaticamente com o e-mail cadastrado na obra. Pode ser editado ou conter
+              vários e-mails separados por vírgula.
+            </p>
           </div>
           <div className="space-y-1.5 sm:col-span-2">
             <Label htmlFor="tipo">Tipo de inspeção</Label>

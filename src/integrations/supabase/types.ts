@@ -248,8 +248,13 @@ export type Database = {
       }
       inspecoes: {
         Row: {
+          assinatura: string | null
+          assinatura_cargo: string | null
+          assinatura_data: string | null
+          assinatura_nome: string | null
           data: string
           data_criacao: string
+          email_engenheiro: string | null
           engenheiro_responsavel: string | null
           horario: string | null
           id: string
@@ -263,8 +268,13 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          assinatura?: string | null
+          assinatura_cargo?: string | null
+          assinatura_data?: string | null
+          assinatura_nome?: string | null
           data?: string
           data_criacao?: string
+          email_engenheiro?: string | null
           engenheiro_responsavel?: string | null
           horario?: string | null
           id?: string
@@ -278,8 +288,13 @@ export type Database = {
           user_id?: string
         }
         Update: {
+          assinatura?: string | null
+          assinatura_cargo?: string | null
+          assinatura_data?: string | null
+          assinatura_nome?: string | null
           data?: string
           data_criacao?: string
+          email_engenheiro?: string | null
           engenheiro_responsavel?: string | null
           horario?: string | null
           id?: string
@@ -502,6 +517,7 @@ export type Database = {
       obras: {
         Row: {
           data_criacao: string
+          email_engenheiro: string | null
           empresa: string | null
           endereco: string | null
           engenheiro_responsavel: string | null
@@ -513,6 +529,7 @@ export type Database = {
         }
         Insert: {
           data_criacao?: string
+          email_engenheiro?: string | null
           empresa?: string | null
           endereco?: string | null
           engenheiro_responsavel?: string | null
@@ -524,6 +541,7 @@ export type Database = {
         }
         Update: {
           data_criacao?: string
+          email_engenheiro?: string | null
           empresa?: string | null
           endereco?: string | null
           engenheiro_responsavel?: string | null
