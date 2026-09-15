@@ -153,6 +153,28 @@ export async function gerarPdfInspecao(inspecaoId: string) {
     }),
   );
 
+  // Fotos originais das NCs pendentes de inspeções anteriores (galeria no card).
+  const fotosPorPendencia = new Map<string, { dataUrl: string; formato: string }[]>();
+  await Promise.all(
+    pendenciasAnteriores.map(async (nc) => {
+      try {
+        let fotos = await listarFotos("fotos_nao_conformidade", "nao_conformidade_id", nc.id);
+        if (fotos.length === 0 && nc.item_inspecao_id) {
+          fotos = await listarFotos("fotos_item_inspecao", "item_inspecao_id", nc.item_inspecao_id);
+        }
+        const selecionadas = fotos.slice(0, 3);
+        const carregadas: { dataUrl: string; formato: string }[] = [];
+        for (const foto of selecionadas) {
+          const bruta = await carregarImagem(foto.url);
+          carregadas.push({ dataUrl: await recortarCover(bruta.dataUrl, 480, 360), formato: "JPEG" });
+        }
+        if (carregadas.length > 0) fotosPorPendencia.set(nc.id, carregadas);
+      } catch (erro) {
+        console.error("Falha ao carregar fotos da pendência", erro);
+      }
+    }),
+  );
+
   const doc = new jsPDF({ unit: "pt", format: "a4" });
   const larguraPagina = doc.internal.pageSize.getWidth();
   const alturaPagina = doc.internal.pageSize.getHeight();
