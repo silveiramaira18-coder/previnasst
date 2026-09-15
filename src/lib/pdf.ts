@@ -440,12 +440,12 @@ export async function gerarPdfInspecao(inspecaoId: string) {
     const linhasObs = doc.splitTextToSize(inspecao.observacoes, limite - 24) as string[];
     const alturaObs = 30 + linhasObs.length * 13 + 14;
     quebrarSeNecessario(alturaObs);
-    fundo(FUNDO.card);
-    doc.setDrawColor(...BORDA);
+    fundo(TINTA.fundoSuave);
+    doc.setDrawColor(TINTA.borda[0], TINTA.borda[1], TINTA.borda[2]);
     doc.roundedRect(margem, y, limite, alturaObs, 6, 6, "FD");
     doc.setFont("helvetica", "bold");
     doc.setFontSize(11);
-    cor(TINTA.forte);
+    cor(TINTA.destaque);
     doc.text("OBSERVAÇÕES GERAIS", margem + 12, y + 18);
     doc.setFont("helvetica", "normal");
     doc.setFontSize(9.5);
