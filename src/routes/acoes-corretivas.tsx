@@ -65,6 +65,10 @@ const STATUS = ["Aberta", "Em andamento", "Atrasada", "Concluída"];
 
 function AcoesPage() {
   const qc = useQueryClient();
+  const busca = Route.useSearch();
+  const [filtro, setFiltro] = useState<"todas" | "atrasadas">(
+    busca.status === "atrasadas" ? "atrasadas" : "todas",
+  );
   const [aberto, setAberto] = useState(false);
   const [form, setForm] = useState({
     nao_conformidade_id: "",
