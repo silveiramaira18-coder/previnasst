@@ -14,6 +14,7 @@ import {
   urlAssinada,
   type Foto,
   type FotoTabela,
+  type TipoFoto,
 } from "@/lib/fotos";
 
 type Props = {
@@ -22,6 +23,8 @@ type Props = {
   valor: string;
   titulo?: string;
   rotuloUpload?: string;
+  /** Separa fotos do problema e da solução nas não conformidades. */
+  tipo?: TipoFoto;
 };
 
 function FotoCard({
