@@ -19,8 +19,10 @@ import { Route as NaoConformidadesRouteImport } from './routes/nao-conformidades
 import { Route as NovaInspecaoRouteImport } from './routes/nova-inspecao'
 import { Route as ObrasRouteImport } from './routes/obras'
 import { Route as PerfilRouteImport } from './routes/perfil'
+import { Route as PlanoAcaoRouteImport } from './routes/plano-acao'
 import { Route as RelatoriosRouteImport } from './routes/relatorios'
 import { Route as SuporteRouteImport } from './routes/suporte'
+import { Route as AdminDashboardV2RouteImport } from './routes/admin_.dashboard-v2'
 import { Route as InspecoesIndexRouteImport } from './routes/inspecoes.index'
 import { Route as InspecoesIdRouteImport } from './routes/inspecoes.$id'
 import { Route as ApiPublicHooksCobrancaNcsRouteImport } from './routes/api/public/hooks/cobranca-ncs'
@@ -75,6 +77,11 @@ const PerfilRoute = PerfilRouteImport.update({
   path: '/perfil',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PlanoAcaoRoute = PlanoAcaoRouteImport.update({
+  id: '/plano-acao',
+  path: '/plano-acao',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RelatoriosRoute = RelatoriosRouteImport.update({
   id: '/relatorios',
   path: '/relatorios',
@@ -83,6 +90,11 @@ const RelatoriosRoute = RelatoriosRouteImport.update({
 const SuporteRoute = SuporteRouteImport.update({
   id: '/suporte',
   path: '/suporte',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminDashboardV2Route = AdminDashboardV2RouteImport.update({
+  id: '/admin_/dashboard-v2',
+  path: '/admin/dashboard-v2',
   getParentRoute: () => rootRouteImport,
 } as any)
 const InspecoesIndexRoute = InspecoesIndexRouteImport.update({
@@ -113,8 +125,10 @@ export interface FileRoutesByFullPath {
   '/nova-inspecao': typeof NovaInspecaoRoute
   '/obras': typeof ObrasRoute
   '/perfil': typeof PerfilRoute
+  '/plano-acao': typeof PlanoAcaoRoute
   '/relatorios': typeof RelatoriosRoute
   '/suporte': typeof SuporteRoute
+  '/admin/dashboard-v2': typeof AdminDashboardV2Route
   '/inspecoes/$id': typeof InspecoesIdRoute
   '/inspecoes/': typeof InspecoesIndexRoute
   '/api/public/hooks/cobranca-ncs': typeof ApiPublicHooksCobrancaNcsRoute
@@ -130,8 +144,10 @@ export interface FileRoutesByTo {
   '/nova-inspecao': typeof NovaInspecaoRoute
   '/obras': typeof ObrasRoute
   '/perfil': typeof PerfilRoute
+  '/plano-acao': typeof PlanoAcaoRoute
   '/relatorios': typeof RelatoriosRoute
   '/suporte': typeof SuporteRoute
+  '/admin/dashboard-v2': typeof AdminDashboardV2Route
   '/inspecoes/$id': typeof InspecoesIdRoute
   '/inspecoes': typeof InspecoesIndexRoute
   '/api/public/hooks/cobranca-ncs': typeof ApiPublicHooksCobrancaNcsRoute
@@ -148,8 +164,10 @@ export interface FileRoutesById {
   '/nova-inspecao': typeof NovaInspecaoRoute
   '/obras': typeof ObrasRoute
   '/perfil': typeof PerfilRoute
+  '/plano-acao': typeof PlanoAcaoRoute
   '/relatorios': typeof RelatoriosRoute
   '/suporte': typeof SuporteRoute
+  '/admin_/dashboard-v2': typeof AdminDashboardV2Route
   '/inspecoes/$id': typeof InspecoesIdRoute
   '/inspecoes/': typeof InspecoesIndexRoute
   '/api/public/hooks/cobranca-ncs': typeof ApiPublicHooksCobrancaNcsRoute
@@ -167,8 +185,10 @@ export interface FileRouteTypes {
     | '/nova-inspecao'
     | '/obras'
     | '/perfil'
+    | '/plano-acao'
     | '/relatorios'
     | '/suporte'
+    | '/admin/dashboard-v2'
     | '/inspecoes/$id'
     | '/inspecoes/'
     | '/api/public/hooks/cobranca-ncs'
@@ -184,8 +204,10 @@ export interface FileRouteTypes {
     | '/nova-inspecao'
     | '/obras'
     | '/perfil'
+    | '/plano-acao'
     | '/relatorios'
     | '/suporte'
+    | '/admin/dashboard-v2'
     | '/inspecoes/$id'
     | '/inspecoes'
     | '/api/public/hooks/cobranca-ncs'
@@ -201,8 +223,10 @@ export interface FileRouteTypes {
     | '/nova-inspecao'
     | '/obras'
     | '/perfil'
+    | '/plano-acao'
     | '/relatorios'
     | '/suporte'
+    | '/admin_/dashboard-v2'
     | '/inspecoes/$id'
     | '/inspecoes/'
     | '/api/public/hooks/cobranca-ncs'
@@ -219,8 +243,10 @@ export interface RootRouteChildren {
   NovaInspecaoRoute: typeof NovaInspecaoRoute
   ObrasRoute: typeof ObrasRoute
   PerfilRoute: typeof PerfilRoute
+  PlanoAcaoRoute: typeof PlanoAcaoRoute
   RelatoriosRoute: typeof RelatoriosRoute
   SuporteRoute: typeof SuporteRoute
+  AdminDashboardV2Route: typeof AdminDashboardV2Route
   InspecoesIdRoute: typeof InspecoesIdRoute
   InspecoesIndexRoute: typeof InspecoesIndexRoute
   ApiPublicHooksCobrancaNcsRoute: typeof ApiPublicHooksCobrancaNcsRoute
@@ -298,6 +324,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PerfilRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/plano-acao': {
+      id: '/plano-acao'
+      path: '/plano-acao'
+      fullPath: '/plano-acao'
+      preLoaderRoute: typeof PlanoAcaoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/relatorios': {
       id: '/relatorios'
       path: '/relatorios'
@@ -310,6 +343,13 @@ declare module '@tanstack/react-router' {
       path: '/suporte'
       fullPath: '/suporte'
       preLoaderRoute: typeof SuporteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin_/dashboard-v2': {
+      id: '/admin_/dashboard-v2'
+      path: '/admin/dashboard-v2'
+      fullPath: '/admin/dashboard-v2'
+      preLoaderRoute: typeof AdminDashboardV2RouteImport
       parentRoute: typeof rootRouteImport
     }
     '/inspecoes/': {
@@ -347,8 +387,10 @@ const rootRouteChildren: RootRouteChildren = {
   NovaInspecaoRoute: NovaInspecaoRoute,
   ObrasRoute: ObrasRoute,
   PerfilRoute: PerfilRoute,
+  PlanoAcaoRoute: PlanoAcaoRoute,
   RelatoriosRoute: RelatoriosRoute,
   SuporteRoute: SuporteRoute,
+  AdminDashboardV2Route: AdminDashboardV2Route,
   InspecoesIdRoute: InspecoesIdRoute,
   InspecoesIndexRoute: InspecoesIndexRoute,
   ApiPublicHooksCobrancaNcsRoute: ApiPublicHooksCobrancaNcsRoute,

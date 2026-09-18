@@ -52,7 +52,7 @@ export function ComparativoFotos({
   itemId,
 }: {
   ncId: string;
-  itemId?: string | null;
+  itemId?: string | null | undefined;
 }) {
   const { data: problema = [] } = useQuery({
     queryKey: ["comparativo-problema", ncId, itemId],
