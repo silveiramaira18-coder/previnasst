@@ -198,19 +198,26 @@ export async function anexarDocumento(
 
   const tabela = escopo.tipo === "empresa" ? "company_documents" : "employee_documents";
 
-  let anteriores = supabase
-    .from(tabela)
-    .select("id, version")
-    .eq("doc_type", dados.doc_type)
-    .eq("title", dados.title);
-  anteriores =
-    escopo.tipo === "empresa"
-      ? escopo.contractorId
-        ? anteriores.eq("contractor_id", escopo.contractorId)
-        : anteriores.is("contractor_id", null)
-      : anteriores.eq("employee_id", escopo.employeeId);
+  const buscar = async () => {
+    if (escopo.tipo === "empresa") {
+      const base = supabase
+        .from("company_documents")
+        .select("id, version")
+        .eq("doc_type", dados.doc_type)
+        .eq("title", dados.title);
+      return escopo.contractorId
+        ? await base.eq("contractor_id", escopo.contractorId)
+        : await base.is("contractor_id", null);
+    }
+    return await supabase
+      .from("employee_documents")
+      .select("id, version")
+      .eq("doc_type", dados.doc_type)
+      .eq("title", dados.title)
+      .eq("employee_id", escopo.employeeId);
+  };
 
-  const { data: existentes, error: erroBusca } = await anteriores;
+  const { data: existentes, error: erroBusca } = await buscar();
   if (erroBusca) throw new Error(erroBusca.message);
 
   const versao = Math.max(0, ...(existentes ?? []).map((d) => d.version as number)) + 1;
