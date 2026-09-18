@@ -101,6 +101,8 @@ export type Documento = {
   created_at: string;
 };
 
+export type FiltroPrazo = "todos" | "vencidos" | "7" | "15" | "30";
+
 /** Situação de validade calculada a partir da data de vencimento. */
 export type Situacao = {
   nivel: "valido" | "atencao" | "vencido" | "sem-validade";
@@ -140,6 +142,24 @@ export function resumoDocumentos(docs: Documento[]) {
     if (s.nivel === "vencido") vencidos++;
   }
   return { total: ativos.length, aVencer, vencidos };
+}
+
+export function documentoNoFiltro(doc: Documento, filtro: FiltroPrazo) {
+  if (filtro === "todos") return true;
+  const situacao = situacaoDocumento(doc.expiration_date);
+  if (filtro === "vencidos") return situacao.dias !== null && situacao.dias < 0;
+  const limite = Number(filtro);
+  return situacao.dias !== null && situacao.dias >= 0 && situacao.dias <= limite;
+}
+
+export function contagemAlertas(docs: Documento[]) {
+  const ativos = docs.filter((doc) => doc.status === "active");
+  return {
+    vencidos: ativos.filter((doc) => documentoNoFiltro(doc, "vencidos")).length,
+    sete: ativos.filter((doc) => documentoNoFiltro(doc, "7")).length,
+    quinze: ativos.filter((doc) => documentoNoFiltro(doc, "15")).length,
+    trinta: ativos.filter((doc) => documentoNoFiltro(doc, "30")).length,
+  };
 }
 
 /* ------------------------------ Terceirizadas ----------------------------- */
@@ -369,7 +389,19 @@ export async function excluirDocumento(
   id: string,
   caminho: string | null,
 ) {
-  if (caminho) await supabase.storage.from(BUCKET_DOCS).remove([caminho]);
   const { error } = await supabase.from(tabela).delete().eq("id", id);
+  if (error) throw new Error(error.message);
+  if (caminho) {
+    const { error: erroArquivo } = await supabase.storage.from(BUCKET_DOCS).remove([caminho]);
+    if (erroArquivo) throw new Error(`O cadastro foi excluído, mas o arquivo não pôde ser removido: ${erroArquivo.message}`);
+  }
+}
+
+export async function atualizarDocumento(
+  tabela: "company_documents" | "employee_documents",
+  id: string,
+  dados: { doc_type: string; title: string; issue_date: string | null; expiration_date: string | null },
+) {
+  const { error } = await supabase.from(tabela).update(dados).eq("id", id);
   if (error) throw new Error(error.message);
 }
