@@ -110,20 +110,21 @@ export function FotoManager({
   valor,
   titulo = "Evidências Fotográficas",
   rotuloUpload = "Galeria / Upload",
+  tipo,
 }: Props) {
   const qc = useQueryClient();
   const cameraRef = useRef<HTMLInputElement>(null);
   const galeriaRef = useRef<HTMLInputElement>(null);
-  const chave = ["fotos", tabela, valor];
+  const chave = ["fotos", tabela, valor, tipo ?? "todas"];
   const [ampliada, setAmpliada] = useState<{ src: string; legenda: string } | null>(null);
 
   const { data: fotos = [], isLoading } = useQuery({
     queryKey: chave,
-    queryFn: () => listarFotos(tabela, coluna, valor),
+    queryFn: () => listarFotos(tabela, coluna, valor, tipo),
   });
 
   const upload = useMutation({
-    mutationFn: (arquivos: File[]) => enviarFotos(tabela, coluna, valor, arquivos),
+    mutationFn: (arquivos: File[]) => enviarFotos(tabela, coluna, valor, arquivos, tipo),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: chave });
       toast.success("Fotos enviadas");
