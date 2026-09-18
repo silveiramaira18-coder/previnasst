@@ -12,6 +12,8 @@ import {
   UserRound,
   LifeBuoy,
   ShieldCheck,
+  KanbanSquare,
+  TrendingUp,
 } from "lucide-react";
 
 import { AvatarPerfil } from "@/components/AvatarPerfil";
@@ -44,6 +46,13 @@ const items = [
     permissao: "gerenciarChecklists",
   },
   { title: "Não Conformidades", to: "/nao-conformidades", icon: TriangleAlert },
+  { title: "Plano de Ação", to: "/plano-acao", icon: KanbanSquare, somenteAdminPrincipal: true },
+  {
+    title: "Dashboard de Tendências",
+    to: "/admin/dashboard-v2",
+    icon: TrendingUp,
+    somenteAdminPrincipal: true,
+  },
   { title: "Relatórios", to: "/relatorios", icon: FileText, somenteAdminPrincipal: true },
   { title: "Painel Administrativo", to: "/admin", icon: ShieldCheck, somenteAdminPrincipal: true },
   { title: "Meu Perfil", to: "/perfil", icon: UserRound },
