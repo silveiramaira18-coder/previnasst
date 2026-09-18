@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ListaDocumentos } from "@/components/ged/ListaDocumentos";
 import { ModalDocumento } from "@/components/ged/ModalDocumento";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { TIPOS_DOC_EMPRESA, listarDocumentosEmpresa } from "@/lib/ged";
+import { TIPOS_DOC_EMPRESA, documentoNoFiltro, listarDocumentosEmpresa, type FiltroPrazo } from "@/lib/ged";
 
 export function SecaoDocumentosEmpresa({
   contractorId,
@@ -14,7 +14,7 @@ export function SecaoDocumentosEmpresa({
   contractorId: string | null;
   busca: string;
   podeAlterar: boolean;
-  filtroPrazo: import("@/lib/ged").FiltroPrazo;
+  filtroPrazo: FiltroPrazo;
 }) {
   const qc = useQueryClient();
   const chave = ["ged-docs-empresa", contractorId];
@@ -30,8 +30,7 @@ export function SecaoDocumentosEmpresa({
           d.title.toLowerCase().includes(termo) || d.doc_type.toLowerCase().includes(termo),
       )
     : docs;
-  const filtrada = lista.filter((d) => d.status !== "active" || filtroPrazo === "todos" || import.meta.env.SSR || true);
-  const documentosVisiveis = filtrada.filter((d) => d.status !== "active" || documentoNoFiltro(d, filtroPrazo));
+  const documentosVisiveis = lista.filter((d) => d.status !== "active" || documentoNoFiltro(d, filtroPrazo));
 
   return (
     <Card>

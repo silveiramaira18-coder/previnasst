@@ -1,11 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Plus, Trash2, UserPlus } from "lucide-react";
+import { Pencil, Plus, Trash2, UserPlus } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
 import { ListaDocumentos } from "@/components/ged/ListaDocumentos";
 import { ModalDocumento } from "@/components/ged/ModalDocumento";
 import { ComboboxGed } from "@/components/ged/ComboboxGed";
+import { ConfirmacaoExclusao } from "@/components/ged/ConfirmacaoExclusao";
 import {
   Accordion,
   AccordionContent,
@@ -34,10 +35,12 @@ import {
   listarDocumentosColaborador,
   listarFuncoesPersonalizadas,
   salvarColaborador,
+  documentoNoFiltro,
+  type FiltroPrazo,
   type Colaborador,
 } from "@/lib/ged";
 
-function DocumentosDoColaborador({ colaborador }: { colaborador: Colaborador }) {
+function DocumentosDoColaborador({ colaborador, podeAlterar, filtroPrazo }: { colaborador: Colaborador; podeAlterar: boolean; filtroPrazo: FiltroPrazo }) {
   const qc = useQueryClient();
   const chave = ["ged-docs-colaborador", colaborador.id];
   const { data: docs = [] } = useQuery({
@@ -53,9 +56,12 @@ function DocumentosDoColaborador({ colaborador }: { colaborador: Colaborador }) 
         rotulo="Anexar documento do colaborador"
         onSalvo={() => qc.invalidateQueries({ queryKey: chave })}
       />
+      {!podeAlterar ? null : null}
       <ListaDocumentos
-        documentos={docs}
+        documentos={docs.filter((d) => d.status !== "active" || documentoNoFiltro(d, filtroPrazo))}
         tabela="employee_documents"
+        tipos={TIPOS_DOC_COLABORADOR}
+        podeAlterar={podeAlterar}
         onMudou={() => qc.invalidateQueries({ queryKey: chave })}
         vazio="Sem ASO, treinamentos ou ficha de EPI anexados."
       />
@@ -66,12 +72,14 @@ function DocumentosDoColaborador({ colaborador }: { colaborador: Colaborador }) 
 function NovoColaborador({
   contractorId,
   onSalvo,
+  colaborador,
 }: {
   contractorId: string | null;
   onSalvo: () => void;
+  colaborador?: Colaborador;
 }) {
   const [aberto, setAberto] = useState(false);
-  const [form, setForm] = useState({ name: "", cpf: "", role_title: "" });
+  const [form, setForm] = useState({ name: colaborador?.name ?? "", cpf: colaborador?.cpf ?? "", role_title: colaborador?.role_title ?? "" });
   const [modoFuncao, setModoFuncao] = useState<"lista" | "outra" | "nova">("lista");
   const [funcaoManual, setFuncaoManual] = useState("");
   const qc = useQueryClient();
@@ -101,6 +109,7 @@ function NovoColaborador({
       const funcaoFinal = modoFuncao === "lista" ? form.role_title.trim() : funcaoManual.trim();
       if (!funcaoFinal) throw new Error("Selecione ou informe a função.");
       await salvarColaborador({
+        id: colaborador?.id,
         contractor_id: contractorId,
         name: form.name.trim().slice(0, 120),
         cpf: form.cpf.trim() || null,
@@ -108,7 +117,7 @@ function NovoColaborador({
       });
     },
     onSuccess: () => {
-      toast.success("Colaborador cadastrado");
+      toast.success(colaborador ? "Colaborador atualizado" : "Colaborador cadastrado");
       setForm({ name: "", cpf: "", role_title: "" });
       setFuncaoManual("");
       setModoFuncao("lista");
@@ -121,13 +130,15 @@ function NovoColaborador({
   return (
     <Dialog open={aberto} onOpenChange={setAberto}>
       <DialogTrigger asChild>
-        <Button type="button" size="sm" variant="outline" className="gap-2">
-          <UserPlus className="size-4" /> Novo colaborador
-        </Button>
+        {colaborador ? (
+          <Button type="button" size="icon" variant="ghost" aria-label={`Editar ${colaborador.name}`}><Pencil className="size-4" /></Button>
+        ) : (
+          <Button type="button" size="sm" variant="outline" className="gap-2"><UserPlus className="size-4" /> Novo colaborador</Button>
+        )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Cadastrar colaborador</DialogTitle>
+          <DialogTitle>{colaborador ? "Editar colaborador" : "Cadastrar colaborador"}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
           <div className="space-y-1.5">
@@ -216,7 +227,7 @@ function NovoColaborador({
             disabled={salvar.isPending || adicionarFuncao.isPending || Boolean(form.cpf && !cpfValido(form.cpf))}
             onClick={() => salvar.mutate()}
           >
-            Salvar colaborador
+            {colaborador ? "Salvar alterações" : "Salvar colaborador"}
           </Button>
         </div>
       </DialogContent>
@@ -227,9 +238,13 @@ function NovoColaborador({
 export function SecaoColaboradores({
   contractorId,
   busca,
+  podeAlterar,
+  filtroPrazo,
 }: {
   contractorId: string | null;
   busca: string;
+  podeAlterar: boolean;
+  filtroPrazo: FiltroPrazo;
 }) {
   const qc = useQueryClient();
   const chave = ["ged-colaboradores", contractorId];
@@ -261,10 +276,10 @@ export function SecaoColaboradores({
     <Card>
       <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-3">
         <CardTitle className="text-base">Documentos dos Colaboradores</CardTitle>
-        <NovoColaborador
+        {podeAlterar ? <NovoColaborador
           contractorId={contractorId}
           onSalvo={() => qc.invalidateQueries({ queryKey: chave })}
-        />
+        /> : null}
       </CardHeader>
       <CardContent>
         {lista.length === 0 ? (
@@ -284,20 +299,15 @@ export function SecaoColaboradores({
                       </span>
                     </span>
                   </AccordionTrigger>
-                  <Button
-                    type="button"
-                    size="icon"
-                    variant="ghost"
-                    aria-label="Excluir colaborador"
-                    onClick={() => {
-                      if (confirm(`Excluir ${c.name} e seus documentos?`)) remover.mutate(c.id);
-                    }}
-                  >
-                    <Trash2 className="size-4 text-destructive" />
-                  </Button>
+                   {podeAlterar ? <>
+                     <NovoColaborador contractorId={contractorId} colaborador={c} onSalvo={() => qc.invalidateQueries({ queryKey: chave })} />
+                     <ConfirmacaoExclusao nome={`“${c.name}” e seus documentos`} onConfirmar={() => remover.mutateAsync(c.id)} disabled={remover.isPending}>
+                       <Button type="button" size="icon" variant="ghost" aria-label={`Excluir ${c.name}`}><Trash2 className="size-4 text-destructive" /></Button>
+                     </ConfirmacaoExclusao>
+                   </> : null}
                 </div>
                 <AccordionContent className="pb-4">
-                  <DocumentosDoColaborador colaborador={c} />
+                   <DocumentosDoColaborador colaborador={c} podeAlterar={podeAlterar} filtroPrazo={filtroPrazo} />
                 </AccordionContent>
               </AccordionItem>
             ))}
