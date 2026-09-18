@@ -187,8 +187,20 @@ export async function salvarTerceirizada(dados: {
 }
 
 export async function excluirTerceirizada(id: string) {
+  const [{ data: docsEmpresa }, { data: colaboradores }] = await Promise.all([
+    supabase.from("company_documents").select("file_url").eq("contractor_id", id),
+    supabase.from("employees").select("id").eq("contractor_id", id),
+  ]);
+  const ids = (colaboradores ?? []).map((c) => c.id);
+  const { data: docsColaboradores } = ids.length
+    ? await supabase.from("employee_documents").select("file_url").in("employee_id", ids)
+    : { data: [] };
   const { error } = await supabase.from("contractors").delete().eq("id", id);
   if (error) throw new Error(error.message);
+  const caminhos = [...(docsEmpresa ?? []), ...(docsColaboradores ?? [])]
+    .map((d) => d.file_url)
+    .filter((c): c is string => Boolean(c));
+  if (caminhos.length) await supabase.storage.from(BUCKET_DOCS).remove(caminhos);
 }
 
 /* ------------------------------ Colaboradores ----------------------------- */
@@ -220,8 +232,11 @@ export async function salvarColaborador(dados: {
 }
 
 export async function excluirColaborador(id: string) {
+  const { data: docs } = await supabase.from("employee_documents").select("file_url").eq("employee_id", id);
   const { error } = await supabase.from("employees").delete().eq("id", id);
   if (error) throw new Error(error.message);
+  const caminhos = (docs ?? []).map((d) => d.file_url).filter((c): c is string => Boolean(c));
+  if (caminhos.length) await supabase.storage.from(BUCKET_DOCS).remove(caminhos);
 }
 
 export async function listarFuncoesPersonalizadas(contractorId: string | null) {

@@ -50,13 +50,12 @@ function DocumentosDoColaborador({ colaborador, podeAlterar, filtroPrazo }: { co
 
   return (
     <div className="space-y-3">
-      <ModalDocumento
+      {podeAlterar ? <ModalDocumento
         escopo={{ tipo: "colaborador", employeeId: colaborador.id }}
         tipos={TIPOS_DOC_COLABORADOR}
         rotulo="Anexar documento do colaborador"
         onSalvo={() => qc.invalidateQueries({ queryKey: chave })}
-      />
-      {!podeAlterar ? null : null}
+      /> : null}
       <ListaDocumentos
         documentos={docs.filter((d) => d.status !== "active" || documentoNoFiltro(d, filtroPrazo))}
         tabela="employee_documents"
@@ -109,7 +108,7 @@ function NovoColaborador({
       const funcaoFinal = modoFuncao === "lista" ? form.role_title.trim() : funcaoManual.trim();
       if (!funcaoFinal) throw new Error("Selecione ou informe a função.");
       await salvarColaborador({
-        id: colaborador?.id,
+        ...(colaborador ? { id: colaborador.id } : {}),
         contractor_id: contractorId,
         name: form.name.trim().slice(0, 120),
         cpf: form.cpf.trim() || null,

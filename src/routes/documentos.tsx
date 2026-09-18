@@ -1,12 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Building2, FileCheck2, FileWarning, FileX2, Plus, Trash2, Truck } from "lucide-react";
+import { Building2, FileCheck2, FileWarning, FileX2, Pencil, Plus, Trash2, Truck } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
 import { PageHeader } from "@/components/PageHeader";
 import { SecaoColaboradores } from "@/components/ged/SecaoColaboradores";
 import { SecaoDocumentosEmpresa } from "@/components/ged/SecaoDocumentosEmpresa";
+import { ConfirmacaoExclusao } from "@/components/ged/ConfirmacaoExclusao";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -31,9 +32,13 @@ import {
   excluirTerceirizada,
   listarTerceirizadas,
   resumoDocumentos,
+  contagemAlertas,
   salvarTerceirizada,
+  type FiltroPrazo,
+  type Terceirizada,
   type Documento,
 } from "@/lib/ged";
+import { usePerfil } from "@/lib/perfil";
 
 export const Route = createFileRoute("/documentos")({
   head: () => ({
@@ -92,21 +97,22 @@ async function carregarTodosDocumentos() {
   return [...(empresa.data ?? []), ...(colaborador.data ?? [])] as Documento[];
 }
 
-function NovaTerceirizada({ onSalvo }: { onSalvo: () => void }) {
+function NovaTerceirizada({ onSalvo, empresa }: { onSalvo: () => void; empresa?: Terceirizada }) {
   const [aberto, setAberto] = useState(false);
-  const [form, setForm] = useState({ name: "", cnpj: "", contact_email: "" });
+  const [form, setForm] = useState({ name: empresa?.name ?? "", cnpj: empresa?.cnpj ?? "", contact_email: empresa?.contact_email ?? "" });
 
   const salvar = useMutation({
     mutationFn: async () => {
       if (!form.name.trim()) throw new Error("Informe a razão social.");
       await salvarTerceirizada({
+        ...(empresa ? { id: empresa.id } : {}),
         name: form.name.trim().slice(0, 150),
         cnpj: form.cnpj.trim() || null,
         contact_email: form.contact_email.trim() || null,
       });
     },
     onSuccess: () => {
-      toast.success("Empresa terceirizada cadastrada");
+      toast.success(empresa ? "Empresa terceirizada atualizada" : "Empresa terceirizada cadastrada");
       setForm({ name: "", cnpj: "", contact_email: "" });
       setAberto(false);
       onSalvo();
@@ -117,13 +123,11 @@ function NovaTerceirizada({ onSalvo }: { onSalvo: () => void }) {
   return (
     <Dialog open={aberto} onOpenChange={setAberto}>
       <DialogTrigger asChild>
-        <Button type="button" variant="outline" className="gap-2">
-          <Plus className="size-4" /> Nova empresa terceirizada
-        </Button>
+        {empresa ? <Button type="button" size="icon" variant="ghost" aria-label={`Editar ${empresa.name}`}><Pencil className="size-4" /></Button> : <Button type="button" variant="outline" className="gap-2"><Plus className="size-4" /> Nova empresa terceirizada</Button>}
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Cadastrar empresa terceirizada</DialogTitle>
+          <DialogTitle>{empresa ? "Editar empresa terceirizada" : "Cadastrar empresa terceirizada"}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
           <div className="space-y-1.5">
@@ -164,7 +168,7 @@ function NovaTerceirizada({ onSalvo }: { onSalvo: () => void }) {
             disabled={salvar.isPending}
             onClick={() => salvar.mutate()}
           >
-            Salvar empresa
+            {empresa ? "Salvar alterações" : "Salvar empresa"}
           </Button>
         </div>
       </DialogContent>
@@ -176,6 +180,8 @@ function GestaoDocumental() {
   const qc = useQueryClient();
   const [busca, setBusca] = useState("");
   const [terceirizadaId, setTerceirizadaId] = useState<string>("");
+  const [filtroPrazo, setFiltroPrazo] = useState<FiltroPrazo>("todos");
+  const { adminPrincipal, isLoading: carregandoPerfil } = usePerfil();
 
   const { data: todos = [] } = useQuery({
     queryKey: ["ged-resumo"],
@@ -187,6 +193,7 @@ function GestaoDocumental() {
   });
 
   const resumo = resumoDocumentos(todos);
+  const alertas = contagemAlertas(todos);
 
   const removerEmpresa = useMutation({
     mutationFn: (id: string) => excluirTerceirizada(id),
@@ -224,6 +231,23 @@ function GestaoDocumental() {
         />
       </div>
 
+      <Card>
+        <CardHeader><CardTitle className="text-base">Central de alertas de validade</CardTitle></CardHeader>
+        <CardContent className="flex flex-wrap gap-2">
+          {([
+            ["todos", "Todos", resumo.total],
+            ["vencidos", "Vencidos", alertas.vencidos],
+            ["7", "Vencem em 7 dias", alertas.sete],
+            ["15", "Vencem em 15 dias", alertas.quinze],
+            ["30", "Vencem em 30 dias", alertas.trinta],
+          ] as const).map(([valor, rotulo, total]) => (
+            <Button key={valor} type="button" variant={filtroPrazo === valor ? "default" : "outline"} size="sm" onClick={() => setFiltroPrazo(valor)}>
+              {rotulo} <span className="ml-2 rounded-full bg-background/20 px-1.5">{total}</span>
+            </Button>
+          ))}
+        </CardContent>
+      </Card>
+
       <Input
         className="h-12 max-w-md"
         placeholder="Buscar por documento, colaborador ou CPF"
@@ -242,17 +266,17 @@ function GestaoDocumental() {
         </TabsList>
 
         <TabsContent value="propria" className="mt-4 space-y-4">
-          <SecaoDocumentosEmpresa contractorId={null} busca={busca} />
-          <SecaoColaboradores contractorId={null} busca={busca} />
+          <SecaoDocumentosEmpresa contractorId={null} busca={busca} podeAlterar={adminPrincipal} filtroPrazo={filtroPrazo} />
+          <SecaoColaboradores contractorId={null} busca={busca} podeAlterar={adminPrincipal} filtroPrazo={filtroPrazo} />
         </TabsContent>
 
         <TabsContent value="terceirizados" className="mt-4 space-y-4">
           <Card>
             <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-3">
               <CardTitle className="text-base">Empresa terceirizada</CardTitle>
-              <NovaTerceirizada
+              {adminPrincipal ? <NovaTerceirizada
                 onSalvo={() => qc.invalidateQueries({ queryKey: ["ged-terceirizadas"] })}
-              />
+              /> : null}
             </CardHeader>
             <CardContent className="flex flex-wrap items-center gap-3">
               <Select value={terceirizadaId} onValueChange={setTerceirizadaId}>
@@ -269,18 +293,12 @@ function GestaoDocumental() {
                 </SelectContent>
               </Select>
               {selecionada ? (
-                <Button
-                  type="button"
-                  size="icon"
-                  variant="ghost"
-                  aria-label="Excluir empresa terceirizada"
-                  onClick={() => {
-                    if (confirm(`Excluir ${selecionada.name} e todos os seus documentos?`))
-                      removerEmpresa.mutate(selecionada.id);
-                  }}
-                >
-                  <Trash2 className="size-4 text-destructive" />
-                </Button>
+                adminPrincipal ? <>
+                  <NovaTerceirizada empresa={selecionada} onSalvo={() => qc.invalidateQueries({ queryKey: ["ged-terceirizadas"] })} />
+                  <ConfirmacaoExclusao nome={`“${selecionada.name}” e todos os seus dados`} onConfirmar={() => removerEmpresa.mutateAsync(selecionada.id)} disabled={removerEmpresa.isPending}>
+                    <Button type="button" size="icon" variant="ghost" aria-label="Excluir empresa terceirizada"><Trash2 className="size-4 text-destructive" /></Button>
+                  </ConfirmacaoExclusao>
+                </> : null
               ) : null}
               {terceirizadas.length === 0 ? (
                 <p className="text-sm text-muted-foreground">
@@ -292,8 +310,8 @@ function GestaoDocumental() {
 
           {selecionada ? (
             <>
-              <SecaoDocumentosEmpresa contractorId={selecionada.id} busca={busca} />
-              <SecaoColaboradores contractorId={selecionada.id} busca={busca} />
+               <SecaoDocumentosEmpresa contractorId={selecionada.id} busca={busca} podeAlterar={adminPrincipal && !carregandoPerfil} filtroPrazo={filtroPrazo} />
+               <SecaoColaboradores contractorId={selecionada.id} busca={busca} podeAlterar={adminPrincipal && !carregandoPerfil} filtroPrazo={filtroPrazo} />
             </>
           ) : null}
         </TabsContent>

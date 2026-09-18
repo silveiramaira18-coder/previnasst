@@ -43,8 +43,7 @@ export function ConfirmacaoExclusao({
               type="button"
               variant="destructive"
               disabled={processando}
-              onClick={async (evento) => {
-                evento.preventDefault();
+              onClick={async () => {
                 setProcessando(true);
                 try {
                   await onConfirmar();
