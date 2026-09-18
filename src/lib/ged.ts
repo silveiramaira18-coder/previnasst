@@ -101,6 +101,8 @@ export type Documento = {
   created_at: string;
 };
 
+export type FiltroPrazo = "todos" | "vencidos" | "7" | "15" | "30";
+
 /** Situação de validade calculada a partir da data de vencimento. */
 export type Situacao = {
   nivel: "valido" | "atencao" | "vencido" | "sem-validade";
@@ -142,6 +144,24 @@ export function resumoDocumentos(docs: Documento[]) {
   return { total: ativos.length, aVencer, vencidos };
 }
 
+export function documentoNoFiltro(doc: Documento, filtro: FiltroPrazo) {
+  if (filtro === "todos") return true;
+  const situacao = situacaoDocumento(doc.expiration_date);
+  if (filtro === "vencidos") return situacao.dias !== null && situacao.dias < 0;
+  const limite = Number(filtro);
+  return situacao.dias !== null && situacao.dias >= 0 && situacao.dias <= limite;
+}
+
+export function contagemAlertas(docs: Documento[]) {
+  const ativos = docs.filter((doc) => doc.status === "active");
+  return {
+    vencidos: ativos.filter((doc) => documentoNoFiltro(doc, "vencidos")).length,
+    sete: ativos.filter((doc) => documentoNoFiltro(doc, "7")).length,
+    quinze: ativos.filter((doc) => documentoNoFiltro(doc, "15")).length,
+    trinta: ativos.filter((doc) => documentoNoFiltro(doc, "30")).length,
+  };
+}
+
 /* ------------------------------ Terceirizadas ----------------------------- */
 
 export async function listarTerceirizadas() {
@@ -167,8 +187,20 @@ export async function salvarTerceirizada(dados: {
 }
 
 export async function excluirTerceirizada(id: string) {
+  const [{ data: docsEmpresa }, { data: colaboradores }] = await Promise.all([
+    supabase.from("company_documents").select("file_url").eq("contractor_id", id),
+    supabase.from("employees").select("id").eq("contractor_id", id),
+  ]);
+  const ids = (colaboradores ?? []).map((c) => c.id);
+  const { data: docsColaboradores } = ids.length
+    ? await supabase.from("employee_documents").select("file_url").in("employee_id", ids)
+    : { data: [] };
   const { error } = await supabase.from("contractors").delete().eq("id", id);
   if (error) throw new Error(error.message);
+  const caminhos = [...(docsEmpresa ?? []), ...(docsColaboradores ?? [])]
+    .map((d) => d.file_url)
+    .filter((c): c is string => Boolean(c));
+  if (caminhos.length) await supabase.storage.from(BUCKET_DOCS).remove(caminhos);
 }
 
 /* ------------------------------ Colaboradores ----------------------------- */
@@ -200,8 +232,11 @@ export async function salvarColaborador(dados: {
 }
 
 export async function excluirColaborador(id: string) {
+  const { data: docs } = await supabase.from("employee_documents").select("file_url").eq("employee_id", id);
   const { error } = await supabase.from("employees").delete().eq("id", id);
   if (error) throw new Error(error.message);
+  const caminhos = (docs ?? []).map((d) => d.file_url).filter((c): c is string => Boolean(c));
+  if (caminhos.length) await supabase.storage.from(BUCKET_DOCS).remove(caminhos);
 }
 
 export async function listarFuncoesPersonalizadas(contractorId: string | null) {
@@ -369,7 +404,19 @@ export async function excluirDocumento(
   id: string,
   caminho: string | null,
 ) {
-  if (caminho) await supabase.storage.from(BUCKET_DOCS).remove([caminho]);
   const { error } = await supabase.from(tabela).delete().eq("id", id);
+  if (error) throw new Error(error.message);
+  if (caminho) {
+    const { error: erroArquivo } = await supabase.storage.from(BUCKET_DOCS).remove([caminho]);
+    if (erroArquivo) throw new Error(`O cadastro foi excluído, mas o arquivo não pôde ser removido: ${erroArquivo.message}`);
+  }
+}
+
+export async function atualizarDocumento(
+  tabela: "company_documents" | "employee_documents",
+  id: string,
+  dados: { doc_type: string; title: string; issue_date: string | null; expiration_date: string | null },
+) {
+  const { error } = await supabase.from(tabela).update(dados).eq("id", id);
   if (error) throw new Error(error.message);
 }

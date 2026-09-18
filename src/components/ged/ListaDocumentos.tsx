@@ -3,6 +3,9 @@ import { Download, History, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { BadgeValidade } from "@/components/ged/BadgeValidade";
+import { ConfirmacaoExclusao } from "@/components/ged/ConfirmacaoExclusao";
+import { EditarDocumento } from "@/components/ged/EditarDocumento";
+import { PreviewDocumento } from "@/components/ged/PreviewDocumento";
 import {
   Accordion,
   AccordionContent,
@@ -20,11 +23,15 @@ function Linha({
   tabela,
   onMudou,
   obsoleto,
+  podeAlterar,
+  tipos,
 }: {
   doc: Documento;
   tabela: Tabela;
   onMudou: () => void;
   obsoleto?: boolean;
+  podeAlterar: boolean;
+  tipos: readonly string[];
 }) {
   const baixar = useMutation({
     mutationFn: async () => {
@@ -64,7 +71,9 @@ function Linha({
       ) : (
         <BadgeValidade validade={doc.expiration_date} />
       )}
-      <div className="flex gap-1">
+      <div className="ml-auto flex shrink-0 gap-1">
+        <PreviewDocumento doc={doc} />
+        {podeAlterar ? <EditarDocumento doc={doc} tabela={tabela} tipos={tipos} onSalvo={onMudou} /> : null}
         <Button
           type="button"
           size="icon"
@@ -75,18 +84,17 @@ function Linha({
         >
           <Download className="size-4" />
         </Button>
-        <Button
-          type="button"
-          size="icon"
-          variant="ghost"
-          aria-label="Excluir documento"
-          disabled={remover.isPending}
-          onClick={() => {
-            if (confirm(`Excluir "${doc.title}" (v${doc.version})?`)) remover.mutate();
-          }}
-        >
-          <Trash2 className="size-4 text-destructive" />
-        </Button>
+        {podeAlterar ? (
+          <ConfirmacaoExclusao
+            nome={`“${doc.title}” (v${doc.version})`}
+            disabled={remover.isPending}
+            onConfirmar={() => remover.mutateAsync()}
+          >
+            <Button type="button" size="icon" variant="ghost" aria-label="Excluir documento">
+              <Trash2 className="size-4 text-destructive" />
+            </Button>
+          </ConfirmacaoExclusao>
+        ) : null}
       </div>
     </div>
   );
@@ -97,11 +105,15 @@ export function ListaDocumentos({
   tabela,
   onMudou,
   vazio = "Nenhum documento anexado ainda.",
+  podeAlterar,
+  tipos,
 }: {
   documentos: Documento[];
   tabela: Tabela;
   onMudou: () => void;
   vazio?: string;
+  podeAlterar: boolean;
+  tipos: readonly string[];
 }) {
   const ativos = documentos.filter((d) => d.status === "active");
   const obsoletos = documentos.filter((d) => d.status !== "active");
@@ -113,7 +125,7 @@ export function ListaDocumentos({
           {vazio}
         </p>
       ) : (
-        ativos.map((d) => <Linha key={d.id} doc={d} tabela={tabela} onMudou={onMudou} />)
+        ativos.map((d) => <Linha key={d.id} doc={d} tabela={tabela} onMudou={onMudou} podeAlterar={podeAlterar} tipos={tipos} />)
       )}
 
       {obsoletos.length > 0 ? (
@@ -126,7 +138,7 @@ export function ListaDocumentos({
             </AccordionTrigger>
             <AccordionContent className="space-y-2">
               {obsoletos.map((d) => (
-                <Linha key={d.id} doc={d} tabela={tabela} onMudou={onMudou} obsoleto />
+                <Linha key={d.id} doc={d} tabela={tabela} onMudou={onMudou} obsoleto podeAlterar={podeAlterar} tipos={tipos} />
               ))}
             </AccordionContent>
           </AccordionItem>
