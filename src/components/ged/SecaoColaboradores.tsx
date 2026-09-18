@@ -1,10 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Trash2, UserPlus } from "lucide-react";
+import { Plus, Trash2, UserPlus } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
 import { ListaDocumentos } from "@/components/ged/ListaDocumentos";
 import { ModalDocumento } from "@/components/ged/ModalDocumento";
+import { ComboboxGed } from "@/components/ged/ComboboxGed";
 import {
   Accordion,
   AccordionContent,
@@ -24,9 +25,14 @@ import {
 } from "@/components/ui/dialog";
 import {
   TIPOS_DOC_COLABORADOR,
+  FUNCOES_CONSTRUCAO,
+  adicionarFuncaoPersonalizada,
+  cpfValido,
   excluirColaborador,
+  formatarCpf,
   listarColaboradores,
   listarDocumentosColaborador,
+  listarFuncoesPersonalizadas,
   salvarColaborador,
   type Colaborador,
 } from "@/lib/ged";
@@ -66,20 +72,46 @@ function NovoColaborador({
 }) {
   const [aberto, setAberto] = useState(false);
   const [form, setForm] = useState({ name: "", cpf: "", role_title: "" });
+  const [modoFuncao, setModoFuncao] = useState<"lista" | "outra" | "nova">("lista");
+  const [funcaoManual, setFuncaoManual] = useState("");
+  const qc = useQueryClient();
+  const chaveFuncoes = ["ged-funcoes", contractorId];
+  const { data: funcoesPersonalizadas = [] } = useQuery({
+    queryKey: chaveFuncoes,
+    queryFn: () => listarFuncoesPersonalizadas(contractorId),
+    enabled: aberto,
+  });
+
+  const adicionarFuncao = useMutation({
+    mutationFn: () => adicionarFuncaoPersonalizada(contractorId, funcaoManual),
+    onSuccess: async (nome) => {
+      await qc.invalidateQueries({ queryKey: chaveFuncoes });
+      setForm({ ...form, role_title: nome });
+      setFuncaoManual("");
+      setModoFuncao("lista");
+      toast.success("Função adicionada à lista");
+    },
+    onError: (e: Error) => toast.error("Não foi possível adicionar", { description: e.message }),
+  });
 
   const salvar = useMutation({
     mutationFn: async () => {
       if (!form.name.trim()) throw new Error("Informe o nome do colaborador.");
+      if (form.cpf && !cpfValido(form.cpf)) throw new Error("Informe um CPF válido.");
+      const funcaoFinal = modoFuncao === "lista" ? form.role_title.trim() : funcaoManual.trim();
+      if (!funcaoFinal) throw new Error("Selecione ou informe a função.");
       await salvarColaborador({
         contractor_id: contractorId,
         name: form.name.trim().slice(0, 120),
         cpf: form.cpf.trim() || null,
-        role_title: form.role_title.trim() || null,
+        role_title: funcaoFinal.slice(0, 80),
       });
     },
     onSuccess: () => {
       toast.success("Colaborador cadastrado");
       setForm({ name: "", cpf: "", role_title: "" });
+      setFuncaoManual("");
+      setModoFuncao("lista");
       setAberto(false);
       onSalvo();
     },
@@ -113,27 +145,75 @@ function NovoColaborador({
             <Input
               id="col-cpf"
               className="h-12"
-              maxLength={20}
+              inputMode="numeric"
+              maxLength={14}
               placeholder="000.000.000-00"
               value={form.cpf}
-              onChange={(e) => setForm({ ...form, cpf: e.target.value })}
+              onChange={(e) => setForm({ ...form, cpf: formatarCpf(e.target.value) })}
+              aria-invalid={Boolean(form.cpf && form.cpf.length === 14 && !cpfValido(form.cpf))}
             />
+            {form.cpf && form.cpf.length === 14 && !cpfValido(form.cpf) ? (
+              <p className="text-xs text-destructive">CPF inválido. Confira os números digitados.</p>
+            ) : null}
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="col-funcao">Função</Label>
-            <Input
-              id="col-funcao"
-              className="h-12"
-              maxLength={80}
-              placeholder="Ex.: Pedreiro"
-              value={form.role_title}
-              onChange={(e) => setForm({ ...form, role_title: e.target.value })}
+            <ComboboxGed
+              grupos={[
+                { titulo: "Construção Civil / SST", opcoes: FUNCOES_CONSTRUCAO },
+                { titulo: "Funções salvas", opcoes: funcoesPersonalizadas.map((f) => f.name) },
+                { opcoes: ["Outra (digitar manualmente)", "+ Adicionar nova função à lista"] },
+              ]}
+              value={modoFuncao === "lista" ? form.role_title : modoFuncao === "outra" ? "Outra (digitar manualmente)" : "+ Adicionar nova função à lista"}
+              onChange={(valor) => {
+                if (valor === "Outra (digitar manualmente)") {
+                  setModoFuncao("outra");
+                  setForm({ ...form, role_title: "" });
+                } else if (valor === "+ Adicionar nova função à lista") {
+                  setModoFuncao("nova");
+                  setForm({ ...form, role_title: "" });
+                } else {
+                  setModoFuncao("lista");
+                  setFuncaoManual("");
+                  setForm({ ...form, role_title: valor });
+                }
+              }}
+              placeholder="Selecione ou busque uma função"
+              ariaLabel="Função"
+              busca="Buscar função..."
             />
+            {modoFuncao !== "lista" ? (
+              <div className="space-y-2 pt-1">
+                <Label htmlFor="col-funcao-manual">
+                  {modoFuncao === "nova" ? "Nova função" : "Especifique a função"}
+                </Label>
+                <Input
+                  id="col-funcao-manual"
+                  className="h-12"
+                  maxLength={80}
+                  placeholder="Ex.: Técnico de edificações"
+                  value={funcaoManual}
+                  onChange={(e) => setFuncaoManual(e.target.value)}
+                />
+                {modoFuncao === "nova" ? (
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    className="gap-2"
+                    disabled={adicionarFuncao.isPending || funcaoManual.trim().length < 2}
+                    onClick={() => adicionarFuncao.mutate()}
+                  >
+                    <Plus className="size-4" /> Adicionar à lista
+                  </Button>
+                ) : null}
+              </div>
+            ) : null}
           </div>
           <Button
             type="button"
             className="h-12 w-full"
-            disabled={salvar.isPending}
+            disabled={salvar.isPending || adicionarFuncao.isPending || Boolean(form.cpf && !cpfValido(form.cpf))}
             onClick={() => salvar.mutate()}
           >
             Salvar colaborador

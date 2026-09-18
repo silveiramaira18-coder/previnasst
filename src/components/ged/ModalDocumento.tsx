@@ -3,6 +3,7 @@ import { Upload } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
+import { ComboboxGed } from "@/components/ged/ComboboxGed";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -15,13 +16,10 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { anexarDocumento } from "@/lib/ged";
+  DOCUMENTOS_GERAIS_COLABORADOR,
+  TREINAMENTOS_NR,
+  anexarDocumento,
+} from "@/lib/ged";
 
 type Escopo =
   | { tipo: "empresa"; contractorId: string | null }
@@ -45,14 +43,22 @@ export function ModalDocumento({
     issue_date: "",
     expiration_date: "",
   });
+  const [especificacaoOutro, setEspecificacaoOutro] = useState("");
   const [arquivo, setArquivo] = useState<File | null>(null);
 
   const salvar = useMutation({
     mutationFn: async () => {
-      if (!form.title.trim()) throw new Error("Informe o título do documento.");
+      const colaborador = escopo.tipo === "colaborador";
+      const tituloFinal = colaborador
+        ? form.doc_type === "Outros"
+          ? especificacaoOutro.trim()
+          : form.doc_type
+        : form.title.trim();
+      if (!form.doc_type) throw new Error("Selecione o tipo de documento.");
+      if (!tituloFinal) throw new Error("Informe o título do documento.");
       await anexarDocumento(escopo, {
         doc_type: form.doc_type,
-        title: form.title.trim().slice(0, 150),
+        title: tituloFinal.slice(0, 150),
         issue_date: form.issue_date || null,
         expiration_date: form.expiration_date || null,
         arquivo,
@@ -64,6 +70,7 @@ export function ModalDocumento({
       });
       setAberto(false);
       setForm({ doc_type: tipos[0] ?? "Outros", title: "", issue_date: "", expiration_date: "" });
+      setEspecificacaoOutro("");
       setArquivo(null);
       onSalvo();
     },
@@ -84,33 +91,50 @@ export function ModalDocumento({
         <div className="space-y-4">
           <div className="space-y-1.5">
             <Label htmlFor="ged-tipo">Tipo de documento</Label>
-            <Select
+            <ComboboxGed
               value={form.doc_type}
-              onValueChange={(v) => setForm({ ...form, doc_type: v })}
-            >
-              <SelectTrigger id="ged-tipo" className="h-12 w-full">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {tipos.map((t) => (
-                  <SelectItem key={t} value={t}>
-                    {t}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="ged-titulo">Título / nome do documento</Label>
-            <Input
-              id="ged-titulo"
-              className="h-12"
-              maxLength={150}
-              placeholder="Ex.: PGR 2026 — Obra Central"
-              value={form.title}
-              onChange={(e) => setForm({ ...form, title: e.target.value })}
+              onChange={(doc_type) => {
+                setForm({ ...form, doc_type });
+                if (doc_type !== "Outros") setEspecificacaoOutro("");
+              }}
+              placeholder="Selecione o tipo de documento"
+              ariaLabel="Tipo de documento"
+              busca="Buscar por nome, ASO ou número da NR..."
+              grupos={
+                escopo.tipo === "colaborador"
+                  ? [
+                      { titulo: "Documentos gerais", opcoes: DOCUMENTOS_GERAIS_COLABORADOR },
+                      { titulo: "Treinamentos e certificados", opcoes: TREINAMENTOS_NR },
+                    ]
+                  : [{ opcoes: tipos }]
+              }
             />
           </div>
+          {escopo.tipo === "empresa" ? (
+            <div className="space-y-1.5">
+              <Label htmlFor="ged-titulo">Título / nome do documento</Label>
+              <Input
+                id="ged-titulo"
+                className="h-12"
+                maxLength={150}
+                placeholder="Ex.: PGR 2026 — Obra Central"
+                value={form.title}
+                onChange={(e) => setForm({ ...form, title: e.target.value })}
+              />
+            </div>
+          ) : form.doc_type === "Outros" ? (
+            <div className="space-y-1.5">
+              <Label htmlFor="ged-outro-titulo">Especifique o documento</Label>
+              <Input
+                id="ged-outro-titulo"
+                className="h-12"
+                maxLength={150}
+                placeholder="Digite o nome do documento"
+                value={especificacaoOutro}
+                onChange={(e) => setEspecificacaoOutro(e.target.value)}
+              />
+            </div>
+          ) : null}
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-1.5">
               <Label htmlFor="ged-emissao">Data de emissão</Label>

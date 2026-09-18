@@ -3,7 +3,72 @@ import { supabase } from "@/integrations/supabase/client";
 export const BUCKET_DOCS = "documentos";
 
 export const TIPOS_DOC_EMPRESA = ["PGR", "PCMSO", "LTCAT", "APR", "Outros"] as const;
-export const TIPOS_DOC_COLABORADOR = ["ASO", "Treinamento NR", "Ficha EPI", "Outros"] as const;
+export const DOCUMENTOS_GERAIS_COLABORADOR = [
+  "Ficha de Registro",
+  "Ordem de Serviço (OS)",
+  "Documento de Identificação (RG / CNH / CTPS Digital)",
+  "Carteira de Trabalho / CLT",
+  "Contrato de Trabalho",
+  "Ficha de Entrega de EPI",
+  "ASO (Atestado de Saúde Ocupacional)",
+  "Outros",
+] as const;
+
+export const TREINAMENTOS_NR = [
+  "Treinamento NR-01 - Disposições Gerais e Gerenciamento de Riscos Ocupacionais",
+  "Treinamento NR-03 - Embargo e Interdição",
+  "Treinamento NR-04 - Serviços Especializados em Segurança e em Medicina do Trabalho",
+  "Treinamento NR-05 - Comissão Interna de Prevenção de Acidentes e Assédio (CIPA)",
+  "Treinamento NR-06 - Equipamentos de Proteção Individual (EPI)",
+  "Treinamento NR-07 - Programa de Controle Médico de Saúde Ocupacional",
+  "Treinamento NR-08 - Edificações",
+  "Treinamento NR-09 - Avaliação e Controle das Exposições Ocupacionais",
+  "Treinamento NR-10 - Segurança em Instalações e Serviços em Eletricidade",
+  "Treinamento NR-11 - Transporte, Movimentação, Armazenagem e Manuseio de Materiais",
+  "Treinamento NR-12 - Segurança no Trabalho em Máquinas e Equipamentos",
+  "Treinamento NR-13 - Caldeiras, Vasos de Pressão, Tubulações e Tanques Metálicos",
+  "Treinamento NR-14 - Fornos",
+  "Treinamento NR-15 - Atividades e Operações Insalubres",
+  "Treinamento NR-16 - Atividades e Operações Perigosas",
+  "Treinamento NR-17 - Ergonomia",
+  "Treinamento NR-18 - Saúde e Segurança no Trabalho na Indústria da Construção",
+  "Treinamento NR-19 - Explosivos",
+  "Treinamento NR-20 - Segurança e Saúde no Trabalho com Inflamáveis e Combustíveis",
+  "Treinamento NR-21 - Trabalhos a Céu Aberto",
+  "Treinamento NR-22 - Segurança e Saúde Ocupacional na Mineração",
+  "Treinamento NR-23 - Proteção Contra Incêndios",
+  "Treinamento NR-24 - Condições Sanitárias e de Conforto nos Locais de Trabalho",
+  "Treinamento NR-25 - Resíduos Industriais",
+  "Treinamento NR-26 - Sinalização de Segurança",
+  "Treinamento NR-28 - Fiscalização e Penalidades",
+  "Treinamento NR-29 - Segurança e Saúde no Trabalho Portuário",
+  "Treinamento NR-30 - Segurança e Saúde no Trabalho Aquaviário",
+  "Treinamento NR-31 - Segurança e Saúde no Trabalho na Agricultura, Pecuária, Silvicultura, Exploração Florestal e Aquicultura",
+  "Treinamento NR-32 - Segurança e Saúde no Trabalho em Serviços de Saúde",
+  "Treinamento NR-33 - Segurança e Saúde nos Trabalhos em Espaços Confinados",
+  "Treinamento NR-34 - Condições e Meio Ambiente de Trabalho na Indústria da Construção, Reparação e Desmonte Naval",
+  "Treinamento NR-35 - Trabalho em Altura",
+  "Treinamento NR-36 - Segurança e Saúde no Trabalho em Empresas de Abate e Processamento de Carnes e Derivados",
+  "Treinamento NR-37 - Segurança e Saúde em Plataformas de Petróleo",
+  "Treinamento NR-38 - Segurança e Saúde no Trabalho nas Atividades de Limpeza Urbana e Manejo de Resíduos Sólidos",
+] as const;
+
+export const TIPOS_DOC_COLABORADOR = [...DOCUMENTOS_GERAIS_COLABORADOR, ...TREINAMENTOS_NR] as const;
+
+export const FUNCOES_CONSTRUCAO = [
+  "Servente / Ajudante Geral",
+  "Pedreiro",
+  "Carpinteiro / Armador",
+  "Eletricista",
+  "Encanador / Hidráulico",
+  "Pintor",
+  "Mestre de Obras / Encarregado",
+  "Engenheiro Civil",
+  "Técnico em Segurança do Trabalho (TST)",
+  "Operador de Grua / Máquinas / Equipamentos",
+  "Gesseiro / Azulejista",
+  "Serralheiro / Soldador",
+] as const;
 
 export type Terceirizada = {
   id: string;
@@ -21,6 +86,8 @@ export type Colaborador = {
   role_title: string | null;
   type: string;
 };
+
+export type FuncaoPersonalizada = { id: string; name: string };
 
 export type Documento = {
   id: string;
@@ -135,6 +202,55 @@ export async function salvarColaborador(dados: {
 export async function excluirColaborador(id: string) {
   const { error } = await supabase.from("employees").delete().eq("id", id);
   if (error) throw new Error(error.message);
+}
+
+export async function listarFuncoesPersonalizadas(contractorId: string | null) {
+  const { data: auth } = await supabase.auth.getUser();
+  const userId = auth.user?.id;
+  if (!userId) throw new Error("Sessão expirada. Entre novamente.");
+  let consulta = supabase
+    .from("company_job_roles")
+    .select("id, name")
+    .eq("user_id", userId)
+    .order("name");
+  consulta = contractorId
+    ? consulta.eq("contractor_id", contractorId)
+    : consulta.is("contractor_id", null);
+  const { data, error } = await consulta;
+  if (error) throw new Error(error.message);
+  return (data ?? []) as FuncaoPersonalizada[];
+}
+
+export async function adicionarFuncaoPersonalizada(contractorId: string | null, name: string) {
+  const nome = name.trim().replace(/\s+/g, " ").slice(0, 80);
+  if (nome.length < 2) throw new Error("Informe uma função com pelo menos 2 caracteres.");
+  const { error } = await supabase.from("company_job_roles").insert({
+    contractor_id: contractorId,
+    name: nome,
+  });
+  if (error?.code === "23505") throw new Error("Esta função já está salva na lista.");
+  if (error) throw new Error(error.message);
+  return nome;
+}
+
+export function formatarCpf(valor: string) {
+  const digitos = valor.replace(/\D/g, "").slice(0, 11);
+  return digitos
+    .replace(/^(\d{3})(\d)/, "$1.$2")
+    .replace(/^(\d{3})\.(\d{3})(\d)/, "$1.$2.$3")
+    .replace(/\.(\d{3})(\d)/, ".$1-$2");
+}
+
+export function cpfValido(valor: string) {
+  const cpf = valor.replace(/\D/g, "");
+  if (cpf.length !== 11 || /^(\d)\1{10}$/.test(cpf)) return false;
+  const calcular = (tamanho: number) => {
+    let soma = 0;
+    for (let i = 0; i < tamanho; i++) soma += Number(cpf[i]) * (tamanho + 1 - i);
+    const resto = (soma * 10) % 11;
+    return resto === 10 ? 0 : resto;
+  };
+  return calcular(9) === Number(cpf[9]) && calcular(10) === Number(cpf[10]);
 }
 
 /* -------------------------------- Documentos ------------------------------ */
