@@ -16,12 +16,21 @@ export type Foto = {
   data_upload: string;
 };
 
-export async function listarFotos(tabela: FotoTabela, coluna: string, valor: string) {
-  const { data, error } = await supabase
+/** "problema" = registro original da NC; "solucao" = evidência da correção. */
+export type TipoFoto = "problema" | "solucao";
+
+export async function listarFotos(
+  tabela: FotoTabela,
+  coluna: string,
+  valor: string,
+  tipo?: TipoFoto,
+) {
+  let consulta = supabase
     .from(tabela)
     .select("id, url, nome_arquivo, descricao, data_upload")
-    .eq(coluna, valor)
-    .order("data_upload", { ascending: true });
+    .eq(coluna, valor);
+  if (tipo && tabela === "fotos_nao_conformidade") consulta = consulta.eq("tipo", tipo);
+  const { data, error } = await consulta.order("data_upload", { ascending: true });
   if (error) throw error;
   return (data ?? []) as Foto[];
 }
@@ -31,6 +40,7 @@ export async function enviarFotos(
   coluna: string,
   valor: string,
   arquivos: File[],
+  tipo?: TipoFoto,
 ) {
   // Sem internet: guarda as fotos no aparelho e envia sozinho depois.
   if (typeof navigator !== "undefined" && !navigator.onLine) {
@@ -58,6 +68,7 @@ export async function enviarFotos(
         url: caminho,
         nome_arquivo: arquivo.name,
         user_id: userId,
+        ...(tipo && tabela === "fotos_nao_conformidade" ? { tipo } : {}),
       } as never);
     if (dbErr) throw dbErr;
   }
