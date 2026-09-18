@@ -27,7 +27,7 @@ export async function listarFotos(
 ) {
   const base = supabase
     .from(tabela)
-    .select("id, url, nome_arquivo, descricao, data_upload, tipo:url")
+    .select("id, url, nome_arquivo, descricao, data_upload")
     .eq(coluna, valor);
   const consulta =
     tipo && tabela === "fotos_nao_conformidade"
