@@ -21,12 +21,14 @@ export function ComboboxGed({
   onChange,
   placeholder,
   busca = "Buscar...",
+  ariaLabel,
 }: {
   grupos: readonly GrupoCombobox[];
   value: string;
   onChange: (value: string) => void;
   placeholder: string;
   busca?: string;
+  ariaLabel?: string;
 }) {
   const [aberto, setAberto] = useState(false);
 
@@ -37,6 +39,7 @@ export function ComboboxGed({
           type="button"
           variant="outline"
           role="combobox"
+          aria-label={ariaLabel}
           aria-expanded={aberto}
           className="h-12 w-full justify-between gap-2 whitespace-normal text-left font-normal"
         >

@@ -179,6 +179,7 @@ function NovoColaborador({
                 }
               }}
               placeholder="Selecione ou busque uma função"
+              ariaLabel="Função"
               busca="Buscar função..."
             />
             {modoFuncao !== "lista" ? (

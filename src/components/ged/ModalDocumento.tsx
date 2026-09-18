@@ -98,6 +98,7 @@ export function ModalDocumento({
                 if (doc_type !== "Outros") setEspecificacaoOutro("");
               }}
               placeholder="Selecione o tipo de documento"
+              ariaLabel="Tipo de documento"
               busca="Buscar por nome, ASO ou número da NR..."
               grupos={
                 escopo.tipo === "colaborador"
