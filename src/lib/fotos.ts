@@ -25,11 +25,18 @@ export async function listarFotos(
   valor: string,
   tipo?: TipoFoto,
 ) {
-  let consulta = supabase
+  const base = supabase
     .from(tabela)
-    .select("id, url, nome_arquivo, descricao, data_upload")
+    .select("id, url, nome_arquivo, descricao, data_upload, tipo:url")
     .eq(coluna, valor);
-  if (tipo && tabela === "fotos_nao_conformidade") consulta = consulta.eq("tipo", tipo);
+  const consulta =
+    tipo && tabela === "fotos_nao_conformidade"
+      ? supabase
+          .from("fotos_nao_conformidade")
+          .select("id, url, nome_arquivo, descricao, data_upload")
+          .eq(coluna, valor)
+          .eq("tipo", tipo)
+      : base;
   const { data, error } = await consulta.order("data_upload", { ascending: true });
   if (error) throw error;
   return (data ?? []) as Foto[];
