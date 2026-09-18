@@ -1,0 +1,303 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Building2, FileCheck2, FileWarning, FileX2, Plus, Trash2, Truck } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
+
+import { PageHeader } from "@/components/PageHeader";
+import { SecaoColaboradores } from "@/components/ged/SecaoColaboradores";
+import { SecaoDocumentosEmpresa } from "@/components/ged/SecaoDocumentosEmpresa";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { supabase } from "@/integrations/supabase/client";
+import {
+  excluirTerceirizada,
+  listarTerceirizadas,
+  resumoDocumentos,
+  salvarTerceirizada,
+  type Documento,
+} from "@/lib/ged";
+
+export const Route = createFileRoute("/documentos")({
+  head: () => ({
+    meta: [
+      { title: "Gestão Documental (GED/SST) — Previna SST" },
+      {
+        name: "description",
+        content:
+          "Controle de validade de laudos e documentos de SST da empresa e de terceirizados, com alertas de vencimento e histórico de versões obsoletas.",
+      },
+      { property: "og:title", content: "Gestão Documental (GED/SST) — Previna SST" },
+      {
+        property: "og:description",
+        content: "PGR, PCMSO, LTCAT, ASO e treinamentos com alerta automático de vencimento.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
+  component: GestaoDocumental,
+});
+
+function CardResumo({
+  titulo,
+  valor,
+  icone: Icone,
+  tom,
+}: {
+  titulo: string;
+  valor: number;
+  icone: typeof FileCheck2;
+  tom?: string;
+}) {
+  return (
+    <Card>
+      <CardContent className="flex items-center gap-3 p-4">
+        <span className={`grid size-10 place-items-center rounded-xl bg-muted ${tom ?? ""}`}>
+          <Icone className="size-5" />
+        </span>
+        <div className="min-w-0">
+          <p className="truncate text-xs text-muted-foreground">{titulo}</p>
+          <p className="text-xl font-bold">{valor}</p>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+async function carregarTodosDocumentos() {
+  const [empresa, colaborador] = await Promise.all([
+    supabase.from("company_documents").select("status, expiration_date"),
+    supabase.from("employee_documents").select("status, expiration_date"),
+  ]);
+  if (empresa.error) throw new Error(empresa.error.message);
+  if (colaborador.error) throw new Error(colaborador.error.message);
+  return [...(empresa.data ?? []), ...(colaborador.data ?? [])] as Documento[];
+}
+
+function NovaTerceirizada({ onSalvo }: { onSalvo: () => void }) {
+  const [aberto, setAberto] = useState(false);
+  const [form, setForm] = useState({ name: "", cnpj: "", contact_email: "" });
+
+  const salvar = useMutation({
+    mutationFn: async () => {
+      if (!form.name.trim()) throw new Error("Informe a razão social.");
+      await salvarTerceirizada({
+        name: form.name.trim().slice(0, 150),
+        cnpj: form.cnpj.trim() || null,
+        contact_email: form.contact_email.trim() || null,
+      });
+    },
+    onSuccess: () => {
+      toast.success("Empresa terceirizada cadastrada");
+      setForm({ name: "", cnpj: "", contact_email: "" });
+      setAberto(false);
+      onSalvo();
+    },
+    onError: (e: Error) => toast.error("Não foi possível salvar", { description: e.message }),
+  });
+
+  return (
+    <Dialog open={aberto} onOpenChange={setAberto}>
+      <DialogTrigger asChild>
+        <Button type="button" variant="outline" className="gap-2">
+          <Plus className="size-4" /> Nova empresa terceirizada
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Cadastrar empresa terceirizada</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4">
+          <div className="space-y-1.5">
+            <Label htmlFor="ter-nome">Razão social</Label>
+            <Input
+              id="ter-nome"
+              className="h-12"
+              maxLength={150}
+              value={form.name}
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="ter-cnpj">CNPJ</Label>
+            <Input
+              id="ter-cnpj"
+              className="h-12"
+              maxLength={20}
+              placeholder="00.000.000/0000-00"
+              value={form.cnpj}
+              onChange={(e) => setForm({ ...form, cnpj: e.target.value })}
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="ter-email">E-mail de contato</Label>
+            <Input
+              id="ter-email"
+              className="h-12"
+              maxLength={150}
+              placeholder="contato@empresa.com.br"
+              value={form.contact_email}
+              onChange={(e) => setForm({ ...form, contact_email: e.target.value })}
+            />
+          </div>
+          <Button
+            type="button"
+            className="h-12 w-full"
+            disabled={salvar.isPending}
+            onClick={() => salvar.mutate()}
+          >
+            Salvar empresa
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function GestaoDocumental() {
+  const qc = useQueryClient();
+  const [busca, setBusca] = useState("");
+  const [terceirizadaId, setTerceirizadaId] = useState<string>("");
+
+  const { data: todos = [] } = useQuery({
+    queryKey: ["ged-resumo"],
+    queryFn: carregarTodosDocumentos,
+  });
+  const { data: terceirizadas = [] } = useQuery({
+    queryKey: ["ged-terceirizadas"],
+    queryFn: listarTerceirizadas,
+  });
+
+  const resumo = resumoDocumentos(todos);
+
+  const removerEmpresa = useMutation({
+    mutationFn: (id: string) => excluirTerceirizada(id),
+    onSuccess: () => {
+      toast.success("Empresa excluída");
+      setTerceirizadaId("");
+      qc.invalidateQueries({ queryKey: ["ged-terceirizadas"] });
+      qc.invalidateQueries({ queryKey: ["ged-resumo"] });
+    },
+    onError: (e: Error) => toast.error("Não foi possível excluir", { description: e.message }),
+  });
+
+  const selecionada = terceirizadas.find((t) => t.id === terceirizadaId) ?? null;
+
+  return (
+    <div className="space-y-6">
+      <PageHeader
+        title="Gestão Documental (GED/SST)"
+        description="Controle a validade dos laudos e documentos da empresa e dos terceirizados."
+      />
+
+      <div className="grid gap-3 sm:grid-cols-3">
+        <CardResumo titulo="Total de documentos" valor={resumo.total} icone={FileCheck2} />
+        <CardResumo
+          titulo="A vencer em 30 dias"
+          valor={resumo.aVencer}
+          icone={FileWarning}
+          tom="text-warning"
+        />
+        <CardResumo
+          titulo="Vencidos"
+          valor={resumo.vencidos}
+          icone={FileX2}
+          tom="text-destructive"
+        />
+      </div>
+
+      <Input
+        className="h-12 max-w-md"
+        placeholder="Buscar por documento, colaborador ou CPF"
+        value={busca}
+        onChange={(e) => setBusca(e.target.value)}
+      />
+
+      <Tabs defaultValue="propria">
+        <TabsList className="h-auto w-full flex-wrap justify-start gap-1 sm:w-auto">
+          <TabsTrigger value="propria" className="gap-2 py-2">
+            <Building2 className="size-4" /> Empresa Própria
+          </TabsTrigger>
+          <TabsTrigger value="terceirizados" className="gap-2 py-2">
+            <Truck className="size-4" /> Terceirizados / Prestadores
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="propria" className="mt-4 space-y-4">
+          <SecaoDocumentosEmpresa contractorId={null} busca={busca} />
+          <SecaoColaboradores contractorId={null} busca={busca} />
+        </TabsContent>
+
+        <TabsContent value="terceirizados" className="mt-4 space-y-4">
+          <Card>
+            <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-3">
+              <CardTitle className="text-base">Empresa terceirizada</CardTitle>
+              <NovaTerceirizada
+                onSalvo={() => qc.invalidateQueries({ queryKey: ["ged-terceirizadas"] })}
+              />
+            </CardHeader>
+            <CardContent className="flex flex-wrap items-center gap-3">
+              <Select value={terceirizadaId} onValueChange={setTerceirizadaId}>
+                <SelectTrigger className="h-12 w-full max-w-sm">
+                  <SelectValue placeholder="Selecione a empresa (nome / CNPJ)" />
+                </SelectTrigger>
+                <SelectContent>
+                  {terceirizadas.map((t) => (
+                    <SelectItem key={t.id} value={t.id}>
+                      {t.name}
+                      {t.cnpj ? ` — ${t.cnpj}` : ""}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {selecionada ? (
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="ghost"
+                  aria-label="Excluir empresa terceirizada"
+                  onClick={() => {
+                    if (confirm(`Excluir ${selecionada.name} e todos os seus documentos?`))
+                      removerEmpresa.mutate(selecionada.id);
+                  }}
+                >
+                  <Trash2 className="size-4 text-destructive" />
+                </Button>
+              ) : null}
+              {terceirizadas.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  Cadastre a primeira empresa terceirizada para anexar documentos.
+                </p>
+              ) : null}
+            </CardContent>
+          </Card>
+
+          {selecionada ? (
+            <>
+              <SecaoDocumentosEmpresa contractorId={selecionada.id} busca={busca} />
+              <SecaoColaboradores contractorId={selecionada.id} busca={busca} />
+            </>
+          ) : null}
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+}

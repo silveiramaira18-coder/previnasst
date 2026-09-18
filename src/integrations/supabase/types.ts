@@ -94,6 +94,180 @@ export type Database = {
         }
         Relationships: []
       }
+      company_documents: {
+        Row: {
+          contractor_id: string | null
+          created_at: string
+          doc_type: string
+          expiration_date: string | null
+          file_url: string | null
+          id: string
+          issue_date: string | null
+          status: string
+          title: string
+          user_id: string
+          version: number
+        }
+        Insert: {
+          contractor_id?: string | null
+          created_at?: string
+          doc_type?: string
+          expiration_date?: string | null
+          file_url?: string | null
+          id?: string
+          issue_date?: string | null
+          status?: string
+          title: string
+          user_id?: string
+          version?: number
+        }
+        Update: {
+          contractor_id?: string | null
+          created_at?: string
+          doc_type?: string
+          expiration_date?: string | null
+          file_url?: string | null
+          id?: string
+          issue_date?: string | null
+          status?: string
+          title?: string
+          user_id?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_documents_contractor_id_fkey"
+            columns: ["contractor_id"]
+            isOneToOne: false
+            referencedRelation: "contractors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contractors: {
+        Row: {
+          cnpj: string | null
+          contact_email: string | null
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          user_id: string
+        }
+        Insert: {
+          cnpj?: string | null
+          contact_email?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          user_id?: string
+        }
+        Update: {
+          cnpj?: string | null
+          contact_email?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      employee_documents: {
+        Row: {
+          created_at: string
+          doc_type: string
+          employee_id: string
+          expiration_date: string | null
+          file_url: string | null
+          id: string
+          issue_date: string | null
+          status: string
+          title: string
+          user_id: string
+          version: number
+        }
+        Insert: {
+          created_at?: string
+          doc_type?: string
+          employee_id: string
+          expiration_date?: string | null
+          file_url?: string | null
+          id?: string
+          issue_date?: string | null
+          status?: string
+          title: string
+          user_id?: string
+          version?: number
+        }
+        Update: {
+          created_at?: string
+          doc_type?: string
+          employee_id?: string
+          expiration_date?: string | null
+          file_url?: string | null
+          id?: string
+          issue_date?: string | null
+          status?: string
+          title?: string
+          user_id?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_documents_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employees: {
+        Row: {
+          contractor_id: string | null
+          cpf: string | null
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          role_title: string | null
+          type: string
+          user_id: string
+        }
+        Insert: {
+          contractor_id?: string | null
+          cpf?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          role_title?: string | null
+          type?: string
+          user_id?: string
+        }
+        Update: {
+          contractor_id?: string | null
+          cpf?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          role_title?: string | null
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employees_contractor_id_fkey"
+            columns: ["contractor_id"]
+            isOneToOne: false
+            referencedRelation: "contractors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       fotos_acao_corretiva: {
         Row: {
           acao_corretiva_id: string

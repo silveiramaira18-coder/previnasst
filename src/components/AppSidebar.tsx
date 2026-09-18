@@ -14,6 +14,7 @@ import {
   ShieldCheck,
   KanbanSquare,
   TrendingUp,
+  FolderOpen,
 } from "lucide-react";
 
 import { AvatarPerfil } from "@/components/AvatarPerfil";
@@ -46,6 +47,7 @@ const items = [
     permissao: "gerenciarChecklists",
   },
   { title: "Não Conformidades", to: "/nao-conformidades", icon: TriangleAlert },
+  { title: "Gestão Documental", to: "/documentos", icon: FolderOpen },
   { title: "Plano de Ação", to: "/plano-acao", icon: KanbanSquare, somenteAdminPrincipal: true },
   {
     title: "Dashboard de Tendências",
