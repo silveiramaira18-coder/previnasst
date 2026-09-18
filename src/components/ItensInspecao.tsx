@@ -32,6 +32,7 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
+import { useFeatureAccess } from "@/hooks/useFeatureAccess";
 import { supabase } from "@/integrations/supabase/client";
 import {
   
@@ -109,6 +110,7 @@ function FormularioNC({
 }) {
   const qc = useQueryClient();
   const hoje = hojeISO();
+  const { v2 } = useFeatureAccess();
   const [erroFotos, setErroFotos] = useState(false);
   const [form, setForm] = useState({
     categoria: nc?.categoria ?? item.categoria ?? "",
@@ -184,8 +186,23 @@ function FormularioNC({
             );
           }
         }
-        const { error } = await supabase.from("nao_conformidades").insert(payload);
+        const { data: criada, error } = await supabase
+          .from("nao_conformidades")
+          .insert(payload)
+          .select("id")
+          .single();
         if (error) throw new Error(error.message);
+
+        // Fluxo V2 (admin): já abre o plano de ação pré-preenchido da NC.
+        if (v2 && criada) {
+          await supabase.from("acoes_corretivas").insert({
+            nao_conformidade_id: criada.id,
+            descricao: form.observacao || "Definir medida corretiva definitiva",
+            responsavel: form.responsaveis.join(", ") || null,
+            prazo: form.prazo || null,
+            status: "Aberta",
+          });
+        }
       }
       await atualizarItem(item.id, {
         status: "Não conforme",
