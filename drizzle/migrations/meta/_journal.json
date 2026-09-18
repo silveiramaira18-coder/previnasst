@@ -22,6 +22,13 @@
       "when": 1789750880962,
       "tag": "0002_ged_storage_policies",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1789761157341,
+      "tag": "0003_create_company_job_roles",
+      "breakpoints": true
     }
   ]
 }
