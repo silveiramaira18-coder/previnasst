@@ -215,6 +215,7 @@ export type Database = {
           id: string
           nao_conformidade_id: string
           nome_arquivo: string | null
+          tipo: string
           url: string
           user_id: string
         }
@@ -224,6 +225,7 @@ export type Database = {
           id?: string
           nao_conformidade_id: string
           nome_arquivo?: string | null
+          tipo?: string
           url: string
           user_id?: string
         }
@@ -233,6 +235,7 @@ export type Database = {
           id?: string
           nao_conformidade_id?: string
           nome_arquivo?: string | null
+          tipo?: string
           url?: string
           user_id?: string
         }
@@ -442,6 +445,10 @@ export type Database = {
           descricao: string
           descricao_acao_imediata: string | null
           emails_responsaveis: string[]
+          gut_gravidade: number | null
+          gut_score: number | null
+          gut_tendencia: number | null
+          gut_urgencia: number | null
           id: string
           inspecao_id: string | null
           item_inspecao_id: string | null
@@ -465,6 +472,10 @@ export type Database = {
           descricao: string
           descricao_acao_imediata?: string | null
           emails_responsaveis?: string[]
+          gut_gravidade?: number | null
+          gut_score?: number | null
+          gut_tendencia?: number | null
+          gut_urgencia?: number | null
           id?: string
           inspecao_id?: string | null
           item_inspecao_id?: string | null
@@ -488,6 +499,10 @@ export type Database = {
           descricao?: string
           descricao_acao_imediata?: string | null
           emails_responsaveis?: string[]
+          gut_gravidade?: number | null
+          gut_score?: number | null
+          gut_tendencia?: number | null
+          gut_urgencia?: number | null
           id?: string
           inspecao_id?: string | null
           item_inspecao_id?: string | null
