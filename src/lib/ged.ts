@@ -53,7 +53,10 @@ export const TREINAMENTOS_NR = [
   "Treinamento NR-38 - Segurança e Saúde no Trabalho nas Atividades de Limpeza Urbana e Manejo de Resíduos Sólidos",
 ] as const;
 
-export const TIPOS_DOC_COLABORADOR = [...DOCUMENTOS_GERAIS_COLABORADOR, ...TREINAMENTOS_NR] as const;
+export const TIPOS_DOC_COLABORADOR = [
+  ...DOCUMENTOS_GERAIS_COLABORADOR,
+  ...TREINAMENTOS_NR,
+] as const;
 
 export const FUNCOES_CONSTRUCAO = [
   "Servente / Ajudante Geral",
@@ -126,7 +129,10 @@ export function situacaoDocumento(validade: string | null): Situacao {
   if (dias <= 30)
     return {
       nivel: "atencao",
-      rotulo: dias === 0 ? "Atenção: Vence hoje" : `Atenção: Vence em ${dias} ${dias === 1 ? "dia" : "dias"}`,
+      rotulo:
+        dias === 0
+          ? "Atenção: Vence hoje"
+          : `Atenção: Vence em ${dias} ${dias === 1 ? "dia" : "dias"}`,
       dias,
     };
   return { nivel: "valido", rotulo: "Válido", dias };
@@ -210,10 +216,55 @@ export async function listarColaboradores(contractorId: string | null) {
     .from("employees")
     .select("id, contractor_id, name, cpf, role_title, type")
     .order("name");
-  consulta = contractorId ? consulta.eq("contractor_id", contractorId) : consulta.is("contractor_id", null);
+  consulta = contractorId
+    ? consulta.eq("contractor_id", contractorId)
+    : consulta.is("contractor_id", null);
   const { data, error } = await consulta;
   if (error) throw new Error(error.message);
   return (data ?? []) as Colaborador[];
+}
+
+/** Só os dígitos do CPF — usado para comparar cadastros ignorando pontuação. */
+export function cpfNormalizado(valor: string | null | undefined) {
+  return (valor ?? "").replace(/\D/g, "");
+}
+
+/**
+ * Procura outro colaborador com o mesmo CPF dentro da mesma empresa
+ * (mesmo `contractor_id`) do usuário atual. Retorna o cadastro encontrado ou `null`.
+ * A comparação ignora a formatação, considerando apenas os 11 dígitos.
+ */
+export async function colaboradorComMesmoCpf(
+  contractorId: string | null,
+  cpf: string,
+  ignorarId?: string,
+): Promise<Colaborador | null> {
+  const digitos = cpfNormalizado(cpf);
+  if (digitos.length !== 11) return null;
+  const { data: auth } = await supabase.auth.getUser();
+  const userId = auth.user?.id;
+  if (!userId) throw new Error("Sessão expirada. Entre novamente.");
+  let consulta = supabase
+    .from("employees")
+    .select("id, contractor_id, name, cpf, role_title, type")
+    .eq("user_id", userId)
+    .not("cpf", "is", null);
+  consulta = contractorId
+    ? consulta.eq("contractor_id", contractorId)
+    : consulta.is("contractor_id", null);
+  const { data, error } = await consulta;
+  if (error) throw new Error(error.message);
+  return (
+    ((data ?? []) as Colaborador[]).find(
+      (c) => c.id !== ignorarId && cpfNormalizado(c.cpf) === digitos,
+    ) ?? null
+  );
+}
+
+/** Mensagem clara de CPF já cadastrado, reutilizada no cadastro manual e na importação. */
+export function mensagemCpfDuplicado(existente: Colaborador) {
+  const funcao = existente.role_title ? ` — ${existente.role_title}` : "";
+  return `Já existe um colaborador com este CPF nesta empresa: ${existente.name}${funcao}.`;
 }
 
 export async function salvarColaborador(dados: {
@@ -224,6 +275,11 @@ export async function salvarColaborador(dados: {
   role_title: string | null;
 }) {
   const { id, ...campos } = dados;
+  if (campos.cpf) {
+    if (!cpfValido(campos.cpf)) throw new Error("Informe um CPF válido.");
+    const existente = await colaboradorComMesmoCpf(campos.contractor_id, campos.cpf, id);
+    if (existente) throw new Error(mensagemCpfDuplicado(existente));
+  }
   const payload = { ...campos, type: campos.contractor_id ? "contractor" : "direct" };
   const { error } = id
     ? await supabase.from("employees").update(payload).eq("id", id)
@@ -232,7 +288,10 @@ export async function salvarColaborador(dados: {
 }
 
 export async function excluirColaborador(id: string) {
-  const { data: docs } = await supabase.from("employee_documents").select("file_url").eq("employee_id", id);
+  const { data: docs } = await supabase
+    .from("employee_documents")
+    .select("file_url")
+    .eq("employee_id", id);
   const { error } = await supabase.from("employees").delete().eq("id", id);
   if (error) throw new Error(error.message);
   const caminhos = (docs ?? []).map((d) => d.file_url).filter((c): c is string => Boolean(c));
@@ -293,9 +352,13 @@ export function cpfValido(valor: string) {
 export async function listarDocumentosEmpresa(contractorId: string | null) {
   let consulta = supabase
     .from("company_documents")
-    .select("id, doc_type, title, file_url, issue_date, expiration_date, status, version, created_at")
+    .select(
+      "id, doc_type, title, file_url, issue_date, expiration_date, status, version, created_at",
+    )
     .order("version", { ascending: false });
-  consulta = contractorId ? consulta.eq("contractor_id", contractorId) : consulta.is("contractor_id", null);
+  consulta = contractorId
+    ? consulta.eq("contractor_id", contractorId)
+    : consulta.is("contractor_id", null);
   const { data, error } = await consulta;
   if (error) throw new Error(error.message);
   return (data ?? []) as Documento[];
@@ -304,7 +367,9 @@ export async function listarDocumentosEmpresa(contractorId: string | null) {
 export async function listarDocumentosColaborador(employeeId: string) {
   const { data, error } = await supabase
     .from("employee_documents")
-    .select("id, doc_type, title, file_url, issue_date, expiration_date, status, version, created_at")
+    .select(
+      "id, doc_type, title, file_url, issue_date, expiration_date, status, version, created_at",
+    )
     .eq("employee_id", employeeId)
     .order("version", { ascending: false });
   if (error) throw new Error(error.message);
@@ -340,7 +405,8 @@ type NovoDocumento = {
  * o anterior vira "obsolete" e o novo entra com a versão seguinte.
  */
 export async function anexarDocumento(
-  escopo: { tipo: "empresa"; contractorId: string | null } | { tipo: "colaborador"; employeeId: string },
+  escopo:
+    { tipo: "empresa"; contractorId: string | null } | { tipo: "colaborador"; employeeId: string },
   dados: NovoDocumento,
 ) {
   const { data: auth } = await supabase.auth.getUser();
@@ -408,15 +474,196 @@ export async function excluirDocumento(
   if (error) throw new Error(error.message);
   if (caminho) {
     const { error: erroArquivo } = await supabase.storage.from(BUCKET_DOCS).remove([caminho]);
-    if (erroArquivo) throw new Error(`O cadastro foi excluído, mas o arquivo não pôde ser removido: ${erroArquivo.message}`);
+    if (erroArquivo)
+      throw new Error(
+        `O cadastro foi excluído, mas o arquivo não pôde ser removido: ${erroArquivo.message}`,
+      );
   }
 }
 
 export async function atualizarDocumento(
   tabela: "company_documents" | "employee_documents",
   id: string,
-  dados: { doc_type: string; title: string; issue_date: string | null; expiration_date: string | null },
+  dados: {
+    doc_type: string;
+    title: string;
+    issue_date: string | null;
+    expiration_date: string | null;
+  },
 ) {
   const { error } = await supabase.from(tabela).update(dados).eq("id", id);
   if (error) throw new Error(error.message);
+}
+
+/* --------------------- Painel geral de alertas (consolidado) --------------------- */
+
+export type OrigemDocumento = "empresa" | "colaborador";
+export type TipoEmpresa = "propria" | "terceirizada";
+export type TabelaDocumento = "company_documents" | "employee_documents";
+
+/** Documento com o contexto necessário para o painel consolidado de alertas. */
+export type DocumentoAlerta = Documento & {
+  origem: OrigemDocumento;
+  tabela: TabelaDocumento;
+  tipos: readonly string[];
+  empresaId: string | null;
+  empresaNome: string;
+  empresaTipo: TipoEmpresa;
+  colaboradorNome: string | null;
+};
+
+const camposDocumento = (d: Documento): Documento => ({
+  id: d.id,
+  doc_type: d.doc_type,
+  title: d.title,
+  file_url: d.file_url,
+  issue_date: d.issue_date,
+  expiration_date: d.expiration_date,
+  status: d.status,
+  version: d.version,
+  created_at: d.created_at,
+});
+
+/** Rótulo de exibição da empresa dona do documento (ex.: "Terceirizada: MEC"). */
+export function rotuloEmpresa(tipo: TipoEmpresa, nome: string) {
+  return tipo === "propria" ? nome : `Terceirizada: ${nome}`;
+}
+
+/** Texto padrão exibido para a empresa principal quando não há nome dinâmico. */
+export const EMPRESA_PROPRIA_PADRAO = "Empresa Própria";
+
+/**
+ * Nome exibido para a empresa principal (aba/painel "Empresa Própria").
+ * Só usa o nome dinâmico da empresa do usuário quando ele é administrador e o
+ * perfil já carregou com um nome válido; caso contrário mantém o texto padrão.
+ */
+export function nomeEmpresaPrincipal(opcoes: {
+  adminPrincipal: boolean;
+  carregando: boolean;
+  empresa: string | null | undefined;
+}) {
+  const nome = opcoes.empresa?.trim();
+  return opcoes.adminPrincipal && !opcoes.carregando && nome ? nome : EMPRESA_PROPRIA_PADRAO;
+}
+
+type LinhaEmpresa = Documento & { contractor_id: string | null };
+type LinhaColaborador = Documento & {
+  employee_id: string;
+  employees: { name: string; contractor_id: string | null } | null;
+};
+
+/**
+ * Carrega TODOS os documentos ativos do sistema (empresa própria e terceirizadas,
+ * de empresa e de colaboradores) já com o contexto de empresa/origem, para alimentar
+ * o Painel Geral de Alertas Consolidado.
+ */
+export async function carregarAlertasConsolidados(): Promise<DocumentoAlerta[]> {
+  const [contratantes, empresa, colaborador] = await Promise.all([
+    supabase.from("contractors").select("id, name"),
+    supabase
+      .from("company_documents")
+      .select(
+        "id, doc_type, title, file_url, issue_date, expiration_date, status, version, created_at, contractor_id",
+      ),
+    supabase
+      .from("employee_documents")
+      .select(
+        "id, doc_type, title, file_url, issue_date, expiration_date, status, version, created_at, employee_id, employees(name, contractor_id)",
+      ),
+  ]);
+  if (contratantes.error) throw new Error(contratantes.error.message);
+  if (empresa.error) throw new Error(empresa.error.message);
+  if (colaborador.error) throw new Error(colaborador.error.message);
+
+  const nomePorContratante = new Map(
+    ((contratantes.data ?? []) as { id: string; name: string }[]).map(
+      (c) => [c.id, c.name] as const,
+    ),
+  );
+  const empresaDe = (contractorId: string | null) =>
+    contractorId
+      ? {
+          empresaId: contractorId,
+          empresaTipo: "terceirizada" as const,
+          empresaNome: nomePorContratante.get(contractorId) ?? "Terceirizada",
+        }
+      : { empresaId: null, empresaTipo: "propria" as const, empresaNome: "Empresa Própria" };
+
+  const docsEmpresa = ((empresa.data ?? []) as LinhaEmpresa[])
+    .filter((d) => d.status === "active")
+    .map<DocumentoAlerta>((d) => ({
+      ...camposDocumento(d),
+      origem: "empresa",
+      tabela: "company_documents",
+      tipos: TIPOS_DOC_EMPRESA,
+      colaboradorNome: null,
+      ...empresaDe(d.contractor_id),
+    }));
+
+  const docsColaborador = ((colaborador.data ?? []) as unknown as LinhaColaborador[])
+    .filter((d) => d.status === "active")
+    .map<DocumentoAlerta>((d) => ({
+      ...camposDocumento(d),
+      origem: "colaborador",
+      tabela: "employee_documents",
+      tipos: TIPOS_DOC_COLABORADOR,
+      colaboradorNome: d.employees?.name ?? "Colaborador",
+      ...empresaDe(d.employees?.contractor_id ?? null),
+    }));
+
+  return [...docsEmpresa, ...docsColaborador];
+}
+
+export type GrupoAlerta = {
+  chave: string;
+  titulo: string;
+  tipo: TipoEmpresa;
+  docs: DocumentoAlerta[];
+};
+
+/** Urgência para ordenação: menor = mais no topo (vencidos primeiro, sem validade por último). */
+const urgenciaDoc = (validade: string | null) =>
+  situacaoDocumento(validade).dias ?? Number.POSITIVE_INFINITY;
+
+/**
+ * Aplica o filtro de prazo e a busca, agrupa os documentos por empresa e ordena:
+ * empresas próprias primeiro (depois terceirizadas por nome) e, dentro de cada
+ * empresa, do mais urgente (vencido/prestes a vencer) para o menos urgente.
+ */
+export function agruparAlertas(
+  docs: DocumentoAlerta[],
+  filtro: FiltroPrazo,
+  busca = "",
+): GrupoAlerta[] {
+  const termo = busca.trim().toLowerCase();
+  const filtrados = docs
+    .filter((d) => documentoNoFiltro(d, filtro))
+    .filter((d) => {
+      if (!termo) return true;
+      return [d.title, d.doc_type, d.colaboradorNome ?? "", d.empresaNome].some((campo) =>
+        campo.toLowerCase().includes(termo),
+      );
+    });
+
+  const mapa = new Map<string, GrupoAlerta>();
+  for (const doc of filtrados) {
+    const chave = doc.empresaId ?? "propria";
+    const grupo = mapa.get(chave) ?? {
+      chave,
+      titulo: rotuloEmpresa(doc.empresaTipo, doc.empresaNome),
+      tipo: doc.empresaTipo,
+      docs: [] as DocumentoAlerta[],
+    };
+    grupo.docs.push(doc);
+    mapa.set(chave, grupo);
+  }
+
+  const lista = [...mapa.values()];
+  for (const grupo of lista) {
+    grupo.docs.sort((a, b) => urgenciaDoc(a.expiration_date) - urgenciaDoc(b.expiration_date));
+  }
+  return lista.sort((a, b) => {
+    if (a.tipo !== b.tipo) return a.tipo === "propria" ? -1 : 1;
+    return a.titulo.localeCompare(b.titulo, "pt-BR");
+  });
 }
