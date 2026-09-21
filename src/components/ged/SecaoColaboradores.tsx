@@ -47,6 +47,12 @@ function DocumentosDoColaborador({ colaborador, podeAlterar, filtroPrazo }: { co
     queryKey: chave,
     queryFn: () => listarDocumentosColaborador(colaborador.id),
   });
+  const atualizar = async () => {
+    await Promise.all([
+      qc.invalidateQueries({ queryKey: chave }),
+      qc.invalidateQueries({ queryKey: ["ged-resumo"] }),
+    ]);
+  };
 
   return (
     <div className="space-y-3">
@@ -54,14 +60,14 @@ function DocumentosDoColaborador({ colaborador, podeAlterar, filtroPrazo }: { co
         escopo={{ tipo: "colaborador", employeeId: colaborador.id }}
         tipos={TIPOS_DOC_COLABORADOR}
         rotulo="Anexar documento do colaborador"
-        onSalvo={() => qc.invalidateQueries({ queryKey: chave })}
+        onSalvo={atualizar}
       /> : null}
       <ListaDocumentos
         documentos={docs.filter((d) => d.status !== "active" || documentoNoFiltro(d, filtroPrazo))}
         tabela="employee_documents"
         tipos={TIPOS_DOC_COLABORADOR}
         podeAlterar={podeAlterar}
-        onMudou={() => qc.invalidateQueries({ queryKey: chave })}
+        onMudou={atualizar}
         vazio="Sem ASO, treinamentos ou ficha de EPI anexados."
       />
     </div>

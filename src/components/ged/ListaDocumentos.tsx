@@ -28,7 +28,7 @@ function Linha({
 }: {
   doc: Documento;
   tabela: Tabela;
-  onMudou: () => void;
+  onMudou: () => void | Promise<void>;
   obsoleto?: boolean;
   podeAlterar: boolean;
   tipos: readonly string[];
@@ -110,7 +110,7 @@ export function ListaDocumentos({
 }: {
   documentos: Documento[];
   tabela: Tabela;
-  onMudou: () => void;
+  onMudou: () => void | Promise<void>;
   vazio?: string;
   podeAlterar: boolean;
   tipos: readonly string[];

@@ -31,12 +31,18 @@ export function SecaoDocumentosEmpresa({
       )
     : docs;
   const documentosVisiveis = lista.filter((d) => d.status !== "active" || documentoNoFiltro(d, filtroPrazo));
+  const atualizar = async () => {
+    await Promise.all([
+      qc.invalidateQueries({ queryKey: chave }),
+      qc.invalidateQueries({ queryKey: ["ged-resumo"] }),
+    ]);
+  };
 
   return (
     <Card>
       <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-3">
         <CardTitle className="text-base">Documentos da Empresa</CardTitle>
-        {podeAlterar ? <ModalDocumento escopo={{ tipo: "empresa", contractorId }} tipos={TIPOS_DOC_EMPRESA} onSalvo={() => qc.invalidateQueries({ queryKey: chave })} /> : null}
+        {podeAlterar ? <ModalDocumento escopo={{ tipo: "empresa", contractorId }} tipos={TIPOS_DOC_EMPRESA} onSalvo={atualizar} /> : null}
       </CardHeader>
       <CardContent>
         <ListaDocumentos
@@ -44,7 +50,7 @@ export function SecaoDocumentosEmpresa({
           tabela="company_documents"
           tipos={TIPOS_DOC_EMPRESA}
           podeAlterar={podeAlterar}
-          onMudou={() => qc.invalidateQueries({ queryKey: chave })}
+          onMudou={atualizar}
           vazio="Nenhum PGR, PCMSO, LTCAT ou outro documento anexado ainda."
         />
       </CardContent>
