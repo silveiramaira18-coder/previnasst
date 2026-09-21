@@ -10,11 +10,17 @@ const estilos: Record<string, string> = {
 
 export function BadgeValidade({ validade }: { validade: string | null }) {
   const s = situacaoDocumento(validade);
+  const estiloPrazo =
+    s.dias !== null && s.dias >= 0 && s.dias <= 7
+      ? "bg-destructive/15 text-destructive border-destructive/30"
+      : s.dias !== null && s.dias <= 15
+        ? "bg-warning/25 text-warning-foreground border-warning/50"
+        : estilos[s.nivel];
   return (
     <span
       className={cn(
         "inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold",
-        estilos[s.nivel],
+        estiloPrazo,
       )}
     >
       {s.rotulo}
