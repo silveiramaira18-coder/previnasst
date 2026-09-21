@@ -596,3 +596,57 @@ export async function carregarAlertasConsolidados(): Promise<DocumentoAlerta[]> 
 
   return [...docsEmpresa, ...docsColaborador];
 }
+
+export type GrupoAlerta = {
+  chave: string;
+  titulo: string;
+  tipo: TipoEmpresa;
+  docs: DocumentoAlerta[];
+};
+
+/** Urgência para ordenação: menor = mais no topo (vencidos primeiro, sem validade por último). */
+const urgenciaDoc = (validade: string | null) =>
+  situacaoDocumento(validade).dias ?? Number.POSITIVE_INFINITY;
+
+/**
+ * Aplica o filtro de prazo e a busca, agrupa os documentos por empresa e ordena:
+ * empresas próprias primeiro (depois terceirizadas por nome) e, dentro de cada
+ * empresa, do mais urgente (vencido/prestes a vencer) para o menos urgente.
+ */
+export function agruparAlertas(
+  docs: DocumentoAlerta[],
+  filtro: FiltroPrazo,
+  busca = "",
+): GrupoAlerta[] {
+  const termo = busca.trim().toLowerCase();
+  const filtrados = docs
+    .filter((d) => documentoNoFiltro(d, filtro))
+    .filter((d) => {
+      if (!termo) return true;
+      return [d.title, d.doc_type, d.colaboradorNome ?? "", d.empresaNome].some((campo) =>
+        campo.toLowerCase().includes(termo),
+      );
+    });
+
+  const mapa = new Map<string, GrupoAlerta>();
+  for (const doc of filtrados) {
+    const chave = doc.empresaId ?? "propria";
+    const grupo = mapa.get(chave) ?? {
+      chave,
+      titulo: rotuloEmpresa(doc.empresaTipo, doc.empresaNome),
+      tipo: doc.empresaTipo,
+      docs: [] as DocumentoAlerta[],
+    };
+    grupo.docs.push(doc);
+    mapa.set(chave, grupo);
+  }
+
+  const lista = [...mapa.values()];
+  for (const grupo of lista) {
+    grupo.docs.sort((a, b) => urgenciaDoc(a.expiration_date) - urgenciaDoc(b.expiration_date));
+  }
+  return lista.sort((a, b) => {
+    if (a.tipo !== b.tipo) return a.tipo === "propria" ? -1 : 1;
+    return a.titulo.localeCompare(b.titulo, "pt-BR");
+  });
+}

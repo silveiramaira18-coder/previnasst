@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { casarFuncao, extrairLinhasColaboradores } from "@/lib/csv-colaboradores";
 import {
   FUNCOES_CONSTRUCAO,
   cpfValido,
@@ -29,73 +30,6 @@ type ResultadoLinha = {
   status: "importado" | "erro";
   motivo?: string;
 };
-
-/** Divide o conteúdo do CSV em linhas/colunas tolerando aspas e delimitadores ; , ou tab. */
-function parseCsv(texto: string): string[][] {
-  const limpo = texto.replace(/^\uFEFF/, "");
-  const primeiraLinha = limpo.split(/\r?\n/, 1)[0] ?? "";
-  const delimitador = ([";", "\t", ","] as const)
-    .map((d) => ({ d, n: primeiraLinha.split(d).length }))
-    .sort((a, b) => b.n - a.n)[0]!.d;
-
-  const linhas: string[][] = [];
-  let campo = "";
-  let linha: string[] = [];
-  let entreAspas = false;
-
-  for (let i = 0; i < limpo.length; i++) {
-    const char = limpo[i];
-    if (entreAspas) {
-      if (char === '"') {
-        if (limpo[i + 1] === '"') {
-          campo += '"';
-          i++;
-        } else {
-          entreAspas = false;
-        }
-      } else {
-        campo += char;
-      }
-      continue;
-    }
-    if (char === '"') {
-      entreAspas = true;
-    } else if (char === delimitador) {
-      linha.push(campo);
-      campo = "";
-    } else if (char === "\n" || char === "\r") {
-      if (char === "\r" && limpo[i + 1] === "\n") i++;
-      linha.push(campo);
-      linhas.push(linha);
-      linha = [];
-      campo = "";
-    } else {
-      campo += char;
-    }
-  }
-  if (campo.length > 0 || linha.length > 0) {
-    linha.push(campo);
-    linhas.push(linha);
-  }
-  return linhas.filter((l) => l.some((c) => c.trim() !== ""));
-}
-
-const semAcento = (v: string) =>
-  v
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .trim()
-    .toLowerCase();
-
-/** Localiza a coluna cujo cabeçalho casa com qualquer um dos rótulos aceitos. */
-function acharColuna(cabecalho: string[], candidatos: string[]) {
-  const normalizado = cabecalho.map(semAcento);
-  for (const c of candidatos) {
-    const i = normalizado.indexOf(c);
-    if (i >= 0) return i;
-  }
-  return -1;
-}
 
 const MODELO_CSV =
   "Nome;CPF;Funcao\n" +
@@ -120,45 +54,22 @@ export function ImportarColaboradores({
     enabled: aberto,
   });
 
-  /** Reaproveita as funções cadastradas: casa o texto da planilha com a lista existente. */
-  const normalizarFuncao = (valor: string) => {
-    const alvo = semAcento(valor);
-    if (!alvo) return "";
-    const conhecidas = [...FUNCOES_CONSTRUCAO, ...funcoesPersonalizadas.map((f) => f.name)];
-    return conhecidas.find((f) => semAcento(f) === alvo) ?? valor.trim().slice(0, 80);
-  };
-
   const importar = useMutation({
     mutationFn: async () => {
       if (!arquivo) throw new Error("Selecione um arquivo CSV.");
-      const texto = await arquivo.text();
-      const linhas = parseCsv(texto);
-      if (linhas.length < 2) {
-        throw new Error("A planilha precisa de um cabeçalho e ao menos uma linha de dados.");
-      }
-      const cabecalho = linhas[0]!;
-      const iNome = acharColuna(cabecalho, ["nome", "name", "colaborador"]);
-      const iCpf = acharColuna(cabecalho, ["cpf"]);
-      const iFuncao = acharColuna(cabecalho, ["funcao", "função", "cargo", "role", "funçao"]);
-      if (iNome < 0) {
-        throw new Error('Cabeçalho inválido: inclua ao menos a coluna "Nome".');
-      }
+      const linhas = extrairLinhasColaboradores(await arquivo.text());
+      const conhecidas = [...FUNCOES_CONSTRUCAO, ...funcoesPersonalizadas.map((f) => f.name)];
 
       const saida: ResultadoLinha[] = [];
       let importados = 0;
-      for (let i = 1; i < linhas.length; i++) {
-        const linha = linhas[i]!;
-        const numero = i + 1;
-        const nome = (linha[iNome] ?? "").trim();
-        const cpfBruto = iCpf >= 0 ? (linha[iCpf] ?? "").trim() : "";
-        const funcaoBruta = iFuncao >= 0 ? (linha[iFuncao] ?? "").trim() : "";
+      for (const { linha, nome, cpf: cpfBruto, funcao } of linhas) {
         if (!nome) {
-          saida.push({ linha: numero, nome: "(sem nome)", status: "erro", motivo: "Nome vazio." });
+          saida.push({ linha, nome: "(sem nome)", status: "erro", motivo: "Nome vazio." });
           continue;
         }
         const cpf = cpfBruto ? formatarCpf(cpfBruto) : "";
         if (cpf && !cpfValido(cpf)) {
-          saida.push({ linha: numero, nome, status: "erro", motivo: "CPF inválido." });
+          saida.push({ linha, nome, status: "erro", motivo: "CPF inválido." });
           continue;
         }
         try {
@@ -166,13 +77,13 @@ export function ImportarColaboradores({
             contractor_id: contractorId,
             name: nome.slice(0, 120),
             cpf: cpf || null,
-            role_title: normalizarFuncao(funcaoBruta) || null,
+            role_title: casarFuncao(funcao, conhecidas) || null,
           });
           importados++;
-          saida.push({ linha: numero, nome, status: "importado" });
+          saida.push({ linha, nome, status: "importado" });
         } catch (e) {
           saida.push({
-            linha: numero,
+            linha,
             nome,
             status: "erro",
             motivo: e instanceof Error ? e.message : "Falha ao salvar.",

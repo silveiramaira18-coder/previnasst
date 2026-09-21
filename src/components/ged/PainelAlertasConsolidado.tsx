@@ -11,10 +11,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatarData } from "@/lib/db";
 import {
-  documentoNoFiltro,
+  agruparAlertas,
   excluirDocumento,
-  rotuloEmpresa,
-  situacaoDocumento,
   urlDocumento,
   type DocumentoAlerta,
   type FiltroPrazo,
@@ -26,17 +24,6 @@ const ROTULO_FILTRO: Record<FiltroPrazo, string> = {
   "7": "Vencem em até 7 dias",
   "15": "Vencem em até 15 dias",
   "30": "Vencem em até 30 dias",
-};
-
-/** Urgência para ordenação: quanto menor, mais no topo (vencidos primeiro, sem validade por último). */
-const urgencia = (validade: string | null) =>
-  situacaoDocumento(validade).dias ?? Number.POSITIVE_INFINITY;
-
-type Grupo = {
-  chave: string;
-  titulo: string;
-  tipo: "propria" | "terceirizada";
-  docs: DocumentoAlerta[];
 };
 
 function CardDocumento({
@@ -134,39 +121,10 @@ export function PainelAlertasConsolidado({
   const invalidar = () =>
     qc.invalidateQueries({ predicate: (q) => String(q.queryKey[0] ?? "").startsWith("ged") });
 
-  const grupos = useMemo<Grupo[]>(() => {
-    const termo = busca.trim().toLowerCase();
-    const filtrados = docs
-      .filter((d) => documentoNoFiltro(d, filtroPrazo))
-      .filter((d) => {
-        if (!termo) return true;
-        return [d.title, d.doc_type, d.colaboradorNome ?? "", d.empresaNome].some((campo) =>
-          campo.toLowerCase().includes(termo),
-        );
-      });
-
-    const mapa = new Map<string, Grupo>();
-    for (const doc of filtrados) {
-      const chave = doc.empresaId ?? "propria";
-      const grupo = mapa.get(chave) ?? {
-        chave,
-        titulo: rotuloEmpresa(doc.empresaTipo, doc.empresaNome),
-        tipo: doc.empresaTipo,
-        docs: [],
-      };
-      grupo.docs.push(doc);
-      mapa.set(chave, grupo);
-    }
-
-    const lista = [...mapa.values()];
-    for (const grupo of lista) {
-      grupo.docs.sort((a, b) => urgencia(a.expiration_date) - urgencia(b.expiration_date));
-    }
-    return lista.sort((a, b) => {
-      if (a.tipo !== b.tipo) return a.tipo === "propria" ? -1 : 1;
-      return a.titulo.localeCompare(b.titulo, "pt-BR");
-    });
-  }, [docs, filtroPrazo, busca]);
+  const grupos = useMemo(
+    () => agruparAlertas(docs, filtroPrazo, busca),
+    [docs, filtroPrazo, busca],
+  );
 
   const total = grupos.reduce((soma, g) => soma + g.docs.length, 0);
 
