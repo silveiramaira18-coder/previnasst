@@ -1,6 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Building2, FileCheck2, FileWarning, FileX2, Pencil, Plus, Trash2, Truck } from "lucide-react";
+import {
+  Building2,
+  FileCheck2,
+  FileWarning,
+  FileX2,
+  Pencil,
+  Plus,
+  Trash2,
+  Truck,
+} from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -8,6 +17,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { SecaoColaboradores } from "@/components/ged/SecaoColaboradores";
 import { SecaoDocumentosEmpresa } from "@/components/ged/SecaoDocumentosEmpresa";
 import { ConfirmacaoExclusao } from "@/components/ged/ConfirmacaoExclusao";
+import { PainelAlertasConsolidado } from "@/components/ged/PainelAlertasConsolidado";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -27,8 +37,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { supabase } from "@/integrations/supabase/client";
 import {
+  carregarAlertasConsolidados,
   excluirTerceirizada,
   listarTerceirizadas,
   resumoDocumentos,
@@ -36,7 +46,6 @@ import {
   salvarTerceirizada,
   type FiltroPrazo,
   type Terceirizada,
-  type Documento,
 } from "@/lib/ged";
 import { usePerfil } from "@/lib/perfil";
 
@@ -87,19 +96,13 @@ function CardResumo({
   );
 }
 
-async function carregarTodosDocumentos() {
-  const [empresa, colaborador] = await Promise.all([
-    supabase.from("company_documents").select("status, expiration_date"),
-    supabase.from("employee_documents").select("status, expiration_date"),
-  ]);
-  if (empresa.error) throw new Error(empresa.error.message);
-  if (colaborador.error) throw new Error(colaborador.error.message);
-  return [...(empresa.data ?? []), ...(colaborador.data ?? [])] as Documento[];
-}
-
 function NovaTerceirizada({ onSalvo, empresa }: { onSalvo: () => void; empresa?: Terceirizada }) {
   const [aberto, setAberto] = useState(false);
-  const [form, setForm] = useState({ name: empresa?.name ?? "", cnpj: empresa?.cnpj ?? "", contact_email: empresa?.contact_email ?? "" });
+  const [form, setForm] = useState({
+    name: empresa?.name ?? "",
+    cnpj: empresa?.cnpj ?? "",
+    contact_email: empresa?.contact_email ?? "",
+  });
 
   const salvar = useMutation({
     mutationFn: async () => {
@@ -112,7 +115,9 @@ function NovaTerceirizada({ onSalvo, empresa }: { onSalvo: () => void; empresa?:
       });
     },
     onSuccess: () => {
-      toast.success(empresa ? "Empresa terceirizada atualizada" : "Empresa terceirizada cadastrada");
+      toast.success(
+        empresa ? "Empresa terceirizada atualizada" : "Empresa terceirizada cadastrada",
+      );
       setForm({ name: "", cnpj: "", contact_email: "" });
       setAberto(false);
       onSalvo();
@@ -123,11 +128,21 @@ function NovaTerceirizada({ onSalvo, empresa }: { onSalvo: () => void; empresa?:
   return (
     <Dialog open={aberto} onOpenChange={setAberto}>
       <DialogTrigger asChild>
-        {empresa ? <Button type="button" size="icon" variant="ghost" aria-label={`Editar ${empresa.name}`}><Pencil className="size-4" /></Button> : <Button type="button" variant="outline" className="gap-2"><Plus className="size-4" /> Nova empresa terceirizada</Button>}
+        {empresa ? (
+          <Button type="button" size="icon" variant="ghost" aria-label={`Editar ${empresa.name}`}>
+            <Pencil className="size-4" />
+          </Button>
+        ) : (
+          <Button type="button" variant="outline" className="gap-2">
+            <Plus className="size-4" /> Nova empresa terceirizada
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>{empresa ? "Editar empresa terceirizada" : "Cadastrar empresa terceirizada"}</DialogTitle>
+          <DialogTitle>
+            {empresa ? "Editar empresa terceirizada" : "Cadastrar empresa terceirizada"}
+          </DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
           <div className="space-y-1.5">
@@ -185,7 +200,7 @@ function GestaoDocumental() {
 
   const { data: todos = [] } = useQuery({
     queryKey: ["ged-resumo"],
-    queryFn: carregarTodosDocumentos,
+    queryFn: carregarAlertasConsolidados,
   });
   const { data: terceirizadas = [] } = useQuery({
     queryKey: ["ged-terceirizadas"],
@@ -232,16 +247,26 @@ function GestaoDocumental() {
       </div>
 
       <Card>
-        <CardHeader><CardTitle className="text-base">Central de alertas de validade</CardTitle></CardHeader>
+        <CardHeader>
+          <CardTitle className="text-base">Central de alertas de validade</CardTitle>
+        </CardHeader>
         <CardContent className="flex flex-wrap gap-2">
-          {([
-            ["todos", "Todos", resumo.total],
-            ["vencidos", "Vencidos", alertas.vencidos],
-            ["7", "Vencem em 7 dias", alertas.sete],
-            ["15", "Vencem em 15 dias", alertas.quinze],
-            ["30", "Vencem em 30 dias", alertas.trinta],
-          ] as const).map(([valor, rotulo, total]) => (
-            <Button key={valor} type="button" variant={filtroPrazo === valor ? "default" : "outline"} size="sm" onClick={() => setFiltroPrazo(valor)}>
+          {(
+            [
+              ["todos", "Todos", resumo.total],
+              ["vencidos", "Vencidos", alertas.vencidos],
+              ["7", "Vencem em 7 dias", alertas.sete],
+              ["15", "Vencem em 15 dias", alertas.quinze],
+              ["30", "Vencem em 30 dias", alertas.trinta],
+            ] as const
+          ).map(([valor, rotulo, total]) => (
+            <Button
+              key={valor}
+              type="button"
+              variant={filtroPrazo === valor ? "default" : "outline"}
+              size="sm"
+              onClick={() => setFiltroPrazo(valor)}
+            >
               {rotulo} <span className="ml-2 rounded-full bg-background/20 px-1.5">{total}</span>
             </Button>
           ))}
@@ -255,6 +280,13 @@ function GestaoDocumental() {
         onChange={(e) => setBusca(e.target.value)}
       />
 
+      <PainelAlertasConsolidado
+        docs={todos}
+        filtroPrazo={filtroPrazo}
+        busca={busca}
+        podeAlterar={adminPrincipal}
+      />
+
       <Tabs defaultValue="propria">
         <TabsList className="h-auto w-full flex-wrap justify-start gap-1 sm:w-auto">
           <TabsTrigger value="propria" className="gap-2 py-2">
@@ -266,17 +298,29 @@ function GestaoDocumental() {
         </TabsList>
 
         <TabsContent value="propria" className="mt-4 space-y-4">
-          <SecaoDocumentosEmpresa contractorId={null} busca={busca} podeAlterar={adminPrincipal} filtroPrazo={filtroPrazo} />
-          <SecaoColaboradores contractorId={null} busca={busca} podeAlterar={adminPrincipal} filtroPrazo={filtroPrazo} />
+          <SecaoDocumentosEmpresa
+            contractorId={null}
+            busca={busca}
+            podeAlterar={adminPrincipal}
+            filtroPrazo="todos"
+          />
+          <SecaoColaboradores
+            contractorId={null}
+            busca={busca}
+            podeAlterar={adminPrincipal}
+            filtroPrazo="todos"
+          />
         </TabsContent>
 
         <TabsContent value="terceirizados" className="mt-4 space-y-4">
           <Card>
             <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-3">
               <CardTitle className="text-base">Empresa terceirizada</CardTitle>
-              {adminPrincipal ? <NovaTerceirizada
-                onSalvo={() => qc.invalidateQueries({ queryKey: ["ged-terceirizadas"] })}
-              /> : null}
+              {adminPrincipal ? (
+                <NovaTerceirizada
+                  onSalvo={() => qc.invalidateQueries({ queryKey: ["ged-terceirizadas"] })}
+                />
+              ) : null}
             </CardHeader>
             <CardContent className="flex flex-wrap items-center gap-3">
               <Select value={terceirizadaId} onValueChange={setTerceirizadaId}>
@@ -293,12 +337,28 @@ function GestaoDocumental() {
                 </SelectContent>
               </Select>
               {selecionada ? (
-                adminPrincipal ? <>
-                  <NovaTerceirizada empresa={selecionada} onSalvo={() => qc.invalidateQueries({ queryKey: ["ged-terceirizadas"] })} />
-                  <ConfirmacaoExclusao nome={`“${selecionada.name}” e todos os seus dados`} onConfirmar={() => removerEmpresa.mutateAsync(selecionada.id)} disabled={removerEmpresa.isPending}>
-                    <Button type="button" size="icon" variant="ghost" aria-label="Excluir empresa terceirizada"><Trash2 className="size-4 text-destructive" /></Button>
-                  </ConfirmacaoExclusao>
-                </> : null
+                adminPrincipal ? (
+                  <>
+                    <NovaTerceirizada
+                      empresa={selecionada}
+                      onSalvo={() => qc.invalidateQueries({ queryKey: ["ged-terceirizadas"] })}
+                    />
+                    <ConfirmacaoExclusao
+                      nome={`“${selecionada.name}” e todos os seus dados`}
+                      onConfirmar={() => removerEmpresa.mutateAsync(selecionada.id)}
+                      disabled={removerEmpresa.isPending}
+                    >
+                      <Button
+                        type="button"
+                        size="icon"
+                        variant="ghost"
+                        aria-label="Excluir empresa terceirizada"
+                      >
+                        <Trash2 className="size-4 text-destructive" />
+                      </Button>
+                    </ConfirmacaoExclusao>
+                  </>
+                ) : null
               ) : null}
               {terceirizadas.length === 0 ? (
                 <p className="text-sm text-muted-foreground">
@@ -310,8 +370,18 @@ function GestaoDocumental() {
 
           {selecionada ? (
             <>
-               <SecaoDocumentosEmpresa contractorId={selecionada.id} busca={busca} podeAlterar={adminPrincipal && !carregandoPerfil} filtroPrazo={filtroPrazo} />
-               <SecaoColaboradores contractorId={selecionada.id} busca={busca} podeAlterar={adminPrincipal && !carregandoPerfil} filtroPrazo={filtroPrazo} />
+              <SecaoDocumentosEmpresa
+                contractorId={selecionada.id}
+                busca={busca}
+                podeAlterar={adminPrincipal && !carregandoPerfil}
+                filtroPrazo="todos"
+              />
+              <SecaoColaboradores
+                contractorId={selecionada.id}
+                busca={busca}
+                podeAlterar={adminPrincipal && !carregandoPerfil}
+                filtroPrazo="todos"
+              />
             </>
           ) : null}
         </TabsContent>
