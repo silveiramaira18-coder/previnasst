@@ -529,6 +529,23 @@ export function rotuloEmpresa(tipo: TipoEmpresa, nome: string) {
   return tipo === "propria" ? nome : `Terceirizada: ${nome}`;
 }
 
+/** Texto padrão exibido para a empresa principal quando não há nome dinâmico. */
+export const EMPRESA_PROPRIA_PADRAO = "Empresa Própria";
+
+/**
+ * Nome exibido para a empresa principal (aba/painel "Empresa Própria").
+ * Só usa o nome dinâmico da empresa do usuário quando ele é administrador e o
+ * perfil já carregou com um nome válido; caso contrário mantém o texto padrão.
+ */
+export function nomeEmpresaPrincipal(opcoes: {
+  adminPrincipal: boolean;
+  carregando: boolean;
+  empresa: string | null | undefined;
+}) {
+  const nome = opcoes.empresa?.trim();
+  return opcoes.adminPrincipal && !opcoes.carregando && nome ? nome : EMPRESA_PROPRIA_PADRAO;
+}
+
 type LinhaEmpresa = Documento & { contractor_id: string | null };
 type LinhaColaborador = Documento & {
   employee_id: string;

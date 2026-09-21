@@ -64,6 +64,7 @@ const {
   agruparAlertas,
   cpfNormalizado,
   rotuloEmpresa,
+  nomeEmpresaPrincipal,
 } = await import("@/lib/ged");
 type DocumentoAlerta = Awaited<ReturnType<typeof carregarAlertasConsolidados>>[number];
 
@@ -314,5 +315,40 @@ describe("rotuloEmpresa", () => {
   it("prefixa terceirizadas e mantém o nome da própria", () => {
     expect(rotuloEmpresa("propria", "Empresa Própria")).toBe("Empresa Própria");
     expect(rotuloEmpresa("terceirizada", "MEC")).toBe("Terceirizada: MEC");
+  });
+});
+
+describe("nomeEmpresaPrincipal", () => {
+  it("usa o nome da empresa quando é admin e o perfil já carregou", () => {
+    expect(
+      nomeEmpresaPrincipal({ adminPrincipal: true, carregando: false, empresa: "ACME Corp" }),
+    ).toBe("ACME Corp");
+  });
+
+  it("recorta espaços em volta do nome", () => {
+    expect(
+      nomeEmpresaPrincipal({ adminPrincipal: true, carregando: false, empresa: "  ACME  " }),
+    ).toBe("ACME");
+  });
+
+  it("mantém o padrão para usuários não administradores", () => {
+    expect(
+      nomeEmpresaPrincipal({ adminPrincipal: false, carregando: false, empresa: "ACME Corp" }),
+    ).toBe("Empresa Própria");
+  });
+
+  it("mantém o padrão enquanto o perfil carrega", () => {
+    expect(
+      nomeEmpresaPrincipal({ adminPrincipal: true, carregando: true, empresa: "ACME Corp" }),
+    ).toBe("Empresa Própria");
+  });
+
+  it("mantém o padrão quando não há empresa cadastrada", () => {
+    expect(nomeEmpresaPrincipal({ adminPrincipal: true, carregando: false, empresa: null })).toBe(
+      "Empresa Própria",
+    );
+    expect(nomeEmpresaPrincipal({ adminPrincipal: true, carregando: false, empresa: "   " })).toBe(
+      "Empresa Própria",
+    );
   });
 });

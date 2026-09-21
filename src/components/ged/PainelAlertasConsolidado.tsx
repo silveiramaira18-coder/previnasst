@@ -111,11 +111,13 @@ export function PainelAlertasConsolidado({
   filtroPrazo,
   busca,
   podeAlterar,
+  nomeEmpresaPropria = "Empresa Própria",
 }: {
   docs: DocumentoAlerta[];
   filtroPrazo: FiltroPrazo;
   busca: string;
   podeAlterar: boolean;
+  nomeEmpresaPropria?: string;
 }) {
   const qc = useQueryClient();
   const invalidar = () =>
@@ -144,31 +146,36 @@ export function PainelAlertasConsolidado({
             Nenhum documento encontrado para este filtro.
           </p>
         ) : (
-          grupos.map((grupo) => (
-            <div key={grupo.chave} className="space-y-2">
-              <div className="flex items-center gap-2">
-                {grupo.tipo === "propria" ? (
-                  <Building2 className="size-4 text-muted-foreground" />
-                ) : (
-                  <Truck className="size-4 text-muted-foreground" />
-                )}
-                <h3 className="text-sm font-semibold">{grupo.titulo}</h3>
-                <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
-                  {grupo.docs.length}
-                </span>
+          grupos.map((grupo) => {
+            const titulo = grupo.tipo === "propria" ? nomeEmpresaPropria : grupo.titulo;
+            return (
+              <div key={grupo.chave} className="space-y-2">
+                <div className="flex items-center gap-2">
+                  {grupo.tipo === "propria" ? (
+                    <Building2 className="size-4 shrink-0 text-muted-foreground" />
+                  ) : (
+                    <Truck className="size-4 shrink-0 text-muted-foreground" />
+                  )}
+                  <h3 className="max-w-[16rem] truncate text-sm font-semibold" title={titulo}>
+                    {titulo}
+                  </h3>
+                  <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
+                    {grupo.docs.length}
+                  </span>
+                </div>
+                <div className="space-y-2">
+                  {grupo.docs.map((doc) => (
+                    <CardDocumento
+                      key={`${doc.tabela}-${doc.id}`}
+                      doc={doc}
+                      podeAlterar={podeAlterar}
+                      onMudou={invalidar}
+                    />
+                  ))}
+                </div>
               </div>
-              <div className="space-y-2">
-                {grupo.docs.map((doc) => (
-                  <CardDocumento
-                    key={`${doc.tabela}-${doc.id}`}
-                    doc={doc}
-                    podeAlterar={podeAlterar}
-                    onMudou={invalidar}
-                  />
-                ))}
-              </div>
-            </div>
-          ))
+            );
+          })
         )}
       </CardContent>
     </Card>
