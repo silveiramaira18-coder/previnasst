@@ -8,6 +8,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { SecaoColaboradores } from "@/components/ged/SecaoColaboradores";
 import { SecaoDocumentosEmpresa } from "@/components/ged/SecaoDocumentosEmpresa";
 import { ConfirmacaoExclusao } from "@/components/ged/ConfirmacaoExclusao";
+import { PainelAlertas } from "@/components/ged/PainelAlertas";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -27,16 +28,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { supabase } from "@/integrations/supabase/client";
 import {
   excluirTerceirizada,
+  listarDocumentosConsolidados,
   listarTerceirizadas,
   resumoDocumentos,
   contagemAlertas,
   salvarTerceirizada,
   type FiltroPrazo,
   type Terceirizada,
-  type Documento,
 } from "@/lib/ged";
 import { usePerfil } from "@/lib/perfil";
 
@@ -87,15 +87,6 @@ function CardResumo({
   );
 }
 
-async function carregarTodosDocumentos() {
-  const [empresa, colaborador] = await Promise.all([
-    supabase.from("company_documents").select("status, expiration_date"),
-    supabase.from("employee_documents").select("status, expiration_date"),
-  ]);
-  if (empresa.error) throw new Error(empresa.error.message);
-  if (colaborador.error) throw new Error(colaborador.error.message);
-  return [...(empresa.data ?? []), ...(colaborador.data ?? [])] as Documento[];
-}
 
 function NovaTerceirizada({ onSalvo, empresa }: { onSalvo: () => void; empresa?: Terceirizada }) {
   const [aberto, setAberto] = useState(false);
@@ -185,7 +176,7 @@ function GestaoDocumental() {
 
   const { data: todos = [] } = useQuery({
     queryKey: ["ged-resumo"],
-    queryFn: carregarTodosDocumentos,
+    queryFn: listarDocumentosConsolidados,
   });
   const { data: terceirizadas = [] } = useQuery({
     queryKey: ["ged-terceirizadas"],
@@ -245,6 +236,16 @@ function GestaoDocumental() {
               {rotulo} <span className="ml-2 rounded-full bg-background/20 px-1.5">{total}</span>
             </Button>
           ))}
+        </CardContent>
+        <CardContent className="pt-0">
+          <PainelAlertas
+            documentos={todos}
+            filtro={filtroPrazo}
+            podeAlterar={adminPrincipal && !carregandoPerfil}
+            onMudou={async () => {
+              await qc.invalidateQueries({ queryKey: ["ged-resumo"] });
+            }}
+          />
         </CardContent>
       </Card>
 

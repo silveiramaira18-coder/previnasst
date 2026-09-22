@@ -216,6 +216,23 @@ export async function listarColaboradores(contractorId: string | null) {
   return (data ?? []) as Colaborador[];
 }
 
+/** Procura outro colaborador da mesma empresa com o mesmo CPF. */
+export async function colaboradorComMesmoCpf(
+  contractorId: string | null,
+  cpf: string,
+  ignorarId?: string,
+) {
+  const formatado = formatarCpf(cpf);
+  let consulta = supabase.from("employees").select("id, name").eq("cpf", formatado);
+  consulta = contractorId
+    ? consulta.eq("contractor_id", contractorId)
+    : consulta.is("contractor_id", null);
+  if (ignorarId) consulta = consulta.neq("id", ignorarId);
+  const { data, error } = await consulta.limit(1);
+  if (error) throw new Error(error.message);
+  return (data ?? [])[0] ?? null;
+}
+
 export async function salvarColaborador(dados: {
   id?: string;
   contractor_id: string | null;
@@ -224,11 +241,88 @@ export async function salvarColaborador(dados: {
   role_title: string | null;
 }) {
   const { id, ...campos } = dados;
+  if (campos.cpf) {
+    const duplicado = await colaboradorComMesmoCpf(campos.contractor_id, campos.cpf, id);
+    if (duplicado)
+      throw new Error(
+        `Já existe um colaborador cadastrado nesta empresa com o CPF ${formatarCpf(campos.cpf)}: ${duplicado.name}.`,
+      );
+    campos.cpf = formatarCpf(campos.cpf);
+  }
   const payload = { ...campos, type: campos.contractor_id ? "contractor" : "direct" };
   const { error } = id
     ? await supabase.from("employees").update(payload).eq("id", id)
     : await supabase.from("employees").insert(payload);
   if (error) throw new Error(error.message);
+}
+
+export type LinhaCsv = { name: string; cpf: string; role_title: string };
+
+/** Lê um CSV simples com colunas Nome, CPF e Função (com ou sem cabeçalho). */
+export function lerCsvColaboradores(texto: string): LinhaCsv[] {
+  const linhas = texto
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter(Boolean);
+  if (linhas.length === 0) return [];
+  const separador = (linhas[0]?.match(/;/g)?.length ?? 0) > (linhas[0]?.match(/,/g)?.length ?? 0) ? ";" : ",";
+  const partir = (linha: string) =>
+    linha
+      .split(separador)
+      .map((c) => c.trim().replace(/^"(.*)"$/, "$1").trim());
+  const primeira = partir(linhas[0] ?? "").join(" ").toLowerCase();
+  const corpo = /nome/.test(primeira) && /cpf|fun/.test(primeira) ? linhas.slice(1) : linhas;
+  return corpo.map((linha) => {
+    const [name = "", cpf = "", role_title = ""] = partir(linha);
+    return { name, cpf, role_title };
+  });
+}
+
+export type ResultadoImportacao = {
+  importados: number;
+  erros: { linha: number; nome: string; motivo: string }[];
+};
+
+/** Importa colaboradores do CSV, validando CPF e reaproveitando as funções salvas. */
+export async function importarColaboradores(
+  contractorId: string | null,
+  linhas: LinhaCsv[],
+): Promise<ResultadoImportacao> {
+  const resultado: ResultadoImportacao = { importados: 0, erros: [] };
+  const funcoesSalvas = await listarFuncoesPersonalizadas(contractorId);
+  const conhecidas = new Set(
+    [...FUNCOES_CONSTRUCAO, ...funcoesSalvas.map((f) => f.name)].map((n) => n.toLowerCase()),
+  );
+  const cpfsDoArquivo = new Set<string>();
+
+  for (const [indice, linha] of linhas.entries()) {
+    const numero = indice + 1;
+    const nome = linha.name.trim().slice(0, 120);
+    const funcao = linha.role_title.trim().slice(0, 80);
+    const cpf = linha.cpf.trim();
+    try {
+      if (!nome) throw new Error("Nome não informado.");
+      if (!cpf) throw new Error("CPF não informado.");
+      if (!cpfValido(cpf)) throw new Error("CPF inválido.");
+      const formatado = formatarCpf(cpf);
+      if (cpfsDoArquivo.has(formatado)) throw new Error("CPF repetido na própria planilha.");
+      cpfsDoArquivo.add(formatado);
+      if (funcao && !conhecidas.has(funcao.toLowerCase())) {
+        await adicionarFuncaoPersonalizada(contractorId, funcao).catch(() => undefined);
+        conhecidas.add(funcao.toLowerCase());
+      }
+      await salvarColaborador({
+        contractor_id: contractorId,
+        name: nome,
+        cpf: formatado,
+        role_title: funcao || null,
+      });
+      resultado.importados++;
+    } catch (e) {
+      resultado.erros.push({ linha: numero, nome: nome || "(sem nome)", motivo: (e as Error).message });
+    }
+  }
+  return resultado;
 }
 
 export async function excluirColaborador(id: string) {
@@ -419,4 +513,76 @@ export async function atualizarDocumento(
 ) {
   const { error } = await supabase.from(tabela).update(dados).eq("id", id);
   if (error) throw new Error(error.message);
+}
+
+/* ------------------------- Painel geral de alertas ------------------------ */
+
+export type DocumentoAlerta = Documento & {
+  tabela: "company_documents" | "employee_documents";
+  empresa: string;
+  origem: string;
+};
+
+/** Lista todos os documentos ativos do sistema com empresa e origem para o painel de alertas. */
+export async function listarDocumentosConsolidados(): Promise<DocumentoAlerta[]> {
+  const campos = "id, doc_type, title, file_url, issue_date, expiration_date, status, version, created_at";
+  const [empresa, colaborador] = await Promise.all([
+    supabase.from("company_documents").select(`${campos}, contractor_id, contractors(name)`),
+    supabase
+      .from("employee_documents")
+      .select(`${campos}, employees(name, contractor_id, contractors(name))`),
+  ]);
+  if (empresa.error) throw new Error(empresa.error.message);
+  if (colaborador.error) throw new Error(colaborador.error.message);
+
+  const nomeEmpresa = (contratada: { name?: string } | null | undefined) =>
+    contratada?.name ? `Terceirizada: ${contratada.name}` : "Empresa Própria";
+
+  const docsEmpresa: DocumentoAlerta[] = (empresa.data ?? []).map((d) => {
+    const { contractor_id: _c, contractors, ...resto } = d as never as Record<string, unknown> & {
+      contractors: { name: string } | null;
+    };
+    return {
+      ...(resto as unknown as Documento),
+      tabela: "company_documents" as const,
+      empresa: nomeEmpresa(contractors),
+      origem: "Documento da Empresa",
+    };
+  });
+
+  const docsColaborador: DocumentoAlerta[] = (colaborador.data ?? []).map((d) => {
+    const { employees, ...resto } = d as never as Record<string, unknown> & {
+      employees: { name: string; contractors: { name: string } | null } | null;
+    };
+    return {
+      ...(resto as unknown as Documento),
+      tabela: "employee_documents" as const,
+      empresa: nomeEmpresa(employees?.contractors),
+      origem: `Documento do Colaborador: ${employees?.name ?? "—"}`,
+    };
+  });
+
+  return [...docsEmpresa, ...docsColaborador].filter((d) => d.status === "active");
+}
+
+/** Agrupa os documentos por empresa e ordena do vencimento mais urgente para o menos urgente. */
+export function agruparPorEmpresa(docs: DocumentoAlerta[]) {
+  const mapa = new Map<string, DocumentoAlerta[]>();
+  for (const doc of docs) {
+    const atual = mapa.get(doc.empresa) ?? [];
+    atual.push(doc);
+    mapa.set(doc.empresa, atual);
+  }
+  return [...mapa.entries()]
+    .map(([empresa, lista]) => ({
+      empresa,
+      documentos: lista.sort((a, b) => {
+        const da = situacaoDocumento(a.expiration_date).dias;
+        const db = situacaoDocumento(b.expiration_date).dias;
+        if (da === null) return 1;
+        if (db === null) return -1;
+        return da - db;
+      }),
+    }))
+    .sort((a, b) => a.empresa.localeCompare(b.empresa, "pt-BR"));
 }
