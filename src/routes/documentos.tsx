@@ -8,6 +8,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { SecaoColaboradores } from "@/components/ged/SecaoColaboradores";
 import { SecaoDocumentosEmpresa } from "@/components/ged/SecaoDocumentosEmpresa";
 import { ConfirmacaoExclusao } from "@/components/ged/ConfirmacaoExclusao";
+import { PainelAlertas } from "@/components/ged/PainelAlertas";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -27,16 +28,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { supabase } from "@/integrations/supabase/client";
 import {
   excluirTerceirizada,
+  listarDocumentosConsolidados,
   listarTerceirizadas,
   resumoDocumentos,
   contagemAlertas,
   salvarTerceirizada,
   type FiltroPrazo,
   type Terceirizada,
-  type Documento,
 } from "@/lib/ged";
 import { usePerfil } from "@/lib/perfil";
 
