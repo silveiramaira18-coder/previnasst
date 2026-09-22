@@ -1,4 +1,35 @@
 import { supabase } from "@/integrations/supabase/client";
+import {
+  cpfValido,
+  digitosCpf,
+  encontrarColaboradorPorCpf,
+  formatarCpf,
+  mensagemCpfDuplicado,
+  normalizarBusca,
+} from "@/lib/ged-regras";
+
+export {
+  agruparAlertas,
+  analisarPlanilhaColaboradores,
+  contagemAlertas,
+  cpfValido,
+  digitosCpf,
+  documentoNoFiltro,
+  encontrarColaboradorPorCpf,
+  formatarCpf,
+  mensagemCpfDuplicado,
+  MODELO_CSV_COLABORADORES,
+  normalizarBusca,
+  resumoDocumentos,
+  resolverFuncao,
+  rotuloContagemValidade,
+  situacaoDocumento,
+  type FiltroPrazo,
+  type ItemAgrupavel,
+  type LinhaPlanilhaColaborador,
+  type Situacao,
+  type TomValidade,
+} from "@/lib/ged-regras";
 
 export const BUCKET_DOCS = "documentos";
 
@@ -53,7 +84,10 @@ export const TREINAMENTOS_NR = [
   "Treinamento NR-38 - Segurança e Saúde no Trabalho nas Atividades de Limpeza Urbana e Manejo de Resíduos Sólidos",
 ] as const;
 
-export const TIPOS_DOC_COLABORADOR = [...DOCUMENTOS_GERAIS_COLABORADOR, ...TREINAMENTOS_NR] as const;
+export const TIPOS_DOC_COLABORADOR = [
+  ...DOCUMENTOS_GERAIS_COLABORADOR,
+  ...TREINAMENTOS_NR,
+] as const;
 
 export const FUNCOES_CONSTRUCAO = [
   "Servente / Ajudante Geral",
@@ -85,6 +119,7 @@ export type Colaborador = {
   cpf: string | null;
   role_title: string | null;
   type: string;
+  user_id: string;
 };
 
 export type FuncaoPersonalizada = { id: string; name: string };
@@ -100,67 +135,6 @@ export type Documento = {
   version: number;
   created_at: string;
 };
-
-export type FiltroPrazo = "todos" | "vencidos" | "7" | "15" | "30";
-
-/** Situação de validade calculada a partir da data de vencimento. */
-export type Situacao = {
-  nivel: "valido" | "atencao" | "vencido" | "sem-validade";
-  rotulo: string;
-  dias: number | null;
-};
-
-export function situacaoDocumento(validade: string | null): Situacao {
-  if (!validade) return { nivel: "sem-validade", rotulo: "Sem validade", dias: null };
-  const hoje = new Date();
-  hoje.setHours(0, 0, 0, 0);
-  const [a, m, d] = validade.split("-").map(Number);
-  const fim = new Date(a ?? 0, (m ?? 1) - 1, d ?? 1);
-  const dias = Math.round((fim.getTime() - hoje.getTime()) / 86_400_000);
-  if (dias < 0)
-    return {
-      nivel: "vencido",
-      rotulo: `CRÍTICO: Vencido há ${Math.abs(dias)} ${Math.abs(dias) === 1 ? "dia" : "dias"}`,
-      dias,
-    };
-  if (dias <= 30)
-    return {
-      nivel: "atencao",
-      rotulo: dias === 0 ? "Atenção: Vence hoje" : `Atenção: Vence em ${dias} ${dias === 1 ? "dia" : "dias"}`,
-      dias,
-    };
-  return { nivel: "valido", rotulo: "Válido", dias };
-}
-
-export function resumoDocumentos(docs: Documento[]) {
-  const ativos = docs.filter((d) => d.status === "active");
-  let aVencer = 0;
-  let vencidos = 0;
-  for (const d of ativos) {
-    const s = situacaoDocumento(d.expiration_date);
-    if (s.nivel === "atencao") aVencer++;
-    if (s.nivel === "vencido") vencidos++;
-  }
-  return { total: ativos.length, aVencer, vencidos };
-}
-
-export function documentoNoFiltro(doc: Documento, filtro: FiltroPrazo) {
-  if (filtro === "todos") return true;
-  const situacao = situacaoDocumento(doc.expiration_date);
-  if (filtro === "vencidos") return situacao.dias !== null && situacao.dias < 0;
-  const limite = Number(filtro);
-  return situacao.dias !== null && situacao.dias >= 0 && situacao.dias <= limite;
-}
-
-export function contagemAlertas(docs: Documento[]) {
-  const ativos = docs.filter((doc) => doc.status === "active");
-  return {
-    vencidos: ativos.filter((doc) => documentoNoFiltro(doc, "vencidos")).length,
-    sete: ativos.filter((doc) => documentoNoFiltro(doc, "7")).length,
-    quinze: ativos.filter((doc) => documentoNoFiltro(doc, "15")).length,
-    trinta: ativos.filter((doc) => documentoNoFiltro(doc, "30")).length,
-  };
-}
 
 /* ------------------------------ Terceirizadas ----------------------------- */
 
@@ -208,12 +182,32 @@ export async function excluirTerceirizada(id: string) {
 export async function listarColaboradores(contractorId: string | null) {
   let consulta = supabase
     .from("employees")
-    .select("id, contractor_id, name, cpf, role_title, type")
+    .select("id, contractor_id, name, cpf, role_title, type, user_id")
     .order("name");
-  consulta = contractorId ? consulta.eq("contractor_id", contractorId) : consulta.is("contractor_id", null);
+  consulta = contractorId
+    ? consulta.eq("contractor_id", contractorId)
+    : consulta.is("contractor_id", null);
   const { data, error } = await consulta;
   if (error) throw new Error(error.message);
   return (data ?? []) as Colaborador[];
+}
+
+export async function buscarColaboradorDuplicado(
+  contractorId: string | null,
+  cpf: string,
+  ignorarId?: string,
+) {
+  if (!digitosCpf(cpf)) return null;
+  const { data: auth } = await supabase.auth.getUser();
+  const userId = auth.user?.id;
+  if (!userId) throw new Error("Sessão expirada. Entre novamente.");
+  let consulta = supabase.from("employees").select("id, name, cpf").eq("user_id", userId);
+  consulta = contractorId
+    ? consulta.eq("contractor_id", contractorId)
+    : consulta.is("contractor_id", null);
+  const { data, error } = await consulta;
+  if (error) throw new Error(error.message);
+  return encontrarColaboradorPorCpf(data ?? [], cpf, ignorarId);
 }
 
 export async function salvarColaborador(dados: {
@@ -224,15 +218,83 @@ export async function salvarColaborador(dados: {
   role_title: string | null;
 }) {
   const { id, ...campos } = dados;
-  const payload = { ...campos, type: campos.contractor_id ? "contractor" : "direct" };
+  if (!campos.name.trim()) throw new Error("Informe o nome do colaborador.");
+  const cpf = campos.cpf && digitosCpf(campos.cpf) ? formatarCpf(campos.cpf) : null;
+  if (cpf && !cpfValido(cpf)) throw new Error("Informe um CPF válido.");
+  if (cpf) {
+    const duplicado = await buscarColaboradorDuplicado(campos.contractor_id, cpf, id);
+    if (duplicado) throw new Error(mensagemCpfDuplicado(duplicado.name));
+  }
+  const payload = {
+    contractor_id: campos.contractor_id,
+    name: campos.name.trim().slice(0, 120),
+    cpf,
+    role_title: campos.role_title?.trim() ? campos.role_title.trim().slice(0, 80) : null,
+    type: campos.contractor_id ? "contractor" : "direct",
+  };
   const { error } = id
     ? await supabase.from("employees").update(payload).eq("id", id)
     : await supabase.from("employees").insert(payload);
+  if (error?.code === "23505") {
+    throw new Error(
+      "Já existe um cadastro com este CPF nesta empresa. Use o cadastro existente ou informe outro CPF.",
+    );
+  }
   if (error) throw new Error(error.message);
 }
 
+export async function importarColaboradoresValidos(
+  contractorId: string | null,
+  linhas: readonly {
+    name: string;
+    cpf: string | null;
+    role_title: string;
+    funcaoNova: boolean;
+  }[],
+) {
+  const funcoesNovas = new Map<string, string>();
+  let salvos = 0;
+  for (const linha of linhas) {
+    let role = linha.role_title;
+    if (linha.funcaoNova) {
+      const chave = normalizarBusca(role);
+      const jaSalva = funcoesNovas.get(chave);
+      if (jaSalva) role = jaSalva;
+      else {
+        try {
+          role = await adicionarFuncaoPersonalizada(contractorId, role);
+        } catch (erro) {
+          const mensagem =
+            erro instanceof Error ? erro.message : "Não foi possível salvar a função.";
+          if (!mensagem.includes("já está salva")) throw new Error(`${linha.name}: ${mensagem}`);
+        }
+        funcoesNovas.set(chave, role);
+      }
+    }
+    try {
+      await salvarColaborador({
+        contractor_id: contractorId,
+        name: linha.name,
+        cpf: linha.cpf,
+        role_title: role,
+      });
+    } catch (erro) {
+      const mensagem =
+        erro instanceof Error ? erro.message : "Não foi possível salvar o colaborador.";
+      throw new Error(
+        salvos > 0 ? `${mensagem} ${salvos} colaborador(es) já tinham sido importados.` : mensagem,
+      );
+    }
+    salvos += 1;
+  }
+  return salvos;
+}
+
 export async function excluirColaborador(id: string) {
-  const { data: docs } = await supabase.from("employee_documents").select("file_url").eq("employee_id", id);
+  const { data: docs } = await supabase
+    .from("employee_documents")
+    .select("file_url")
+    .eq("employee_id", id);
   const { error } = await supabase.from("employees").delete().eq("id", id);
   if (error) throw new Error(error.message);
   const caminhos = (docs ?? []).map((d) => d.file_url).filter((c): c is string => Boolean(c));
@@ -268,24 +330,110 @@ export async function adicionarFuncaoPersonalizada(contractorId: string | null, 
   return nome;
 }
 
-export function formatarCpf(valor: string) {
-  const digitos = valor.replace(/\D/g, "").slice(0, 11);
-  return digitos
-    .replace(/^(\d{3})(\d)/, "$1.$2")
-    .replace(/^(\d{3})\.(\d{3})(\d)/, "$1.$2.$3")
-    .replace(/\.(\d{3})(\d)/, ".$1-$2");
+export type DocumentoAlerta = {
+  documento: Documento;
+  tabela: "company_documents" | "employee_documents";
+  origem: "empresa" | "colaborador";
+  colaboradorNome: string | null;
+  empresaChave: string;
+  empresaRotulo: string;
+  empresaTipo: "propria" | "terceirizada";
+};
+
+function identidadeEmpresa(
+  contractorId: string | null,
+  nomeEmpresaPropria: string,
+  empresas: ReadonlyMap<string, string>,
+) {
+  if (!contractorId) {
+    return {
+      empresaChave: "propria",
+      empresaRotulo: `Empresa Própria: ${nomeEmpresaPropria}`,
+      empresaTipo: "propria" as const,
+    };
+  }
+  return {
+    empresaChave: `ter:${contractorId}`,
+    empresaRotulo: `Terceirizada: ${empresas.get(contractorId) ?? "Sem identificação"}`,
+    empresaTipo: "terceirizada" as const,
+  };
 }
 
-export function cpfValido(valor: string) {
-  const cpf = valor.replace(/\D/g, "");
-  if (cpf.length !== 11 || /^(\d)\1{10}$/.test(cpf)) return false;
-  const calcular = (tamanho: number) => {
-    let soma = 0;
-    for (let i = 0; i < tamanho; i++) soma += Number(cpf[i]) * (tamanho + 1 - i);
-    const resto = (soma * 10) % 11;
-    return resto === 10 ? 0 : resto;
+function comoDocumento(row: {
+  id: string;
+  doc_type: string;
+  title: string;
+  file_url: string | null;
+  issue_date: string | null;
+  expiration_date: string | null;
+  status: string;
+  version: number;
+  created_at: string;
+}): Documento {
+  return {
+    id: row.id,
+    doc_type: row.doc_type,
+    title: row.title,
+    file_url: row.file_url,
+    issue_date: row.issue_date,
+    expiration_date: row.expiration_date,
+    status: row.status,
+    version: row.version,
+    created_at: row.created_at,
   };
-  return calcular(9) === Number(cpf[9]) && calcular(10) === Number(cpf[10]);
+}
+
+/** Documentos ativos de todas as empresas próprias e terceirizadas, com a origem de cada um. */
+export async function listarDocumentosParaAlertas(nomeEmpresaPropria: string) {
+  const nomePropria = nomeEmpresaPropria.trim() || "Matriz";
+  const [empresaRes, colaboradorRes, pessoasRes, empresasRes] = await Promise.all([
+    supabase
+      .from("company_documents")
+      .select(
+        "id, doc_type, title, file_url, issue_date, expiration_date, status, version, created_at, contractor_id",
+      )
+      .eq("status", "active"),
+    supabase
+      .from("employee_documents")
+      .select(
+        "id, doc_type, title, file_url, issue_date, expiration_date, status, version, created_at, employee_id",
+      )
+      .eq("status", "active"),
+    supabase.from("employees").select("id, name, contractor_id"),
+    supabase.from("contractors").select("id, name"),
+  ]);
+  for (const resposta of [empresaRes, colaboradorRes, pessoasRes, empresasRes]) {
+    if (resposta.error) throw new Error(resposta.error.message);
+  }
+
+  const empresas = new Map((empresasRes.data ?? []).map((empresa) => [empresa.id, empresa.name]));
+  const pessoas = new Map((pessoasRes.data ?? []).map((pessoa) => [pessoa.id, pessoa]));
+  const itens: DocumentoAlerta[] = [];
+
+  for (const row of empresaRes.data ?? []) {
+    const { contractor_id: contractorId, ...campos } = row;
+    itens.push({
+      documento: comoDocumento(campos),
+      tabela: "company_documents",
+      origem: "empresa",
+      colaboradorNome: null,
+      ...identidadeEmpresa(contractorId, nomePropria, empresas),
+    });
+  }
+
+  for (const row of colaboradorRes.data ?? []) {
+    const { employee_id: employeeId, ...campos } = row;
+    const pessoa = pessoas.get(employeeId);
+    itens.push({
+      documento: comoDocumento(campos),
+      tabela: "employee_documents",
+      origem: "colaborador",
+      colaboradorNome: pessoa?.name ?? "Colaborador removido",
+      ...identidadeEmpresa(pessoa?.contractor_id ?? null, nomePropria, empresas),
+    });
+  }
+
+  return itens;
 }
 
 /* -------------------------------- Documentos ------------------------------ */
@@ -293,9 +441,13 @@ export function cpfValido(valor: string) {
 export async function listarDocumentosEmpresa(contractorId: string | null) {
   let consulta = supabase
     .from("company_documents")
-    .select("id, doc_type, title, file_url, issue_date, expiration_date, status, version, created_at")
+    .select(
+      "id, doc_type, title, file_url, issue_date, expiration_date, status, version, created_at",
+    )
     .order("version", { ascending: false });
-  consulta = contractorId ? consulta.eq("contractor_id", contractorId) : consulta.is("contractor_id", null);
+  consulta = contractorId
+    ? consulta.eq("contractor_id", contractorId)
+    : consulta.is("contractor_id", null);
   const { data, error } = await consulta;
   if (error) throw new Error(error.message);
   return (data ?? []) as Documento[];
@@ -304,7 +456,9 @@ export async function listarDocumentosEmpresa(contractorId: string | null) {
 export async function listarDocumentosColaborador(employeeId: string) {
   const { data, error } = await supabase
     .from("employee_documents")
-    .select("id, doc_type, title, file_url, issue_date, expiration_date, status, version, created_at")
+    .select(
+      "id, doc_type, title, file_url, issue_date, expiration_date, status, version, created_at",
+    )
     .eq("employee_id", employeeId)
     .order("version", { ascending: false });
   if (error) throw new Error(error.message);
@@ -340,7 +494,8 @@ type NovoDocumento = {
  * o anterior vira "obsolete" e o novo entra com a versão seguinte.
  */
 export async function anexarDocumento(
-  escopo: { tipo: "empresa"; contractorId: string | null } | { tipo: "colaborador"; employeeId: string },
+  escopo:
+    { tipo: "empresa"; contractorId: string | null } | { tipo: "colaborador"; employeeId: string },
   dados: NovoDocumento,
 ) {
   const { data: auth } = await supabase.auth.getUser();
@@ -408,14 +563,22 @@ export async function excluirDocumento(
   if (error) throw new Error(error.message);
   if (caminho) {
     const { error: erroArquivo } = await supabase.storage.from(BUCKET_DOCS).remove([caminho]);
-    if (erroArquivo) throw new Error(`O cadastro foi excluído, mas o arquivo não pôde ser removido: ${erroArquivo.message}`);
+    if (erroArquivo)
+      throw new Error(
+        `O cadastro foi excluído, mas o arquivo não pôde ser removido: ${erroArquivo.message}`,
+      );
   }
 }
 
 export async function atualizarDocumento(
   tabela: "company_documents" | "employee_documents",
   id: string,
-  dados: { doc_type: string; title: string; issue_date: string | null; expiration_date: string | null },
+  dados: {
+    doc_type: string;
+    title: string;
+    issue_date: string | null;
+    expiration_date: string | null;
+  },
 ) {
   const { error } = await supabase.from(tabela).update(dados).eq("id", id);
   if (error) throw new Error(error.message);

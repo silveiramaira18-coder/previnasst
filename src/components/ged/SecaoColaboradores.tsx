@@ -7,6 +7,7 @@ import { ListaDocumentos } from "@/components/ged/ListaDocumentos";
 import { ModalDocumento } from "@/components/ged/ModalDocumento";
 import { ComboboxGed } from "@/components/ged/ComboboxGed";
 import { ConfirmacaoExclusao } from "@/components/ged/ConfirmacaoExclusao";
+import { ImportarColaboradores } from "@/components/ged/ImportarColaboradores";
 import {
   Accordion,
   AccordionContent,
@@ -29,18 +30,25 @@ import {
   FUNCOES_CONSTRUCAO,
   adicionarFuncaoPersonalizada,
   cpfValido,
+  encontrarColaboradorPorCpf,
   excluirColaborador,
   formatarCpf,
   listarColaboradores,
   listarDocumentosColaborador,
   listarFuncoesPersonalizadas,
+  mensagemCpfDuplicado,
   salvarColaborador,
-  documentoNoFiltro,
-  type FiltroPrazo,
   type Colaborador,
 } from "@/lib/ged";
+import { usePerfil } from "@/lib/perfil";
 
-function DocumentosDoColaborador({ colaborador, podeAlterar, filtroPrazo }: { colaborador: Colaborador; podeAlterar: boolean; filtroPrazo: FiltroPrazo }) {
+function DocumentosDoColaborador({
+  colaborador,
+  podeAlterar,
+}: {
+  colaborador: Colaborador;
+  podeAlterar: boolean;
+}) {
   const qc = useQueryClient();
   const chave = ["ged-docs-colaborador", colaborador.id];
   const { data: docs = [] } = useQuery({
@@ -50,20 +58,22 @@ function DocumentosDoColaborador({ colaborador, podeAlterar, filtroPrazo }: { co
   const atualizar = async () => {
     await Promise.all([
       qc.invalidateQueries({ queryKey: chave }),
-      qc.invalidateQueries({ queryKey: ["ged-resumo"] }),
+      qc.invalidateQueries({ queryKey: ["ged-alertas"] }),
     ]);
   };
 
   return (
     <div className="space-y-3">
-      {podeAlterar ? <ModalDocumento
-        escopo={{ tipo: "colaborador", employeeId: colaborador.id }}
-        tipos={TIPOS_DOC_COLABORADOR}
-        rotulo="Anexar documento do colaborador"
-        onSalvo={atualizar}
-      /> : null}
+      {podeAlterar ? (
+        <ModalDocumento
+          escopo={{ tipo: "colaborador", employeeId: colaborador.id }}
+          tipos={TIPOS_DOC_COLABORADOR}
+          rotulo="Anexar documento do colaborador"
+          onSalvo={atualizar}
+        />
+      ) : null}
       <ListaDocumentos
-        documentos={docs.filter((d) => d.status !== "active" || documentoNoFiltro(d, filtroPrazo))}
+        documentos={docs}
         tabela="employee_documents"
         tipos={TIPOS_DOC_COLABORADOR}
         podeAlterar={podeAlterar}
@@ -84,7 +94,25 @@ function NovoColaborador({
   colaborador?: Colaborador;
 }) {
   const [aberto, setAberto] = useState(false);
-  const [form, setForm] = useState({ name: colaborador?.name ?? "", cpf: colaborador?.cpf ?? "", role_title: colaborador?.role_title ?? "" });
+  const [form, setForm] = useState({
+    name: colaborador?.name ?? "",
+    cpf: colaborador?.cpf ?? "",
+    role_title: colaborador?.role_title ?? "",
+  });
+  const { perfil } = usePerfil();
+  const { data: existentes = [] } = useQuery({
+    queryKey: ["ged-colaboradores", contractorId],
+    queryFn: () => listarColaboradores(contractorId),
+    enabled: aberto,
+  });
+  const duplicado =
+    form.cpf && cpfValido(form.cpf)
+      ? encontrarColaboradorPorCpf(
+          existentes.filter((pessoa) => !perfil?.id || pessoa.user_id === perfil.id),
+          form.cpf,
+          colaborador?.id,
+        )
+      : null;
   const [modoFuncao, setModoFuncao] = useState<"lista" | "outra" | "nova">("lista");
   const [funcaoManual, setFuncaoManual] = useState("");
   const qc = useQueryClient();
@@ -136,9 +164,18 @@ function NovoColaborador({
     <Dialog open={aberto} onOpenChange={setAberto}>
       <DialogTrigger asChild>
         {colaborador ? (
-          <Button type="button" size="icon" variant="ghost" aria-label={`Editar ${colaborador.name}`}><Pencil className="size-4" /></Button>
+          <Button
+            type="button"
+            size="icon"
+            variant="ghost"
+            aria-label={`Editar ${colaborador.name}`}
+          >
+            <Pencil className="size-4" />
+          </Button>
         ) : (
-          <Button type="button" size="sm" variant="outline" className="gap-2"><UserPlus className="size-4" /> Novo colaborador</Button>
+          <Button type="button" size="sm" variant="outline" className="gap-2">
+            <UserPlus className="size-4" /> Novo colaborador
+          </Button>
         )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
@@ -166,10 +203,19 @@ function NovoColaborador({
               placeholder="000.000.000-00"
               value={form.cpf}
               onChange={(e) => setForm({ ...form, cpf: formatarCpf(e.target.value) })}
-              aria-invalid={Boolean(form.cpf && form.cpf.length === 14 && !cpfValido(form.cpf))}
+              aria-invalid={Boolean(
+                duplicado || (form.cpf && form.cpf.length === 14 && !cpfValido(form.cpf)),
+              )}
             />
             {form.cpf && form.cpf.length === 14 && !cpfValido(form.cpf) ? (
-              <p className="text-xs text-destructive">CPF inválido. Confira os números digitados.</p>
+              <p className="text-xs text-destructive" role="alert">
+                CPF inválido. Confira os números digitados.
+              </p>
+            ) : null}
+            {duplicado ? (
+              <p className="text-xs text-destructive" role="alert">
+                {mensagemCpfDuplicado(duplicado.name)}
+              </p>
             ) : null}
           </div>
           <div className="space-y-1.5">
@@ -180,7 +226,13 @@ function NovoColaborador({
                 { titulo: "Funções salvas", opcoes: funcoesPersonalizadas.map((f) => f.name) },
                 { opcoes: ["Outra (digitar manualmente)", "+ Adicionar nova função à lista"] },
               ]}
-              value={modoFuncao === "lista" ? form.role_title : modoFuncao === "outra" ? "Outra (digitar manualmente)" : "+ Adicionar nova função à lista"}
+              value={
+                modoFuncao === "lista"
+                  ? form.role_title
+                  : modoFuncao === "outra"
+                    ? "Outra (digitar manualmente)"
+                    : "+ Adicionar nova função à lista"
+              }
               onChange={(valor) => {
                 if (valor === "Outra (digitar manualmente)") {
                   setModoFuncao("outra");
@@ -229,7 +281,12 @@ function NovoColaborador({
           <Button
             type="button"
             className="h-12 w-full"
-            disabled={salvar.isPending || adicionarFuncao.isPending || Boolean(form.cpf && !cpfValido(form.cpf))}
+            disabled={
+              salvar.isPending ||
+              adicionarFuncao.isPending ||
+              Boolean(form.cpf && !cpfValido(form.cpf)) ||
+              Boolean(duplicado)
+            }
             onClick={() => salvar.mutate()}
           >
             {colaborador ? "Salvar alterações" : "Salvar colaborador"}
@@ -244,12 +301,10 @@ export function SecaoColaboradores({
   contractorId,
   busca,
   podeAlterar,
-  filtroPrazo,
 }: {
   contractorId: string | null;
   busca: string;
   podeAlterar: boolean;
-  filtroPrazo: FiltroPrazo;
 }) {
   const qc = useQueryClient();
   const chave = ["ged-colaboradores", contractorId];
@@ -281,10 +336,18 @@ export function SecaoColaboradores({
     <Card>
       <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-3">
         <CardTitle className="text-base">Documentos dos Colaboradores</CardTitle>
-        {podeAlterar ? <NovoColaborador
-          contractorId={contractorId}
-          onSalvo={() => qc.invalidateQueries({ queryKey: chave })}
-        /> : null}
+        {podeAlterar ? (
+          <div className="flex flex-wrap gap-2">
+            <ImportarColaboradores
+              contractorId={contractorId}
+              onSalvo={() => qc.invalidateQueries({ queryKey: chave })}
+            />
+            <NovoColaborador
+              contractorId={contractorId}
+              onSalvo={() => qc.invalidateQueries({ queryKey: chave })}
+            />
+          </div>
+        ) : null}
       </CardHeader>
       <CardContent>
         {lista.length === 0 ? (
@@ -300,19 +363,37 @@ export function SecaoColaboradores({
                     <span>
                       <span className="font-semibold">{c.name}</span>
                       <span className="block text-xs font-normal text-muted-foreground">
-                        {[c.role_title, c.cpf].filter(Boolean).join(" · ") || "Sem função informada"}
+                        {[c.role_title, c.cpf].filter(Boolean).join(" · ") ||
+                          "Sem função informada"}
                       </span>
                     </span>
                   </AccordionTrigger>
-                   {podeAlterar ? <>
-                     <NovoColaborador contractorId={contractorId} colaborador={c} onSalvo={() => qc.invalidateQueries({ queryKey: chave })} />
-                     <ConfirmacaoExclusao nome={`“${c.name}” e seus documentos`} onConfirmar={() => remover.mutateAsync(c.id)} disabled={remover.isPending}>
-                       <Button type="button" size="icon" variant="ghost" aria-label={`Excluir ${c.name}`}><Trash2 className="size-4 text-destructive" /></Button>
-                     </ConfirmacaoExclusao>
-                   </> : null}
+                  {podeAlterar ? (
+                    <>
+                      <NovoColaborador
+                        contractorId={contractorId}
+                        colaborador={c}
+                        onSalvo={() => qc.invalidateQueries({ queryKey: chave })}
+                      />
+                      <ConfirmacaoExclusao
+                        nome={`“${c.name}” e seus documentos`}
+                        onConfirmar={() => remover.mutateAsync(c.id)}
+                        disabled={remover.isPending}
+                      >
+                        <Button
+                          type="button"
+                          size="icon"
+                          variant="ghost"
+                          aria-label={`Excluir ${c.name}`}
+                        >
+                          <Trash2 className="size-4 text-destructive" />
+                        </Button>
+                      </ConfirmacaoExclusao>
+                    </>
+                  ) : null}
                 </div>
                 <AccordionContent className="pb-4">
-                   <DocumentosDoColaborador colaborador={c} podeAlterar={podeAlterar} filtroPrazo={filtroPrazo} />
+                  <DocumentosDoColaborador colaborador={c} podeAlterar={podeAlterar} />
                 </AccordionContent>
               </AccordionItem>
             ))}

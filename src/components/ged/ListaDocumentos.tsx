@@ -18,6 +18,75 @@ import { excluirDocumento, urlDocumento, type Documento } from "@/lib/ged";
 
 type Tabela = "company_documents" | "employee_documents";
 
+export function AcoesDocumento({
+  doc,
+  tabela,
+  onMudou,
+  podeAlterar,
+  tipos,
+}: {
+  doc: Documento;
+  tabela: Tabela;
+  onMudou: () => void | Promise<void>;
+  podeAlterar: boolean;
+  tipos: readonly string[];
+}) {
+  const baixar = useMutation({
+    mutationFn: async () => {
+      if (!doc.file_url) throw new Error("Este registro não possui arquivo anexado.");
+      const url = await urlDocumento(doc.file_url);
+      const link = document.createElement("a");
+      link.href = url;
+      link.target = "_blank";
+      link.rel = "noopener";
+      link.download = doc.title;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    },
+    onError: (e: Error) => toast.error("Não foi possível baixar", { description: e.message }),
+  });
+
+  const remover = useMutation({
+    mutationFn: () => excluirDocumento(tabela, doc.id, doc.file_url),
+    onSuccess: () => {
+      toast.success("Documento excluído");
+      onMudou();
+    },
+    onError: (e: Error) => toast.error("Não foi possível excluir", { description: e.message }),
+  });
+
+  return (
+    <div className="ml-auto flex shrink-0 gap-1">
+      <PreviewDocumento doc={doc} />
+      {podeAlterar ? (
+        <EditarDocumento doc={doc} tabela={tabela} tipos={tipos} onSalvo={onMudou} />
+      ) : null}
+      <Button
+        type="button"
+        size="icon"
+        variant="ghost"
+        aria-label="Baixar documento"
+        disabled={!doc.file_url || baixar.isPending}
+        onClick={() => baixar.mutate()}
+      >
+        <Download className="size-4" />
+      </Button>
+      {podeAlterar ? (
+        <ConfirmacaoExclusao
+          nome={`“${doc.title}” (v${doc.version})`}
+          disabled={remover.isPending}
+          onConfirmar={() => remover.mutateAsync()}
+        >
+          <Button type="button" size="icon" variant="ghost" aria-label="Excluir documento">
+            <Trash2 className="size-4 text-destructive" />
+          </Button>
+        </ConfirmacaoExclusao>
+      ) : null}
+    </div>
+  );
+}
+
 function Linha({
   doc,
   tabela,
@@ -33,24 +102,6 @@ function Linha({
   podeAlterar: boolean;
   tipos: readonly string[];
 }) {
-  const baixar = useMutation({
-    mutationFn: async () => {
-      if (!doc.file_url) throw new Error("Este registro não possui arquivo anexado.");
-      const url = await urlDocumento(doc.file_url);
-      window.open(url, "_blank", "noopener");
-    },
-    onError: (e: Error) => toast.error("Não foi possível abrir", { description: e.message }),
-  });
-
-  const remover = useMutation({
-    mutationFn: () => excluirDocumento(tabela, doc.id, doc.file_url),
-    onSuccess: () => {
-      toast.success("Documento excluído");
-      onMudou();
-    },
-    onError: (e: Error) => toast.error("Não foi possível excluir", { description: e.message }),
-  });
-
   return (
     <div className="flex flex-wrap items-center gap-3 rounded-xl border p-3">
       <div className="min-w-[180px] flex-1 space-y-1">
@@ -71,31 +122,13 @@ function Linha({
       ) : (
         <BadgeValidade validade={doc.expiration_date} />
       )}
-      <div className="ml-auto flex shrink-0 gap-1">
-        <PreviewDocumento doc={doc} />
-        {podeAlterar ? <EditarDocumento doc={doc} tabela={tabela} tipos={tipos} onSalvo={onMudou} /> : null}
-        <Button
-          type="button"
-          size="icon"
-          variant="ghost"
-          aria-label="Baixar documento"
-          disabled={!doc.file_url || baixar.isPending}
-          onClick={() => baixar.mutate()}
-        >
-          <Download className="size-4" />
-        </Button>
-        {podeAlterar ? (
-          <ConfirmacaoExclusao
-            nome={`“${doc.title}” (v${doc.version})`}
-            disabled={remover.isPending}
-            onConfirmar={() => remover.mutateAsync()}
-          >
-            <Button type="button" size="icon" variant="ghost" aria-label="Excluir documento">
-              <Trash2 className="size-4 text-destructive" />
-            </Button>
-          </ConfirmacaoExclusao>
-        ) : null}
-      </div>
+      <AcoesDocumento
+        doc={doc}
+        tabela={tabela}
+        tipos={tipos}
+        podeAlterar={podeAlterar}
+        onMudou={onMudou}
+      />
     </div>
   );
 }
@@ -125,7 +158,16 @@ export function ListaDocumentos({
           {vazio}
         </p>
       ) : (
-        ativos.map((d) => <Linha key={d.id} doc={d} tabela={tabela} onMudou={onMudou} podeAlterar={podeAlterar} tipos={tipos} />)
+        ativos.map((d) => (
+          <Linha
+            key={d.id}
+            doc={d}
+            tabela={tabela}
+            onMudou={onMudou}
+            podeAlterar={podeAlterar}
+            tipos={tipos}
+          />
+        ))
       )}
 
       {obsoletos.length > 0 ? (
@@ -138,7 +180,15 @@ export function ListaDocumentos({
             </AccordionTrigger>
             <AccordionContent className="space-y-2">
               {obsoletos.map((d) => (
-                <Linha key={d.id} doc={d} tabela={tabela} onMudou={onMudou} obsoleto podeAlterar={podeAlterar} tipos={tipos} />
+                <Linha
+                  key={d.id}
+                  doc={d}
+                  tabela={tabela}
+                  onMudou={onMudou}
+                  obsoleto
+                  podeAlterar={podeAlterar}
+                  tipos={tipos}
+                />
               ))}
             </AccordionContent>
           </AccordionItem>
