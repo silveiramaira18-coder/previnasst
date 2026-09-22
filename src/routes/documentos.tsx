@@ -87,15 +87,6 @@ function CardResumo({
   );
 }
 
-async function carregarTodosDocumentos() {
-  const [empresa, colaborador] = await Promise.all([
-    supabase.from("company_documents").select("status, expiration_date"),
-    supabase.from("employee_documents").select("status, expiration_date"),
-  ]);
-  if (empresa.error) throw new Error(empresa.error.message);
-  if (colaborador.error) throw new Error(colaborador.error.message);
-  return [...(empresa.data ?? []), ...(colaborador.data ?? [])] as Documento[];
-}
 
 function NovaTerceirizada({ onSalvo, empresa }: { onSalvo: () => void; empresa?: Terceirizada }) {
   const [aberto, setAberto] = useState(false);
