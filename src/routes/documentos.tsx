@@ -176,7 +176,7 @@ function GestaoDocumental() {
 
   const { data: todos = [] } = useQuery({
     queryKey: ["ged-resumo"],
-    queryFn: carregarTodosDocumentos,
+    queryFn: listarDocumentosConsolidados,
   });
   const { data: terceirizadas = [] } = useQuery({
     queryKey: ["ged-terceirizadas"],
@@ -236,6 +236,16 @@ function GestaoDocumental() {
               {rotulo} <span className="ml-2 rounded-full bg-background/20 px-1.5">{total}</span>
             </Button>
           ))}
+        </CardContent>
+        <CardContent className="pt-0">
+          <PainelAlertas
+            documentos={todos}
+            filtro={filtroPrazo}
+            podeAlterar={adminPrincipal && !carregandoPerfil}
+            onMudou={async () => {
+              await qc.invalidateQueries({ queryKey: ["ged-resumo"] });
+            }}
+          />
         </CardContent>
       </Card>
 
