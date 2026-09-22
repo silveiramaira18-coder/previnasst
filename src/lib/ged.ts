@@ -216,6 +216,23 @@ export async function listarColaboradores(contractorId: string | null) {
   return (data ?? []) as Colaborador[];
 }
 
+/** Procura outro colaborador da mesma empresa com o mesmo CPF. */
+export async function colaboradorComMesmoCpf(
+  contractorId: string | null,
+  cpf: string,
+  ignorarId?: string,
+) {
+  const formatado = formatarCpf(cpf);
+  let consulta = supabase.from("employees").select("id, name").eq("cpf", formatado);
+  consulta = contractorId
+    ? consulta.eq("contractor_id", contractorId)
+    : consulta.is("contractor_id", null);
+  if (ignorarId) consulta = consulta.neq("id", ignorarId);
+  const { data, error } = await consulta.limit(1);
+  if (error) throw new Error(error.message);
+  return (data ?? [])[0] ?? null;
+}
+
 export async function salvarColaborador(dados: {
   id?: string;
   contractor_id: string | null;
@@ -224,11 +241,88 @@ export async function salvarColaborador(dados: {
   role_title: string | null;
 }) {
   const { id, ...campos } = dados;
+  if (campos.cpf) {
+    const duplicado = await colaboradorComMesmoCpf(campos.contractor_id, campos.cpf, id);
+    if (duplicado)
+      throw new Error(
+        `Já existe um colaborador cadastrado nesta empresa com o CPF ${formatarCpf(campos.cpf)}: ${duplicado.name}.`,
+      );
+    campos.cpf = formatarCpf(campos.cpf);
+  }
   const payload = { ...campos, type: campos.contractor_id ? "contractor" : "direct" };
   const { error } = id
     ? await supabase.from("employees").update(payload).eq("id", id)
     : await supabase.from("employees").insert(payload);
   if (error) throw new Error(error.message);
+}
+
+export type LinhaCsv = { name: string; cpf: string; role_title: string };
+
+/** Lê um CSV simples com colunas Nome, CPF e Função (com ou sem cabeçalho). */
+export function lerCsvColaboradores(texto: string): LinhaCsv[] {
+  const linhas = texto
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter(Boolean);
+  if (linhas.length === 0) return [];
+  const separador = (linhas[0]?.match(/;/g)?.length ?? 0) > (linhas[0]?.match(/,/g)?.length ?? 0) ? ";" : ",";
+  const partir = (linha: string) =>
+    linha
+      .split(separador)
+      .map((c) => c.trim().replace(/^"(.*)"$/, "$1").trim());
+  const primeira = partir(linhas[0] ?? "").join(" ").toLowerCase();
+  const corpo = /nome/.test(primeira) && /cpf|fun/.test(primeira) ? linhas.slice(1) : linhas;
+  return corpo.map((linha) => {
+    const [name = "", cpf = "", role_title = ""] = partir(linha);
+    return { name, cpf, role_title };
+  });
+}
+
+export type ResultadoImportacao = {
+  importados: number;
+  erros: { linha: number; nome: string; motivo: string }[];
+};
+
+/** Importa colaboradores do CSV, validando CPF e reaproveitando as funções salvas. */
+export async function importarColaboradores(
+  contractorId: string | null,
+  linhas: LinhaCsv[],
+): Promise<ResultadoImportacao> {
+  const resultado: ResultadoImportacao = { importados: 0, erros: [] };
+  const funcoesSalvas = await listarFuncoesPersonalizadas(contractorId);
+  const conhecidas = new Set(
+    [...FUNCOES_CONSTRUCAO, ...funcoesSalvas.map((f) => f.name)].map((n) => n.toLowerCase()),
+  );
+  const cpfsDoArquivo = new Set<string>();
+
+  for (const [indice, linha] of linhas.entries()) {
+    const numero = indice + 1;
+    const nome = linha.name.trim().slice(0, 120);
+    const funcao = linha.role_title.trim().slice(0, 80);
+    const cpf = linha.cpf.trim();
+    try {
+      if (!nome) throw new Error("Nome não informado.");
+      if (!cpf) throw new Error("CPF não informado.");
+      if (!cpfValido(cpf)) throw new Error("CPF inválido.");
+      const formatado = formatarCpf(cpf);
+      if (cpfsDoArquivo.has(formatado)) throw new Error("CPF repetido na própria planilha.");
+      cpfsDoArquivo.add(formatado);
+      if (funcao && !conhecidas.has(funcao.toLowerCase())) {
+        await adicionarFuncaoPersonalizada(contractorId, funcao).catch(() => undefined);
+        conhecidas.add(funcao.toLowerCase());
+      }
+      await salvarColaborador({
+        contractor_id: contractorId,
+        name: nome,
+        cpf: formatado,
+        role_title: funcao || null,
+      });
+      resultado.importados++;
+    } catch (e) {
+      resultado.erros.push({ linha: numero, nome: nome || "(sem nome)", motivo: (e as Error).message });
+    }
+  }
+  return resultado;
 }
 
 export async function excluirColaborador(id: string) {
