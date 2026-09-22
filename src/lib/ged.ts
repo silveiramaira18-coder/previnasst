@@ -514,3 +514,75 @@ export async function atualizarDocumento(
   const { error } = await supabase.from(tabela).update(dados).eq("id", id);
   if (error) throw new Error(error.message);
 }
+
+/* ------------------------- Painel geral de alertas ------------------------ */
+
+export type DocumentoAlerta = Documento & {
+  tabela: "company_documents" | "employee_documents";
+  empresa: string;
+  origem: string;
+};
+
+/** Lista todos os documentos ativos do sistema com empresa e origem para o painel de alertas. */
+export async function listarDocumentosConsolidados(): Promise<DocumentoAlerta[]> {
+  const campos = "id, doc_type, title, file_url, issue_date, expiration_date, status, version, created_at";
+  const [empresa, colaborador] = await Promise.all([
+    supabase.from("company_documents").select(`${campos}, contractor_id, contractors(name)`),
+    supabase
+      .from("employee_documents")
+      .select(`${campos}, employees(name, contractor_id, contractors(name))`),
+  ]);
+  if (empresa.error) throw new Error(empresa.error.message);
+  if (colaborador.error) throw new Error(colaborador.error.message);
+
+  const nomeEmpresa = (contratada: { name?: string } | null | undefined) =>
+    contratada?.name ? `Terceirizada: ${contratada.name}` : "Empresa Própria";
+
+  const docsEmpresa: DocumentoAlerta[] = (empresa.data ?? []).map((d) => {
+    const { contractor_id: _c, contractors, ...resto } = d as never as Record<string, unknown> & {
+      contractors: { name: string } | null;
+    };
+    return {
+      ...(resto as unknown as Documento),
+      tabela: "company_documents" as const,
+      empresa: nomeEmpresa(contractors),
+      origem: "Documento da Empresa",
+    };
+  });
+
+  const docsColaborador: DocumentoAlerta[] = (colaborador.data ?? []).map((d) => {
+    const { employees, ...resto } = d as never as Record<string, unknown> & {
+      employees: { name: string; contractors: { name: string } | null } | null;
+    };
+    return {
+      ...(resto as unknown as Documento),
+      tabela: "employee_documents" as const,
+      empresa: nomeEmpresa(employees?.contractors),
+      origem: `Documento do Colaborador: ${employees?.name ?? "—"}`,
+    };
+  });
+
+  return [...docsEmpresa, ...docsColaborador].filter((d) => d.status === "active");
+}
+
+/** Agrupa os documentos por empresa e ordena do vencimento mais urgente para o menos urgente. */
+export function agruparPorEmpresa(docs: DocumentoAlerta[]) {
+  const mapa = new Map<string, DocumentoAlerta[]>();
+  for (const doc of docs) {
+    const atual = mapa.get(doc.empresa) ?? [];
+    atual.push(doc);
+    mapa.set(doc.empresa, atual);
+  }
+  return [...mapa.entries()]
+    .map(([empresa, lista]) => ({
+      empresa,
+      documentos: lista.sort((a, b) => {
+        const da = situacaoDocumento(a.expiration_date).dias;
+        const db = situacaoDocumento(b.expiration_date).dias;
+        if (da === null) return 1;
+        if (db === null) return -1;
+        return da - db;
+      }),
+    }))
+    .sort((a, b) => a.empresa.localeCompare(b.empresa, "pt-BR"));
+}
