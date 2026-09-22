@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { ListaDocumentos } from "@/components/ged/ListaDocumentos";
 import { ModalDocumento } from "@/components/ged/ModalDocumento";
 import { ComboboxGed } from "@/components/ged/ComboboxGed";
+import { ImportarColaboradores } from "@/components/ged/ImportarColaboradores";
 import { ConfirmacaoExclusao } from "@/components/ged/ConfirmacaoExclusao";
 import {
   Accordion,
@@ -281,10 +282,18 @@ export function SecaoColaboradores({
     <Card>
       <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-3">
         <CardTitle className="text-base">Documentos dos Colaboradores</CardTitle>
-        {podeAlterar ? <NovoColaborador
-          contractorId={contractorId}
-          onSalvo={() => qc.invalidateQueries({ queryKey: chave })}
-        /> : null}
+        {podeAlterar ? (
+          <div className="flex flex-wrap gap-2">
+            <ImportarColaboradores
+              contractorId={contractorId}
+              onImportado={() => qc.invalidateQueries({ queryKey: chave })}
+            />
+            <NovoColaborador
+              contractorId={contractorId}
+              onSalvo={() => qc.invalidateQueries({ queryKey: chave })}
+            />
+          </div>
+        ) : null}
       </CardHeader>
       <CardContent>
         {lista.length === 0 ? (
