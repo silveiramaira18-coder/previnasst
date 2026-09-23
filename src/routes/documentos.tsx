@@ -172,7 +172,12 @@ function GestaoDocumental() {
   const [busca, setBusca] = useState("");
   const [terceirizadaId, setTerceirizadaId] = useState<string>("");
   const [filtroPrazo, setFiltroPrazo] = useState<FiltroPrazo>("todos");
-  const { adminPrincipal, isLoading: carregandoPerfil } = usePerfil();
+  const { adminPrincipal, perfil, isLoading: carregandoPerfil } = usePerfil();
+  const nomeEmpresaPropria =
+    adminPrincipal && !carregandoPerfil && perfil?.empresa?.trim()
+      ? perfil.empresa.trim()
+      : "Empresa Própria";
+
 
   const { data: todos = [] } = useQuery({
     queryKey: ["ged-resumo"],
