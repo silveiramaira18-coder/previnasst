@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { formatarData } from "@/lib/db";
-import { excluirDocumento, urlDocumento, type Documento } from "@/lib/ged";
+import { baixarDocumentoComNome, excluirDocumento, type Documento } from "@/lib/ged";
 
 type Tabela = "company_documents" | "employee_documents";
 
@@ -25,6 +25,7 @@ function Linha({
   obsoleto,
   podeAlterar,
   tipos,
+  entidade,
 }: {
   doc: Documento;
   tabela: Tabela;
@@ -32,15 +33,13 @@ function Linha({
   obsoleto?: boolean;
   podeAlterar: boolean;
   tipos: readonly string[];
+  entidade?: string | null;
 }) {
   const baixar = useMutation({
-    mutationFn: async () => {
-      if (!doc.file_url) throw new Error("Este registro não possui arquivo anexado.");
-      const url = await urlDocumento(doc.file_url);
-      window.open(url, "_blank", "noopener");
-    },
-    onError: (e: Error) => toast.error("Não foi possível abrir", { description: e.message }),
+    mutationFn: () => baixarDocumentoComNome(doc.file_url, doc.title, entidade),
+    onError: (e: Error) => toast.error("Não foi possível baixar", { description: e.message }),
   });
+
 
   const remover = useMutation({
     mutationFn: () => excluirDocumento(tabela, doc.id, doc.file_url),
