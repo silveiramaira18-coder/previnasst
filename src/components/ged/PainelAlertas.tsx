@@ -12,12 +12,19 @@ import {
   TIPOS_DOC_COLABORADOR,
   TIPOS_DOC_EMPRESA,
   agruparPorEmpresa,
+  baixarDocumentoComNome,
   documentoNoFiltro,
   excluirDocumento,
-  urlDocumento,
   type DocumentoAlerta,
   type FiltroPrazo,
 } from "@/lib/ged";
+
+/** Nome usado no arquivo baixado: colaborador quando houver, senão a empresa. */
+function entidadeDoDocumento(doc: DocumentoAlerta) {
+  const prefixo = "Documento do Colaborador: ";
+  if (doc.origem.startsWith(prefixo)) return doc.origem.slice(prefixo.length);
+  return doc.empresa.replace(/^Terceirizada:\s*/, "");
+}
 
 function CardAlerta({
   doc,
@@ -29,14 +36,13 @@ function CardAlerta({
   onMudou: () => void | Promise<void>;
 }) {
   const tipos = doc.tabela === "company_documents" ? TIPOS_DOC_EMPRESA : TIPOS_DOC_COLABORADOR;
+  const entidade = entidadeDoDocumento(doc);
 
   const baixar = useMutation({
-    mutationFn: async () => {
-      if (!doc.file_url) throw new Error("Este registro não possui arquivo anexado.");
-      window.open(await urlDocumento(doc.file_url), "_blank", "noopener");
-    },
-    onError: (e: Error) => toast.error("Não foi possível abrir", { description: e.message }),
+    mutationFn: () => baixarDocumentoComNome(doc.file_url, doc.title, entidade),
+    onError: (e: Error) => toast.error("Não foi possível baixar", { description: e.message }),
   });
+
 
   const remover = useMutation({
     mutationFn: () => excluirDocumento(doc.tabela, doc.id, doc.file_url),
