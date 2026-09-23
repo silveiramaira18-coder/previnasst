@@ -70,6 +70,8 @@ function DocumentosDoColaborador({ colaborador, podeAlterar, filtroPrazo }: { co
         podeAlterar={podeAlterar}
         onMudou={atualizar}
         vazio="Sem ASO, treinamentos ou ficha de EPI anexados."
+        entidade={colaborador.name}
+
       />
     </div>
   );
