@@ -51,11 +51,20 @@ export function PreviewDocumento({
           <span>{doc.expiration_date ? `Validade: ${formatarData(doc.expiration_date)}` : "Sem data de validade"}</span>
           <BadgeValidade validade={doc.expiration_date} />
           <div className="ml-auto flex gap-2">
-            <Button asChild size="sm" variant="outline" disabled={!url}>
-              <a href={url || undefined} download target="_blank" rel="noreferrer">
-                <Download className="mr-2 size-4" /> Baixar PDF
-              </a>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              disabled={!doc.file_url}
+              onClick={() => {
+                void baixarDocumentoComNome(doc.file_url, doc.title, entidade).catch((e: Error) =>
+                  toast.error("Não foi possível baixar", { description: e.message }),
+                );
+              }}
+            >
+              <Download className="mr-2 size-4" /> Baixar PDF
             </Button>
+
             <DialogClose asChild><Button type="button" size="sm">Fechar</Button></DialogClose>
           </div>
         </div>
