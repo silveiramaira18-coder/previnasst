@@ -55,6 +55,8 @@ export function SecaoDocumentosEmpresa({
           podeAlterar={podeAlterar}
           onMudou={atualizar}
           vazio="Nenhum PGR, PCMSO, LTCAT ou outro documento anexado ainda."
+          entidade={nomeEmpresa}
+
         />
       </CardContent>
     </Card>
