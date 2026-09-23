@@ -274,7 +274,7 @@ function GestaoDocumental() {
         </TabsList>
 
         <TabsContent value="propria" className="mt-4 space-y-4">
-          <SecaoDocumentosEmpresa contractorId={null} busca={busca} podeAlterar={adminPrincipal} filtroPrazo={filtroPrazo} />
+          <SecaoDocumentosEmpresa contractorId={null} busca={busca} podeAlterar={adminPrincipal} filtroPrazo={filtroPrazo} nomeEmpresa={nomeEmpresaPropria} />
           <SecaoColaboradores contractorId={null} busca={busca} podeAlterar={adminPrincipal} filtroPrazo={filtroPrazo} />
         </TabsContent>
 
