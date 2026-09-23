@@ -33,7 +33,7 @@ function Linha({
   obsoleto?: boolean;
   podeAlterar: boolean;
   tipos: readonly string[];
-  entidade?: string | null;
+  entidade?: string | null | undefined;
 }) {
   const baixar = useMutation({
     mutationFn: () => baixarDocumentoComNome(doc.file_url, doc.title, entidade),
@@ -114,7 +114,7 @@ export function ListaDocumentos({
   vazio?: string;
   podeAlterar: boolean;
   tipos: readonly string[];
-  entidade?: string | null;
+  entidade?: string | null | undefined;
 }) {
   const ativos = documentos.filter((d) => d.status === "active");
   const obsoletos = documentos.filter((d) => d.status !== "active");
