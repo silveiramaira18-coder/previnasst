@@ -106,6 +106,7 @@ export function ListaDocumentos({
   vazio = "Nenhum documento anexado ainda.",
   podeAlterar,
   tipos,
+  entidade,
 }: {
   documentos: Documento[];
   tabela: Tabela;
@@ -113,6 +114,7 @@ export function ListaDocumentos({
   vazio?: string;
   podeAlterar: boolean;
   tipos: readonly string[];
+  entidade?: string | null;
 }) {
   const ativos = documentos.filter((d) => d.status === "active");
   const obsoletos = documentos.filter((d) => d.status !== "active");
@@ -124,7 +126,7 @@ export function ListaDocumentos({
           {vazio}
         </p>
       ) : (
-        ativos.map((d) => <Linha key={d.id} doc={d} tabela={tabela} onMudou={onMudou} podeAlterar={podeAlterar} tipos={tipos} />)
+        ativos.map((d) => <Linha key={d.id} doc={d} tabela={tabela} onMudou={onMudou} podeAlterar={podeAlterar} tipos={tipos} entidade={entidade} />)
       )}
 
       {obsoletos.length > 0 ? (
@@ -137,8 +139,9 @@ export function ListaDocumentos({
             </AccordionTrigger>
             <AccordionContent className="space-y-2">
               {obsoletos.map((d) => (
-                <Linha key={d.id} doc={d} tabela={tabela} onMudou={onMudou} obsoleto podeAlterar={podeAlterar} tipos={tipos} />
+                <Linha key={d.id} doc={d} tabela={tabela} onMudou={onMudou} obsoleto podeAlterar={podeAlterar} tipos={tipos} entidade={entidade} />
               ))}
+
             </AccordionContent>
           </AccordionItem>
         </Accordion>
