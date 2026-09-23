@@ -421,6 +421,52 @@ export async function urlDocumento(caminho: string) {
   return data.signedUrl;
 }
 
+/** Remove acentos e caracteres inválidos em nomes de arquivo. */
+export function sanitizarNomeArquivo(nome: string) {
+  return nome
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[\\/:*?"<>|\r\n\t]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 120);
+}
+
+/** Monta "Título - Entidade.ext" a partir do título do documento e do dono do arquivo. */
+export function nomeArquivoDocumento(titulo: string, entidade: string | null | undefined, caminho: string | null) {
+  const ext = (caminho?.split(".").pop() ?? "pdf").toLowerCase().replace(/[^a-z0-9]/g, "") || "pdf";
+  const base = sanitizarNomeArquivo(entidade ? `${titulo} - ${entidade}` : titulo) || "documento";
+  return `${base}.${ext}`;
+}
+
+/** URL assinada que força o download com o nome personalizado (Content-Disposition). */
+export async function urlDownloadDocumento(caminho: string, nomeArquivo: string) {
+  const { data, error } = await supabase.storage
+    .from(BUCKET_DOCS)
+    .createSignedUrl(caminho, 3600, { download: nomeArquivo });
+  if (error) throw new Error(error.message);
+  return data.signedUrl;
+}
+
+/** Baixa o arquivo no navegador com o nome personalizado. */
+export async function baixarDocumentoComNome(
+  caminho: string | null,
+  titulo: string,
+  entidade?: string | null,
+) {
+  if (!caminho) throw new Error("Este registro não possui arquivo anexado.");
+  const nome = nomeArquivoDocumento(titulo, entidade, caminho);
+  const url = await urlDownloadDocumento(caminho, nome);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = nome;
+  link.rel = "noopener";
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+}
+
+
 type NovoDocumento = {
   doc_type: string;
   title: string;
