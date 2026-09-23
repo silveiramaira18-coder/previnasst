@@ -64,7 +64,7 @@ function CardAlerta({
       </div>
       <BadgeValidade validade={doc.expiration_date} />
       <div className="ml-auto flex shrink-0 gap-1">
-        <PreviewDocumento doc={doc} />
+        <PreviewDocumento doc={doc} entidade={entidade} />
         {podeAlterar ? (
           <EditarDocumento doc={doc} tabela={doc.tabela} tipos={tipos} onSalvo={onMudou} />
         ) : null}
