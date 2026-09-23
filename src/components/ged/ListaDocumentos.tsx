@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { formatarData } from "@/lib/db";
-import { excluirDocumento, urlDocumento, type Documento } from "@/lib/ged";
+import { baixarDocumentoComNome, excluirDocumento, type Documento } from "@/lib/ged";
 
 type Tabela = "company_documents" | "employee_documents";
 
@@ -25,6 +25,7 @@ function Linha({
   obsoleto,
   podeAlterar,
   tipos,
+  entidade,
 }: {
   doc: Documento;
   tabela: Tabela;
@@ -32,15 +33,13 @@ function Linha({
   obsoleto?: boolean;
   podeAlterar: boolean;
   tipos: readonly string[];
+  entidade?: string | null | undefined;
 }) {
   const baixar = useMutation({
-    mutationFn: async () => {
-      if (!doc.file_url) throw new Error("Este registro não possui arquivo anexado.");
-      const url = await urlDocumento(doc.file_url);
-      window.open(url, "_blank", "noopener");
-    },
-    onError: (e: Error) => toast.error("Não foi possível abrir", { description: e.message }),
+    mutationFn: () => baixarDocumentoComNome(doc.file_url, doc.title, entidade),
+    onError: (e: Error) => toast.error("Não foi possível baixar", { description: e.message }),
   });
+
 
   const remover = useMutation({
     mutationFn: () => excluirDocumento(tabela, doc.id, doc.file_url),
@@ -107,6 +106,7 @@ export function ListaDocumentos({
   vazio = "Nenhum documento anexado ainda.",
   podeAlterar,
   tipos,
+  entidade,
 }: {
   documentos: Documento[];
   tabela: Tabela;
@@ -114,6 +114,7 @@ export function ListaDocumentos({
   vazio?: string;
   podeAlterar: boolean;
   tipos: readonly string[];
+  entidade?: string | null | undefined;
 }) {
   const ativos = documentos.filter((d) => d.status === "active");
   const obsoletos = documentos.filter((d) => d.status !== "active");
@@ -125,7 +126,7 @@ export function ListaDocumentos({
           {vazio}
         </p>
       ) : (
-        ativos.map((d) => <Linha key={d.id} doc={d} tabela={tabela} onMudou={onMudou} podeAlterar={podeAlterar} tipos={tipos} />)
+        ativos.map((d) => <Linha key={d.id} doc={d} tabela={tabela} onMudou={onMudou} podeAlterar={podeAlterar} tipos={tipos} entidade={entidade} />)
       )}
 
       {obsoletos.length > 0 ? (
@@ -138,8 +139,9 @@ export function ListaDocumentos({
             </AccordionTrigger>
             <AccordionContent className="space-y-2">
               {obsoletos.map((d) => (
-                <Linha key={d.id} doc={d} tabela={tabela} onMudou={onMudou} obsoleto podeAlterar={podeAlterar} tipos={tipos} />
+                <Linha key={d.id} doc={d} tabela={tabela} onMudou={onMudou} obsoleto podeAlterar={podeAlterar} tipos={tipos} entidade={entidade} />
               ))}
+
             </AccordionContent>
           </AccordionItem>
         </Accordion>

@@ -172,7 +172,12 @@ function GestaoDocumental() {
   const [busca, setBusca] = useState("");
   const [terceirizadaId, setTerceirizadaId] = useState<string>("");
   const [filtroPrazo, setFiltroPrazo] = useState<FiltroPrazo>("todos");
-  const { adminPrincipal, isLoading: carregandoPerfil } = usePerfil();
+  const { adminPrincipal, perfil, isLoading: carregandoPerfil } = usePerfil();
+  const nomeEmpresaPropria =
+    adminPrincipal && !carregandoPerfil && perfil?.empresa?.trim()
+      ? perfil.empresa.trim()
+      : "Empresa Própria";
+
 
   const { data: todos = [] } = useQuery({
     queryKey: ["ged-resumo"],
@@ -258,16 +263,18 @@ function GestaoDocumental() {
 
       <Tabs defaultValue="propria">
         <TabsList className="h-auto w-full flex-wrap justify-start gap-1 sm:w-auto">
-          <TabsTrigger value="propria" className="gap-2 py-2">
-            <Building2 className="size-4" /> Empresa Própria
+          <TabsTrigger value="propria" className="max-w-[16rem] gap-2 py-2" title={nomeEmpresaPropria}>
+            <Building2 className="size-4 shrink-0" />
+            <span className="truncate">{nomeEmpresaPropria}</span>
           </TabsTrigger>
+
           <TabsTrigger value="terceirizados" className="gap-2 py-2">
             <Truck className="size-4" /> Terceirizados / Prestadores
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="propria" className="mt-4 space-y-4">
-          <SecaoDocumentosEmpresa contractorId={null} busca={busca} podeAlterar={adminPrincipal} filtroPrazo={filtroPrazo} />
+          <SecaoDocumentosEmpresa contractorId={null} busca={busca} podeAlterar={adminPrincipal} filtroPrazo={filtroPrazo} nomeEmpresa={nomeEmpresaPropria} />
           <SecaoColaboradores contractorId={null} busca={busca} podeAlterar={adminPrincipal} filtroPrazo={filtroPrazo} />
         </TabsContent>
 
@@ -311,7 +318,7 @@ function GestaoDocumental() {
 
           {selecionada ? (
             <>
-               <SecaoDocumentosEmpresa contractorId={selecionada.id} busca={busca} podeAlterar={adminPrincipal && !carregandoPerfil} filtroPrazo={filtroPrazo} />
+               <SecaoDocumentosEmpresa contractorId={selecionada.id} busca={busca} podeAlterar={adminPrincipal && !carregandoPerfil} filtroPrazo={filtroPrazo} nomeEmpresa={selecionada.name} />
                <SecaoColaboradores contractorId={selecionada.id} busca={busca} podeAlterar={adminPrincipal && !carregandoPerfil} filtroPrazo={filtroPrazo} />
             </>
           ) : null}

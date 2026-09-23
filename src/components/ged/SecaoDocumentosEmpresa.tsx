@@ -10,12 +10,15 @@ export function SecaoDocumentosEmpresa({
   busca,
   podeAlterar,
   filtroPrazo,
+  nomeEmpresa,
 }: {
   contractorId: string | null;
   busca: string;
   podeAlterar: boolean;
   filtroPrazo: FiltroPrazo;
+  nomeEmpresa?: string | null | undefined;
 }) {
+
   const qc = useQueryClient();
   const chave = ["ged-docs-empresa", contractorId];
   const { data: docs = [] } = useQuery({
@@ -52,6 +55,8 @@ export function SecaoDocumentosEmpresa({
           podeAlterar={podeAlterar}
           onMudou={atualizar}
           vazio="Nenhum PGR, PCMSO, LTCAT ou outro documento anexado ainda."
+          entidade={nomeEmpresa}
+
         />
       </CardContent>
     </Card>
