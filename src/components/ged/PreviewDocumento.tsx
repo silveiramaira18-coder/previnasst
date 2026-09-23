@@ -13,9 +13,16 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { formatarData } from "@/lib/db";
-import { urlDocumento, type Documento } from "@/lib/ged";
+import { baixarDocumentoComNome, urlDocumento, type Documento } from "@/lib/ged";
 
-export function PreviewDocumento({ doc }: { doc: Documento }) {
+export function PreviewDocumento({
+  doc,
+  entidade,
+}: {
+  doc: Documento;
+  entidade?: string | null | undefined;
+}) {
+
   const [aberto, setAberto] = useState(false);
   const [url, setUrl] = useState("");
 
