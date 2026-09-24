@@ -315,7 +315,7 @@ export function SecaoColaboradores({
                       </span>
                     </span>
                   </AccordionTrigger>
-                   {podeAlterar ? <>
+                   {podeAlterar && (adminPrincipal || (!!perfil?.id && perfil.id === c.user_id)) ? <>
                      <NovoColaborador contractorId={contractorId} colaborador={c} onSalvo={() => qc.invalidateQueries({ queryKey: chave })} />
                      <ConfirmacaoExclusao nome={`“${c.name}” e seus documentos`} onConfirmar={() => remover.mutateAsync(c.id)} disabled={remover.isPending}>
                        <Button type="button" size="icon" variant="ghost" aria-label={`Excluir ${c.name}`}><Trash2 className="size-4 text-destructive" /></Button>
