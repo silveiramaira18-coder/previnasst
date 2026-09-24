@@ -36,6 +36,13 @@
       "when": 1789761541910,
       "tag": "0004_restrict_ged_writes_to_admins",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1790271789549,
+      "tag": "0005_ged_writes_owner_or_admin",
+      "breakpoints": true
     }
   ]
 }
