@@ -76,6 +76,7 @@ export type Terceirizada = {
   cnpj: string | null;
   contact_email: string | null;
   is_active: boolean;
+  user_id?: string | null;
 };
 
 export type Colaborador = {
@@ -85,6 +86,7 @@ export type Colaborador = {
   cpf: string | null;
   role_title: string | null;
   type: string;
+  user_id?: string | null;
 };
 
 export type FuncaoPersonalizada = { id: string; name: string };
@@ -99,6 +101,7 @@ export type Documento = {
   status: string;
   version: number;
   created_at: string;
+  user_id?: string | null;
 };
 
 export type FiltroPrazo = "todos" | "vencidos" | "7" | "15" | "30";
@@ -144,12 +147,16 @@ export function resumoDocumentos(docs: Documento[]) {
   return { total: ativos.length, aVencer, vencidos };
 }
 
+/** Faixas exclusivas: vencidos ficam só em "vencidos"; 0-7, 8-15 e 16-30 não se repetem. */
 export function documentoNoFiltro(doc: Documento, filtro: FiltroPrazo) {
   if (filtro === "todos") return true;
-  const situacao = situacaoDocumento(doc.expiration_date);
-  if (filtro === "vencidos") return situacao.dias !== null && situacao.dias < 0;
-  const limite = Number(filtro);
-  return situacao.dias !== null && situacao.dias >= 0 && situacao.dias <= limite;
+  const dias = situacaoDocumento(doc.expiration_date).dias;
+  if (dias === null) return false;
+  if (filtro === "vencidos") return dias < 0;
+  if (dias < 0) return false;
+  if (filtro === "7") return dias <= 7;
+  if (filtro === "15") return dias > 7 && dias <= 15;
+  return dias > 15 && dias <= 30;
 }
 
 export function contagemAlertas(docs: Documento[]) {
@@ -167,7 +174,7 @@ export function contagemAlertas(docs: Documento[]) {
 export async function listarTerceirizadas() {
   const { data, error } = await supabase
     .from("contractors")
-    .select("id, name, cnpj, contact_email, is_active")
+    .select("id, name, cnpj, contact_email, is_active, user_id")
     .order("name");
   if (error) throw new Error(error.message);
   return (data ?? []) as Terceirizada[];
@@ -208,7 +215,7 @@ export async function excluirTerceirizada(id: string) {
 export async function listarColaboradores(contractorId: string | null) {
   let consulta = supabase
     .from("employees")
-    .select("id, contractor_id, name, cpf, role_title, type")
+    .select("id, contractor_id, name, cpf, role_title, type, user_id")
     .order("name");
   consulta = contractorId ? consulta.eq("contractor_id", contractorId) : consulta.is("contractor_id", null);
   const { data, error } = await consulta;
@@ -387,7 +394,7 @@ export function cpfValido(valor: string) {
 export async function listarDocumentosEmpresa(contractorId: string | null) {
   let consulta = supabase
     .from("company_documents")
-    .select("id, doc_type, title, file_url, issue_date, expiration_date, status, version, created_at")
+    .select("id, doc_type, title, file_url, issue_date, expiration_date, status, version, created_at, user_id")
     .order("version", { ascending: false });
   consulta = contractorId ? consulta.eq("contractor_id", contractorId) : consulta.is("contractor_id", null);
   const { data, error } = await consulta;
@@ -398,7 +405,7 @@ export async function listarDocumentosEmpresa(contractorId: string | null) {
 export async function listarDocumentosColaborador(employeeId: string) {
   const { data, error } = await supabase
     .from("employee_documents")
-    .select("id, doc_type, title, file_url, issue_date, expiration_date, status, version, created_at")
+    .select("id, doc_type, title, file_url, issue_date, expiration_date, status, version, created_at, user_id")
     .eq("employee_id", employeeId)
     .order("version", { ascending: false });
   if (error) throw new Error(error.message);
@@ -571,7 +578,8 @@ export type DocumentoAlerta = Documento & {
 
 /** Lista todos os documentos ativos do sistema com empresa e origem para o painel de alertas. */
 export async function listarDocumentosConsolidados(): Promise<DocumentoAlerta[]> {
-  const campos = "id, doc_type, title, file_url, issue_date, expiration_date, status, version, created_at";
+  const campos =
+    "id, doc_type, title, file_url, issue_date, expiration_date, status, version, created_at, user_id";
   const [empresa, colaborador] = await Promise.all([
     supabase.from("company_documents").select(`${campos}, contractor_id, contractors(name)`),
     supabase
