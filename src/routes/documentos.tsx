@@ -203,6 +203,8 @@ function GestaoDocumental() {
   });
 
   const selecionada = terceirizadas.find((t) => t.id === terceirizadaId) ?? null;
+  const podeGerenciarEmpresa =
+    !carregandoPerfil && (adminPrincipal || (!!perfil?.id && perfil.id === selecionada?.user_id));
 
   return (
     <div className="space-y-6">
