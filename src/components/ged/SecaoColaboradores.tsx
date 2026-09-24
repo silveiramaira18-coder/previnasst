@@ -15,6 +15,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
+import { usePerfil } from "@/lib/perfil";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -255,6 +256,7 @@ export function SecaoColaboradores({
   filtroPrazo: FiltroPrazo;
 }) {
   const qc = useQueryClient();
+  const { perfil, adminPrincipal } = usePerfil();
   const chave = ["ged-colaboradores", contractorId];
   const { data: colaboradores = [] } = useQuery({
     queryKey: chave,
@@ -315,7 +317,7 @@ export function SecaoColaboradores({
                       </span>
                     </span>
                   </AccordionTrigger>
-                   {podeAlterar ? <>
+                   {podeAlterar && (adminPrincipal || (!!perfil?.id && perfil.id === c.user_id)) ? <>
                      <NovoColaborador contractorId={contractorId} colaborador={c} onSalvo={() => qc.invalidateQueries({ queryKey: chave })} />
                      <ConfirmacaoExclusao nome={`“${c.name}” e seus documentos`} onConfirmar={() => remover.mutateAsync(c.id)} disabled={remover.isPending}>
                        <Button type="button" size="icon" variant="ghost" aria-label={`Excluir ${c.name}`}><Trash2 className="size-4 text-destructive" /></Button>

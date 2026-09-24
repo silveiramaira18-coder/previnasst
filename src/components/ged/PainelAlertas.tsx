@@ -18,6 +18,7 @@ import {
   type DocumentoAlerta,
   type FiltroPrazo,
 } from "@/lib/ged";
+import { usePerfil } from "@/lib/perfil";
 
 /** Nome usado no arquivo baixado: colaborador quando houver, senão a empresa. */
 function entidadeDoDocumento(doc: DocumentoAlerta) {
@@ -37,6 +38,8 @@ function CardAlerta({
 }) {
   const tipos = doc.tabela === "company_documents" ? TIPOS_DOC_EMPRESA : TIPOS_DOC_COLABORADOR;
   const entidade = entidadeDoDocumento(doc);
+  const { perfil, adminPrincipal } = usePerfil();
+  const permitido = podeAlterar && (adminPrincipal || (!!perfil?.id && perfil.id === doc.user_id));
 
   const baixar = useMutation({
     mutationFn: () => baixarDocumentoComNome(doc.file_url, doc.title, entidade),
@@ -65,7 +68,7 @@ function CardAlerta({
       <BadgeValidade validade={doc.expiration_date} />
       <div className="ml-auto flex shrink-0 gap-1">
         <PreviewDocumento doc={doc} entidade={entidade} />
-        {podeAlterar ? (
+        {permitido ? (
           <EditarDocumento doc={doc} tabela={doc.tabela} tipos={tipos} onSalvo={onMudou} />
         ) : null}
         <Button
@@ -78,7 +81,7 @@ function CardAlerta({
         >
           <Download className="size-4" />
         </Button>
-        {podeAlterar ? (
+        {permitido ? (
           <ConfirmacaoExclusao
             nome={`“${doc.title}”`}
             disabled={remover.isPending}
