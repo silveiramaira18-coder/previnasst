@@ -233,20 +233,22 @@ function GestaoDocumental() {
           {([
             ["todos", "Todos", resumo.total],
             ["vencidos", "Vencidos", alertas.vencidos],
-            ["7", "Vencem em 7 dias", alertas.sete],
-            ["15", "Vencem em 15 dias", alertas.quinze],
-            ["30", "Vencem em 30 dias", alertas.trinta],
-          ] as const).map(([valor, rotulo, total]) => (
-            <Button key={valor} type="button" variant={filtroPrazo === valor ? "default" : "outline"} size="sm" onClick={() => setFiltroPrazo(valor)}>
-              {rotulo} <span className="ml-2 rounded-full bg-background/20 px-1.5">{total}</span>
-            </Button>
-          ))}
+            ["7", "Vencem em até 7 dias", alertas.sete],
+            ["15", "Vencem em 8 a 15 dias", alertas.quinze],
+            ["30", "Vencem em 16 a 30 dias", alertas.trinta],
+          ] as const)
+            .filter(([valor, , total]) => valor === "todos" || total > 0 || filtroPrazo === valor)
+            .map(([valor, rotulo, total]) => (
+              <Button key={valor} type="button" variant={filtroPrazo === valor ? "default" : "outline"} size="sm" onClick={() => setFiltroPrazo(valor)}>
+                {rotulo} <span className="ml-2 rounded-full bg-background/20 px-1.5">{total}</span>
+              </Button>
+            ))}
         </CardContent>
         <CardContent className="pt-0">
           <PainelAlertas
             documentos={todos}
             filtro={filtroPrazo}
-            podeAlterar={adminPrincipal && !carregandoPerfil}
+            podeAlterar={!carregandoPerfil}
             onMudou={async () => {
               await qc.invalidateQueries({ queryKey: ["ged-resumo"] });
             }}
@@ -274,17 +276,17 @@ function GestaoDocumental() {
         </TabsList>
 
         <TabsContent value="propria" className="mt-4 space-y-4">
-          <SecaoDocumentosEmpresa contractorId={null} busca={busca} podeAlterar={adminPrincipal} filtroPrazo={filtroPrazo} nomeEmpresa={nomeEmpresaPropria} />
-          <SecaoColaboradores contractorId={null} busca={busca} podeAlterar={adminPrincipal} filtroPrazo={filtroPrazo} />
+          <SecaoDocumentosEmpresa contractorId={null} busca={busca} podeAlterar={!carregandoPerfil} filtroPrazo={filtroPrazo} nomeEmpresa={nomeEmpresaPropria} />
+          <SecaoColaboradores contractorId={null} busca={busca} podeAlterar={!carregandoPerfil} filtroPrazo={filtroPrazo} />
         </TabsContent>
 
         <TabsContent value="terceirizados" className="mt-4 space-y-4">
           <Card>
             <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-3">
               <CardTitle className="text-base">Empresa terceirizada</CardTitle>
-              {adminPrincipal ? <NovaTerceirizada
+              <NovaTerceirizada
                 onSalvo={() => qc.invalidateQueries({ queryKey: ["ged-terceirizadas"] })}
-              /> : null}
+              />
             </CardHeader>
             <CardContent className="flex flex-wrap items-center gap-3">
               <Select value={terceirizadaId} onValueChange={setTerceirizadaId}>
@@ -301,7 +303,7 @@ function GestaoDocumental() {
                 </SelectContent>
               </Select>
               {selecionada ? (
-                adminPrincipal ? <>
+                podeGerenciarEmpresa ? <>
                   <NovaTerceirizada empresa={selecionada} onSalvo={() => qc.invalidateQueries({ queryKey: ["ged-terceirizadas"] })} />
                   <ConfirmacaoExclusao nome={`“${selecionada.name}” e todos os seus dados`} onConfirmar={() => removerEmpresa.mutateAsync(selecionada.id)} disabled={removerEmpresa.isPending}>
                     <Button type="button" size="icon" variant="ghost" aria-label="Excluir empresa terceirizada"><Trash2 className="size-4 text-destructive" /></Button>
@@ -318,8 +320,8 @@ function GestaoDocumental() {
 
           {selecionada ? (
             <>
-               <SecaoDocumentosEmpresa contractorId={selecionada.id} busca={busca} podeAlterar={adminPrincipal && !carregandoPerfil} filtroPrazo={filtroPrazo} nomeEmpresa={selecionada.name} />
-               <SecaoColaboradores contractorId={selecionada.id} busca={busca} podeAlterar={adminPrincipal && !carregandoPerfil} filtroPrazo={filtroPrazo} />
+               <SecaoDocumentosEmpresa contractorId={selecionada.id} busca={busca} podeAlterar={!carregandoPerfil} filtroPrazo={filtroPrazo} nomeEmpresa={selecionada.name} />
+               <SecaoColaboradores contractorId={selecionada.id} busca={busca} podeAlterar={!carregandoPerfil} filtroPrazo={filtroPrazo} />
             </>
           ) : null}
         </TabsContent>
