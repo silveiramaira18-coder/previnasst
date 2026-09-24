@@ -15,6 +15,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { formatarData } from "@/lib/db";
 import { baixarDocumentoComNome, excluirDocumento, type Documento } from "@/lib/ged";
+import { usePerfil } from "@/lib/perfil";
 
 type Tabela = "company_documents" | "employee_documents";
 
@@ -35,6 +36,9 @@ function Linha({
   tipos: readonly string[];
   entidade?: string | null | undefined;
 }) {
+  const { perfil, adminPrincipal } = usePerfil();
+  const permitido = podeAlterar && (adminPrincipal || (!!perfil?.id && perfil.id === doc.user_id));
+
   const baixar = useMutation({
     mutationFn: () => baixarDocumentoComNome(doc.file_url, doc.title, entidade),
     onError: (e: Error) => toast.error("Não foi possível baixar", { description: e.message }),
@@ -72,7 +76,7 @@ function Linha({
       )}
       <div className="ml-auto flex shrink-0 gap-1">
         <PreviewDocumento doc={doc} />
-        {podeAlterar ? <EditarDocumento doc={doc} tabela={tabela} tipos={tipos} onSalvo={onMudou} /> : null}
+        {permitido ? <EditarDocumento doc={doc} tabela={tabela} tipos={tipos} onSalvo={onMudou} /> : null}
         <Button
           type="button"
           size="icon"
@@ -83,7 +87,7 @@ function Linha({
         >
           <Download className="size-4" />
         </Button>
-        {podeAlterar ? (
+        {permitido ? (
           <ConfirmacaoExclusao
             nome={`“${doc.title}” (v${doc.version})`}
             disabled={remover.isPending}
