@@ -232,7 +232,7 @@ export async function excluirTerceirizada(id: string) {
 export async function listarColaboradores(contractorId: string | null) {
   let consulta = supabase
     .from("employees")
-    .select("id, contractor_id, name, cpf, role_title, type, user_id")
+    .select("id, contractor_id, name, cpf, role_title, type, user_id, phone, emergency_contact_name, emergency_phone, medical_notes, blood_type, notes")
     .order("name");
   consulta = contractorId ? consulta.eq("contractor_id", contractorId) : consulta.is("contractor_id", null);
   const { data, error } = await consulta;

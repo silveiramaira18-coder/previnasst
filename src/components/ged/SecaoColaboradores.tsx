@@ -19,6 +19,9 @@ import { usePerfil } from "@/lib/perfil";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { ChevronDown } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -33,6 +36,7 @@ import {
   cpfValido,
   excluirColaborador,
   formatarCpf,
+  formatarTelefone,
   listarColaboradores,
   listarDocumentosColaborador,
   listarFuncoesPersonalizadas,
@@ -89,6 +93,15 @@ function NovoColaborador({
 }) {
   const [aberto, setAberto] = useState(false);
   const [form, setForm] = useState({ name: colaborador?.name ?? "", cpf: colaborador?.cpf ?? "", role_title: colaborador?.role_title ?? "" });
+  const infoVazia = { phone: "", emergency_contact_name: "", emergency_phone: "", medical_notes: "", blood_type: "", notes: "" };
+  const [info, setInfo] = useState({
+    phone: colaborador?.phone ?? "",
+    emergency_contact_name: colaborador?.emergency_contact_name ?? "",
+    emergency_phone: colaborador?.emergency_phone ?? "",
+    medical_notes: colaborador?.medical_notes ?? "",
+    blood_type: colaborador?.blood_type ?? "",
+    notes: colaborador?.notes ?? "",
+  });
   const [modoFuncao, setModoFuncao] = useState<"lista" | "outra" | "nova">("lista");
   const [funcaoManual, setFuncaoManual] = useState("");
   const qc = useQueryClient();
@@ -123,11 +136,20 @@ function NovoColaborador({
         name: form.name.trim().slice(0, 120),
         cpf: form.cpf.trim() || null,
         role_title: funcaoFinal.slice(0, 80),
+        phone: info.phone.trim() || null,
+        emergency_contact_name: info.emergency_contact_name.trim().slice(0, 120) || null,
+        emergency_phone: info.emergency_phone.trim() || null,
+        medical_notes: info.medical_notes.trim().slice(0, 1000) || null,
+        blood_type: info.blood_type || null,
+        notes: info.notes.trim().slice(0, 1000) || null,
       });
     },
     onSuccess: () => {
       toast.success(colaborador ? "Colaborador atualizado" : "Colaborador cadastrado");
-      setForm({ name: "", cpf: "", role_title: "" });
+      if (!colaborador) {
+        setForm({ name: "", cpf: "", role_title: "" });
+        setInfo(infoVazia);
+      }
       setFuncaoManual("");
       setModoFuncao("lista");
       setAberto(false);
@@ -145,7 +167,7 @@ function NovoColaborador({
           <Button type="button" size="sm" variant="outline" className="gap-2"><UserPlus className="size-4" /> Novo colaborador</Button>
         )}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-md">
         <DialogHeader>
           <DialogTitle>{colaborador ? "Editar colaborador" : "Cadastrar colaborador"}</DialogTitle>
         </DialogHeader>
@@ -230,6 +252,43 @@ function NovoColaborador({
               </div>
             ) : null}
           </div>
+          <Collapsible className="rounded-lg border">
+            <CollapsibleTrigger className="group flex w-full items-center justify-between p-3 text-sm font-medium">
+              Informações Adicionais / Ficha Médica (opcional)
+              <ChevronDown className="size-4 transition-transform group-data-[state=open]:rotate-180" />
+            </CollapsibleTrigger>
+            <CollapsibleContent className="space-y-3 px-3 pb-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="col-tel">Telefone do funcionário</Label>
+                <Input id="col-tel" className="h-12" inputMode="tel" placeholder="(00) 00000-0000" value={info.phone} onChange={(e) => setInfo({ ...info, phone: formatarTelefone(e.target.value) })} />
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="space-y-1.5">
+                  <Label htmlFor="col-emerg-nome">Contato de emergência</Label>
+                  <Input id="col-emerg-nome" className="h-12" maxLength={120} placeholder="Nome do contato" value={info.emergency_contact_name} onChange={(e) => setInfo({ ...info, emergency_contact_name: e.target.value })} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="col-emerg-tel">Telefone de emergência</Label>
+                  <Input id="col-emerg-tel" className="h-12" inputMode="tel" placeholder="(00) 00000-0000" value={info.emergency_phone} onChange={(e) => setInfo({ ...info, emergency_phone: formatarTelefone(e.target.value) })} />
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="col-sangue">Tipo sanguíneo</Label>
+                <select id="col-sangue" className="h-12 w-full rounded-md border bg-background px-3 text-sm" value={info.blood_type} onChange={(e) => setInfo({ ...info, blood_type: e.target.value })}>
+                  <option value="">Não informado</option>
+                  {["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"].map((t) => <option key={t} value={t}>{t}</option>)}
+                </select>
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="col-medico">Alergias / condições médicas de atenção</Label>
+                <Textarea id="col-medico" maxLength={1000} value={info.medical_notes} onChange={(e) => setInfo({ ...info, medical_notes: e.target.value })} />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="col-obs">Observações gerais</Label>
+                <Textarea id="col-obs" maxLength={1000} value={info.notes} onChange={(e) => setInfo({ ...info, notes: e.target.value })} />
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
           <Button
             type="button"
             className="h-12 w-full"
