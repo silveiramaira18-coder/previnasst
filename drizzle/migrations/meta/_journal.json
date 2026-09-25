@@ -43,6 +43,13 @@
       "when": 1790271789549,
       "tag": "0005_ged_writes_owner_or_admin",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1790341388661,
+      "tag": "0006_employees_optional_info",
+      "breakpoints": true
     }
   ]
 }
