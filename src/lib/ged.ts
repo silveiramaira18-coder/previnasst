@@ -56,18 +56,26 @@ export const TREINAMENTOS_NR = [
 export const TIPOS_DOC_COLABORADOR = [...DOCUMENTOS_GERAIS_COLABORADOR, ...TREINAMENTOS_NR] as const;
 
 export const FUNCOES_CONSTRUCAO = [
-  "Servente / Ajudante Geral",
+  "Servente",
+  "Ajudante Geral",
   "Pedreiro",
-  "Carpinteiro / Armador",
+  "Carpinteiro",
+  "Armador",
   "Eletricista",
-  "Encanador / Hidráulico",
+  "Encanador",
+  "Hidráulico",
   "Pintor",
-  "Mestre de Obras / Encarregado",
+  "Mestre de Obras",
+  "Encarregado",
   "Engenheiro Civil",
   "Técnico em Segurança do Trabalho (TST)",
-  "Operador de Grua / Máquinas / Equipamentos",
-  "Gesseiro / Azulejista",
-  "Serralheiro / Soldador",
+  "Operador de Grua",
+  "Operador de Máquinas",
+  "Operador de Equipamentos",
+  "Gesseiro",
+  "Azulejista",
+  "Serralheiro",
+  "Soldador",
 ] as const;
 
 export type Terceirizada = {
@@ -87,6 +95,15 @@ export type Colaborador = {
   role_title: string | null;
   type: string;
   user_id?: string | null;
+} & InfoAdicional;
+
+export type InfoAdicional = {
+  phone?: string | null;
+  emergency_contact_name?: string | null;
+  emergency_phone?: string | null;
+  medical_notes?: string | null;
+  blood_type?: string | null;
+  notes?: string | null;
 };
 
 export type FuncaoPersonalizada = { id: string; name: string };
@@ -246,7 +263,7 @@ export async function salvarColaborador(dados: {
   name: string;
   cpf: string | null;
   role_title: string | null;
-}) {
+} & InfoAdicional) {
   const { id, ...campos } = dados;
   if (campos.cpf) {
     const duplicado = await colaboradorComMesmoCpf(campos.contractor_id, campos.cpf, id);
@@ -367,6 +384,23 @@ export async function adicionarFuncaoPersonalizada(contractorId: string | null, 
   if (error?.code === "23505") throw new Error("Esta função já está salva na lista.");
   if (error) throw new Error(error.message);
   return nome;
+}
+
+export function formatarCnpj(valor: string) {
+  const d = valor.replace(/\D/g, "").slice(0, 14);
+  return d
+    .replace(/^(\d{2})(\d)/, "$1.$2")
+    .replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3")
+    .replace(/\.(\d{3})(\d)/, ".$1/$2")
+    .replace(/(\d{4})(\d)/, "$1-$2");
+}
+
+export function formatarTelefone(valor: string) {
+  const d = valor.replace(/\D/g, "").slice(0, 11);
+  if (d.length <= 2) return d;
+  if (d.length <= 6) return `(${d.slice(0, 2)}) ${d.slice(2)}`;
+  if (d.length <= 10) return `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}`;
+  return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
 }
 
 export function formatarCpf(valor: string) {

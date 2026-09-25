@@ -30,6 +30,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   excluirTerceirizada,
+  formatarCnpj,
   listarDocumentosConsolidados,
   listarTerceirizadas,
   resumoDocumentos,
@@ -136,10 +137,11 @@ function NovaTerceirizada({ onSalvo, empresa }: { onSalvo: () => void; empresa?:
             <Input
               id="ter-cnpj"
               className="h-12"
-              maxLength={20}
+              maxLength={18}
+              inputMode="numeric"
               placeholder="00.000.000/0000-00"
               value={form.cnpj}
-              onChange={(e) => setForm({ ...form, cnpj: e.target.value })}
+              onChange={(e) => setForm({ ...form, cnpj: formatarCnpj(e.target.value) })}
             />
           </div>
           <div className="space-y-1.5">
