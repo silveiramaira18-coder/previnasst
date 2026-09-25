@@ -26,6 +26,7 @@ import { Route as SuporteRouteImport } from './routes/suporte'
 import { Route as AdminDashboardV2RouteImport } from './routes/admin_.dashboard-v2'
 import { Route as InspecoesIndexRouteImport } from './routes/inspecoes.index'
 import { Route as InspecoesIdRouteImport } from './routes/inspecoes.$id'
+import { Route as ApiPublicHooksAlertasValidadeRouteImport } from './routes/api/public/hooks/alertas-validade'
 import { Route as ApiPublicHooksCobrancaNcsRouteImport } from './routes/api/public/hooks/cobranca-ncs'
 
 const IndexRoute = IndexRouteImport.update({
@@ -113,6 +114,12 @@ const InspecoesIdRoute = InspecoesIdRouteImport.update({
   path: '/inspecoes/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicHooksAlertasValidadeRoute =
+  ApiPublicHooksAlertasValidadeRouteImport.update({
+    id: '/api/public/hooks/alertas-validade',
+    path: '/api/public/hooks/alertas-validade',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHooksCobrancaNcsRoute =
   ApiPublicHooksCobrancaNcsRouteImport.update({
     id: '/api/public/hooks/cobranca-ncs',
@@ -138,6 +145,7 @@ export interface FileRoutesByFullPath {
   '/admin/dashboard-v2': typeof AdminDashboardV2Route
   '/inspecoes/$id': typeof InspecoesIdRoute
   '/inspecoes/': typeof InspecoesIndexRoute
+  '/api/public/hooks/alertas-validade': typeof ApiPublicHooksAlertasValidadeRoute
   '/api/public/hooks/cobranca-ncs': typeof ApiPublicHooksCobrancaNcsRoute
 }
 export interface FileRoutesByTo {
@@ -158,6 +166,7 @@ export interface FileRoutesByTo {
   '/admin/dashboard-v2': typeof AdminDashboardV2Route
   '/inspecoes/$id': typeof InspecoesIdRoute
   '/inspecoes': typeof InspecoesIndexRoute
+  '/api/public/hooks/alertas-validade': typeof ApiPublicHooksAlertasValidadeRoute
   '/api/public/hooks/cobranca-ncs': typeof ApiPublicHooksCobrancaNcsRoute
 }
 export interface FileRoutesById {
@@ -179,6 +188,7 @@ export interface FileRoutesById {
   '/admin_/dashboard-v2': typeof AdminDashboardV2Route
   '/inspecoes/$id': typeof InspecoesIdRoute
   '/inspecoes/': typeof InspecoesIndexRoute
+  '/api/public/hooks/alertas-validade': typeof ApiPublicHooksAlertasValidadeRoute
   '/api/public/hooks/cobranca-ncs': typeof ApiPublicHooksCobrancaNcsRoute
 }
 export interface FileRouteTypes {
@@ -201,6 +211,7 @@ export interface FileRouteTypes {
     | '/admin/dashboard-v2'
     | '/inspecoes/$id'
     | '/inspecoes/'
+    | '/api/public/hooks/alertas-validade'
     | '/api/public/hooks/cobranca-ncs'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -221,6 +232,7 @@ export interface FileRouteTypes {
     | '/admin/dashboard-v2'
     | '/inspecoes/$id'
     | '/inspecoes'
+    | '/api/public/hooks/alertas-validade'
     | '/api/public/hooks/cobranca-ncs'
   id:
     | '__root__'
@@ -241,6 +253,7 @@ export interface FileRouteTypes {
     | '/admin_/dashboard-v2'
     | '/inspecoes/$id'
     | '/inspecoes/'
+    | '/api/public/hooks/alertas-validade'
     | '/api/public/hooks/cobranca-ncs'
   fileRoutesById: FileRoutesById
 }
@@ -262,6 +275,7 @@ export interface RootRouteChildren {
   AdminDashboardV2Route: typeof AdminDashboardV2Route
   InspecoesIdRoute: typeof InspecoesIdRoute
   InspecoesIndexRoute: typeof InspecoesIndexRoute
+  ApiPublicHooksAlertasValidadeRoute: typeof ApiPublicHooksAlertasValidadeRoute
   ApiPublicHooksCobrancaNcsRoute: typeof ApiPublicHooksCobrancaNcsRoute
 }
 
@@ -386,6 +400,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof InspecoesIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/alertas-validade': {
+      id: '/api/public/hooks/alertas-validade'
+      path: '/api/public/hooks/alertas-validade'
+      fullPath: '/api/public/hooks/alertas-validade'
+      preLoaderRoute: typeof ApiPublicHooksAlertasValidadeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/cobranca-ncs': {
       id: '/api/public/hooks/cobranca-ncs'
       path: '/api/public/hooks/cobranca-ncs'
@@ -414,6 +435,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminDashboardV2Route: AdminDashboardV2Route,
   InspecoesIdRoute: InspecoesIdRoute,
   InspecoesIndexRoute: InspecoesIndexRoute,
+  ApiPublicHooksAlertasValidadeRoute: ApiPublicHooksAlertasValidadeRoute,
   ApiPublicHooksCobrancaNcsRoute: ApiPublicHooksCobrancaNcsRoute,
 }
 export const routeTree = rootRouteImport

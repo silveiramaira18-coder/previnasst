@@ -96,6 +96,7 @@ export type Database = {
       }
       company_documents: {
         Row: {
+          alerta_7d_enviado: string | null
           contractor_id: string | null
           created_at: string
           doc_type: string
@@ -109,6 +110,7 @@ export type Database = {
           version: number
         }
         Insert: {
+          alerta_7d_enviado?: string | null
           contractor_id?: string | null
           created_at?: string
           doc_type?: string
@@ -122,6 +124,7 @@ export type Database = {
           version?: number
         }
         Update: {
+          alerta_7d_enviado?: string | null
           contractor_id?: string | null
           created_at?: string
           doc_type?: string
@@ -208,6 +211,7 @@ export type Database = {
       }
       employee_documents: {
         Row: {
+          alerta_7d_enviado: string | null
           created_at: string
           doc_type: string
           employee_id: string
@@ -221,6 +225,7 @@ export type Database = {
           version: number
         }
         Insert: {
+          alerta_7d_enviado?: string | null
           created_at?: string
           doc_type?: string
           employee_id: string
@@ -234,6 +239,7 @@ export type Database = {
           version?: number
         }
         Update: {
+          alerta_7d_enviado?: string | null
           created_at?: string
           doc_type?: string
           employee_id?: string
@@ -258,34 +264,52 @@ export type Database = {
       }
       employees: {
         Row: {
+          blood_type: string | null
           contractor_id: string | null
           cpf: string | null
           created_at: string
+          emergency_contact_name: string | null
+          emergency_phone: string | null
           id: string
           is_active: boolean
+          medical_notes: string | null
           name: string
+          notes: string | null
+          phone: string | null
           role_title: string | null
           type: string
           user_id: string
         }
         Insert: {
+          blood_type?: string | null
           contractor_id?: string | null
           cpf?: string | null
           created_at?: string
+          emergency_contact_name?: string | null
+          emergency_phone?: string | null
           id?: string
           is_active?: boolean
+          medical_notes?: string | null
           name: string
+          notes?: string | null
+          phone?: string | null
           role_title?: string | null
           type?: string
           user_id?: string
         }
         Update: {
+          blood_type?: string | null
           contractor_id?: string | null
           cpf?: string | null
           created_at?: string
+          emergency_contact_name?: string | null
+          emergency_phone?: string | null
           id?: string
           is_active?: boolean
+          medical_notes?: string | null
           name?: string
+          notes?: string | null
+          phone?: string | null
           role_title?: string | null
           type?: string
           user_id?: string
