@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Building2, FileCheck2, FileWarning, FileX2, Pencil, Plus, Trash2, Truck } from "lucide-react";
+import { Building2, Check, FileCheck2, FileWarning, FileX2, Pencil, Plus, Trash2, Truck } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -40,6 +40,7 @@ import {
   type Terceirizada,
 } from "@/lib/ged";
 import { usePerfil } from "@/lib/perfil";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/documentos")({
   head: () => ({
@@ -175,10 +176,32 @@ function GestaoDocumental() {
   const [terceirizadaId, setTerceirizadaId] = useState<string>("");
   const [filtroPrazo, setFiltroPrazo] = useState<FiltroPrazo>("todos");
   const { adminPrincipal, perfil, isLoading: carregandoPerfil } = usePerfil();
+  const [nomeLocal, setNomeLocal] = useState<string | null>(null);
+  const [editandoNome, setEditandoNome] = useState(false);
+  const [rascunho, setRascunho] = useState("");
   const nomeEmpresaPropria =
-    adminPrincipal && !carregandoPerfil && perfil?.empresa?.trim()
-      ? perfil.empresa.trim()
-      : "Empresa Própria";
+    nomeLocal ?? (!carregandoPerfil && perfil?.empresa?.trim() ? perfil.empresa.trim() : "Empresa Própria");
+
+  const iniciarEdicao = () => {
+    setRascunho(nomeEmpresaPropria === "Empresa Própria" ? "" : nomeEmpresaPropria);
+    setEditandoNome(true);
+  };
+  const salvarNome = async () => {
+    if (!editandoNome) return;
+    setEditandoNome(false);
+    const novo = rascunho.trim().slice(0, 150);
+    if (!novo || novo === nomeEmpresaPropria || !perfil?.id) return;
+    setNomeLocal(novo);
+    const { error } = await supabase.from("profiles").update({ empresa: novo }).eq("id", perfil.id);
+    if (error) {
+      setNomeLocal(null);
+      toast.error("Não foi possível salvar o nome", { description: error.message });
+      return;
+    }
+    toast.success("Nome da empresa atualizado");
+    await qc.invalidateQueries({ queryKey: ["perfil"] });
+    setNomeLocal(null);
+  };
 
 
   const { data: todos = [] } = useQuery({
@@ -269,10 +292,47 @@ function GestaoDocumental() {
 
       <Tabs defaultValue="propria">
         <TabsList className="h-auto w-full flex-wrap justify-start gap-1 sm:w-auto">
-          <TabsTrigger value="propria" className="max-w-[16rem] gap-2 py-2" title={nomeEmpresaPropria}>
-            <Building2 className="size-4 shrink-0" />
-            <span className="truncate">{nomeEmpresaPropria}</span>
-          </TabsTrigger>
+          {editandoNome ? (
+            <div className="flex items-center gap-1 rounded-md bg-background px-2 py-1">
+              <Building2 className="size-4 shrink-0" />
+              <Input
+                autoFocus
+                aria-label="Nome da empresa"
+                className="h-8 w-48"
+                maxLength={150}
+                placeholder="Nome da empresa"
+                value={rascunho}
+                onChange={(e) => setRascunho(e.target.value)}
+                onBlur={salvarNome}
+                onKeyDown={(e) => {
+                  e.stopPropagation();
+                  if (e.key === "Enter") salvarNome();
+                  if (e.key === "Escape") setEditandoNome(false);
+                }}
+              />
+              <Button type="button" size="icon" variant="ghost" className="size-8" aria-label="Salvar nome" onMouseDown={(e) => e.preventDefault()} onClick={salvarNome}>
+                <Check className="size-4" />
+              </Button>
+            </div>
+          ) : (
+            <TabsTrigger value="propria" className="max-w-[18rem] gap-2 py-2" title={nomeEmpresaPropria}>
+              <Building2 className="size-4 shrink-0" />
+              <span className="truncate" onDoubleClick={iniciarEdicao}>{nomeEmpresaPropria}</span>
+              {perfil?.id ? (
+                <span
+                  role="button"
+                  tabIndex={0}
+                  aria-label="Editar nome da empresa"
+                  className="rounded p-0.5 opacity-60 hover:opacity-100"
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onClick={(e) => { e.stopPropagation(); iniciarEdicao(); }}
+                  onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); e.stopPropagation(); iniciarEdicao(); } }}
+                >
+                  <Pencil className="size-3.5" />
+                </span>
+              ) : null}
+            </TabsTrigger>
+          )}
 
           <TabsTrigger value="terceirizados" className="gap-2 py-2">
             <Truck className="size-4" /> Terceirizados / Prestadores
