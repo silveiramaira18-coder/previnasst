@@ -78,6 +78,8 @@ export const FUNCOES_CONSTRUCAO = [
   "Soldador",
 ] as const;
 
+export const ordenarAZ = (a: string, b: string) => a.localeCompare(b, "pt-BR", { sensitivity: "base" });
+
 export type Terceirizada = {
   id: string;
   name: string;
@@ -95,6 +97,7 @@ export type Colaborador = {
   role_title: string | null;
   type: string;
   user_id?: string | null;
+  is_active?: boolean | null;
 } & InfoAdicional;
 
 export type InfoAdicional = {
@@ -232,12 +235,12 @@ export async function excluirTerceirizada(id: string) {
 export async function listarColaboradores(contractorId: string | null) {
   let consulta = supabase
     .from("employees")
-    .select("id, contractor_id, name, cpf, role_title, type, user_id, phone, emergency_contact_name, emergency_phone, medical_notes, blood_type, notes")
+    .select("id, contractor_id, name, cpf, role_title, type, user_id, is_active, phone, emergency_contact_name, emergency_phone, medical_notes, blood_type, notes")
     .order("name");
   consulta = contractorId ? consulta.eq("contractor_id", contractorId) : consulta.is("contractor_id", null);
   const { data, error } = await consulta;
   if (error) throw new Error(error.message);
-  return (data ?? []) as Colaborador[];
+  return ((data ?? []) as Colaborador[]).sort((a, b) => ordenarAZ(a.name, b.name));
 }
 
 /** Procura outro colaborador da mesma empresa com o mesmo CPF. */
@@ -265,6 +268,7 @@ export async function salvarColaborador(dados: {
   role_title: string | null;
 } & InfoAdicional) {
   const { id, ...campos } = dados;
+  campos.name = campos.name.trim().toUpperCase();
   if (campos.cpf) {
     const duplicado = await colaboradorComMesmoCpf(campos.contractor_id, campos.cpf, id);
     if (duplicado)
