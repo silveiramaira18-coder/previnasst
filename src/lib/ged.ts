@@ -602,7 +602,10 @@ export async function atualizarDocumento(
   id: string,
   dados: { doc_type: string; title: string; issue_date: string | null; expiration_date: string | null },
 ) {
-  const { error } = await supabase.from(tabela).update(dados).eq("id", id);
+  const { error } = await supabase
+    .from(tabela)
+    .update({ ...dados, title: dados.title.trim().toUpperCase() })
+    .eq("id", id);
   if (error) throw new Error(error.message);
 }
 

@@ -31,7 +31,7 @@ export function EditarDocumento({ doc, tabela, tipos, onSalvo }: { doc: Document
       <DialogContent className="sm:max-w-lg">
         <DialogHeader><DialogTitle>Editar dados do documento</DialogTitle></DialogHeader>
         <div className="space-y-4">
-          <div className="space-y-1.5"><Label htmlFor={`editar-titulo-${doc.id}`}>Título</Label><Input id={`editar-titulo-${doc.id}`} className="h-12" maxLength={150} value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} /></div>
+          <div className="space-y-1.5"><Label htmlFor={`editar-titulo-${doc.id}`}>Título</Label><Input id={`editar-titulo-${doc.id}`} className="h-12 uppercase" maxLength={150} value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} /></div>
           <div className="space-y-1.5"><Label>Tipo de documento</Label><ComboboxGed value={form.doc_type} onChange={(doc_type) => setForm({ ...form, doc_type })} grupos={[{ opcoes: tipos }]} placeholder="Selecione o tipo" ariaLabel="Tipo de documento" busca="Buscar tipo..." /></div>
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-1.5"><Label htmlFor={`editar-emissao-${doc.id}`}>Data de emissão</Label><Input id={`editar-emissao-${doc.id}`} type="date" className="h-12" value={form.issue_date} onChange={(e) => setForm({ ...form, issue_date: e.target.value })} /></div>

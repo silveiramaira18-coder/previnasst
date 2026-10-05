@@ -60,6 +60,10 @@ export const Route = createFileRoute("/documentos")({
       { name: "twitter:card", content: "summary" },
     ],
   }),
+  validateSearch: (s: Record<string, unknown>): { filtro?: FiltroPrazo } => {
+    const f = s["filtro"];
+    return f === "vencidos" || f === "7" || f === "15" || f === "30" ? { filtro: f } : {};
+  },
   component: GestaoDocumental,
 });
 
@@ -174,7 +178,7 @@ function GestaoDocumental() {
   const qc = useQueryClient();
   const [busca, setBusca] = useState("");
   const [terceirizadaId, setTerceirizadaId] = useState<string>("");
-  const [filtroPrazo, setFiltroPrazo] = useState<FiltroPrazo>("todos");
+  const [filtroPrazo, setFiltroPrazo] = useState<FiltroPrazo>(Route.useSearch().filtro ?? "todos");
   const { adminPrincipal, perfil, isLoading: carregandoPerfil } = usePerfil();
   const [nomeLocal, setNomeLocal] = useState<string | null>(null);
   const [editandoNome, setEditandoNome] = useState(false);
