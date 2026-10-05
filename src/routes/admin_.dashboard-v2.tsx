@@ -16,7 +16,9 @@ import {
 } from "recharts";
 
 import { PageHeader } from "@/components/PageHeader";
-import { RequerV2 } from "@/components/RequerV2";
+import { Link } from "@tanstack/react-router";
+import { FileWarning, FileX2 } from "lucide-react";
+import { contagemAlertas, listarDocumentosConsolidados } from "@/lib/ged";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { carregarIndicadoresV2 } from "@/lib/v2";
 
@@ -38,11 +40,7 @@ export const Route = createFileRoute("/admin_/dashboard-v2")({
       { name: "twitter:card", content: "summary" },
     ],
   }),
-  component: () => (
-    <RequerV2>
-      <DashboardV2 />
-    </RequerV2>
-  ),
+  component: DashboardV2,
 });
 
 const CORES_SEVERIDADE: Record<string, string> = {
@@ -82,6 +80,11 @@ function DashboardV2() {
     queryKey: ["indicadores-v2"],
     queryFn: carregarIndicadoresV2,
   });
+  const { data: docs = [] } = useQuery({
+    queryKey: ["ged-resumo"],
+    queryFn: listarDocumentosConsolidados,
+  });
+  const alertasDocs = contagemAlertas(docs);
 
   if (isLoading || !data) {
     return <p className="text-sm text-muted-foreground">Carregando indicadores...</p>;
@@ -113,6 +116,20 @@ function DashboardV2() {
           valor={data.mttr === null ? "—" : `${data.mttr} dias`}
           icone={Clock}
         />
+      </div>
+
+      <div className="grid gap-3 sm:grid-cols-2">
+        <Link to="/documentos" search={{ filtro: "vencidos" }} className="rounded-xl transition hover:opacity-90">
+          <Metrica titulo="Documentos vencidos" valor={String(alertasDocs.vencidos)} icone={FileX2} tom="text-destructive" />
+        </Link>
+        <Link to="/documentos" search={{ filtro: "avencer" }} className="rounded-xl transition hover:opacity-90">
+          <Metrica
+            titulo="Documentos a vencer (30 dias)"
+            valor={String(alertasDocs.sete + alertasDocs.quinze + alertasDocs.trinta)}
+            icone={FileWarning}
+            tom="text-warning"
+          />
+        </Link>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">

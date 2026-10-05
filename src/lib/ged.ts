@@ -124,7 +124,7 @@ export type Documento = {
   user_id?: string | null;
 };
 
-export type FiltroPrazo = "todos" | "vencidos" | "7" | "15" | "30";
+export type FiltroPrazo = "todos" | "vencidos" | "avencer" | "7" | "15" | "30";
 
 /** Situação de validade calculada a partir da data de vencimento. */
 export type Situacao = {
@@ -174,6 +174,7 @@ export function documentoNoFiltro(doc: Documento, filtro: FiltroPrazo) {
   if (dias === null) return false;
   if (filtro === "vencidos") return dias < 0;
   if (dias < 0) return false;
+  if (filtro === "avencer") return dias <= 30;
   if (filtro === "7") return dias <= 7;
   if (filtro === "15") return dias > 7 && dias <= 15;
   return dias > 15 && dias <= 30;

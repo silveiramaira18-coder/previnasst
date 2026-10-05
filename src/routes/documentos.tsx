@@ -62,7 +62,7 @@ export const Route = createFileRoute("/documentos")({
   }),
   validateSearch: (s: Record<string, unknown>): { filtro?: FiltroPrazo } => {
     const f = s["filtro"];
-    return f === "vencidos" || f === "7" || f === "15" || f === "30" ? { filtro: f } : {};
+    return f === "vencidos" || f === "avencer" || f === "7" || f === "15" || f === "30" ? { filtro: f } : {};
   },
   component: GestaoDocumental,
 });
@@ -264,6 +264,7 @@ function GestaoDocumental() {
           {([
             ["todos", "Todos", resumo.total],
             ["vencidos", "Vencidos", alertas.vencidos],
+            ["avencer", "A vencer em 30 dias", alertas.sete + alertas.quinze + alertas.trinta],
             ["7", "Vencem em até 7 dias", alertas.sete],
             ["15", "Vencem em 8 a 15 dias", alertas.quinze],
             ["30", "Vencem em 16 a 30 dias", alertas.trinta],
