@@ -84,7 +84,7 @@ function DocumentosDoColaborador({ colaborador, podeAlterar, filtroPrazo }: { co
   );
 }
 
-function Campo({ rotulo, children }: { rotulo: string; children: React.ReactNode }) {
+function Campo({ rotulo, children }: { rotulo: string; children: import("react").ReactNode }) {
   return (
     <div className="space-y-0.5">
       <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{rotulo}</p>
