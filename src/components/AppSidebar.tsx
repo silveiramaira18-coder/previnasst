@@ -53,7 +53,6 @@ const items = [
     title: "Dashboard de Tendências",
     to: "/admin/dashboard-v2",
     icon: TrendingUp,
-    somenteAdminPrincipal: true,
   },
   { title: "Relatórios", to: "/relatorios", icon: FileText, somenteAdminPrincipal: true },
   { title: "Painel Administrativo", to: "/admin", icon: ShieldCheck, somenteAdminPrincipal: true },

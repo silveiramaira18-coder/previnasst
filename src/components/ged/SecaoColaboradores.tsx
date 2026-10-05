@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Pencil, Plus, Trash2, UserPlus } from "lucide-react";
+import { Eye, MessageCircle, Pencil, Phone, Plus, Trash2, UserPlus } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -37,6 +38,7 @@ import {
   excluirColaborador,
   formatarCpf,
   formatarTelefone,
+  ordenarAZ,
   listarColaboradores,
   listarDocumentosColaborador,
   listarFuncoesPersonalizadas,
@@ -79,6 +81,86 @@ function DocumentosDoColaborador({ colaborador, podeAlterar, filtroPrazo }: { co
 
       />
     </div>
+  );
+}
+
+function Campo({ rotulo, children }: { rotulo: string; children: import("react").ReactNode }) {
+  return (
+    <div className="space-y-0.5">
+      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{rotulo}</p>
+      <div className="text-sm">{children}</div>
+    </div>
+  );
+}
+
+function FichaEmergencia({ c }: { c: Colaborador }) {
+  const digitos = (t?: string | null) => (t ?? "").replace(/\D/g, "");
+  const tel = digitos(c.phone);
+  const telEmerg = digitos(c.emergency_phone);
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button type="button" size="icon" variant="ghost" aria-label={`Ficha de emergência de ${c.name}`}>
+          <Eye className="size-4" />
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Ficha de Emergência</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4">
+          <p className="text-lg font-bold uppercase">{c.name}</p>
+          <div className="grid grid-cols-2 gap-3">
+            <Campo rotulo="CPF">{c.cpf || "—"}</Campo>
+            <Campo rotulo="Função">{c.role_title || "—"}</Campo>
+            <Campo rotulo="Status">
+              <Badge variant={c.is_active === false ? "secondary" : "default"}>
+                {c.is_active === false ? "Inativo" : "Ativo"}
+              </Badge>
+            </Campo>
+            <Campo rotulo="Tipo sanguíneo">
+              <span className="font-semibold">{c.blood_type || "Não informado"}</span>
+            </Campo>
+          </div>
+          <Campo rotulo="Telefone">
+            {tel ? (
+              <div className="flex flex-wrap gap-2">
+                <Button asChild size="sm" variant="outline" className="gap-1">
+                  <a href={`tel:${tel}`}><Phone className="size-4" /> {c.phone}</a>
+                </Button>
+                <Button asChild size="sm" variant="outline" className="gap-1">
+                  <a href={`https://wa.me/55${tel}`} target="_blank" rel="noopener noreferrer">
+                    <MessageCircle className="size-4" /> WhatsApp
+                  </a>
+                </Button>
+              </div>
+            ) : "—"}
+          </Campo>
+          <div className="rounded-xl border-2 border-destructive/40 bg-destructive/5 p-3">
+            <Campo rotulo="Contato de emergência">
+              {c.emergency_contact_name || telEmerg ? (
+                <div className="space-y-2">
+                  <p className="font-semibold">{c.emergency_contact_name || "Contato"}</p>
+                  {telEmerg ? (
+                    <Button asChild size="sm" variant="destructive" className="gap-1">
+                      <a href={`tel:${telEmerg}`}><Phone className="size-4" /> {c.emergency_phone}</a>
+                    </Button>
+                  ) : null}
+                </div>
+              ) : "Não informado"}
+            </Campo>
+          </div>
+          <Campo rotulo="Alergias / condições médicas">
+            {c.medical_notes ? (
+              <Badge variant="destructive" className="whitespace-normal text-left">{c.medical_notes}</Badge>
+            ) : "Nenhuma informada"}
+          </Campo>
+          <Campo rotulo="Observações">
+            <span className="whitespace-pre-wrap">{c.notes || "—"}</span>
+          </Campo>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -176,7 +258,7 @@ function NovoColaborador({
             <Label htmlFor="col-nome">Nome</Label>
             <Input
               id="col-nome"
-              className="h-12"
+              className="h-12 uppercase"
               maxLength={120}
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
@@ -202,8 +284,12 @@ function NovoColaborador({
             <Label htmlFor="col-funcao">Função</Label>
             <ComboboxGed
               grupos={[
-                { titulo: "Construção Civil / SST", opcoes: FUNCOES_CONSTRUCAO },
-                { titulo: "Funções salvas", opcoes: funcoesPersonalizadas.map((f) => f.name) },
+                {
+                  titulo: "Funções",
+                  opcoes: Array.from(
+                    new Set([...FUNCOES_CONSTRUCAO, ...funcoesPersonalizadas.map((f) => f.name)]),
+                  ).sort(ordenarAZ),
+                },
                 { opcoes: ["Outra (digitar manualmente)", "+ Adicionar nova função à lista"] },
               ]}
               value={modoFuncao === "lista" ? form.role_title : modoFuncao === "outra" ? "Outra (digitar manualmente)" : "+ Adicionar nova função à lista"}
@@ -376,6 +462,7 @@ export function SecaoColaboradores({
                       </span>
                     </span>
                   </AccordionTrigger>
+                  <FichaEmergencia c={c} />
                    {podeAlterar && (adminPrincipal || (!!perfil?.id && perfil.id === c.user_id)) ? <>
                      <NovoColaborador contractorId={contractorId} colaborador={c} onSalvo={() => qc.invalidateQueries({ queryKey: chave })} />
                      <ConfirmacaoExclusao nome={`“${c.name}” e seus documentos`} onConfirmar={() => remover.mutateAsync(c.id)} disabled={remover.isPending}>

@@ -120,7 +120,9 @@ export function ListaDocumentos({
   tipos: readonly string[];
   entidade?: string | null | undefined;
 }) {
-  const ativos = documentos.filter((d) => d.status === "active");
+  const ativos = documentos
+    .filter((d) => d.status === "active")
+    .sort((a, b) => a.title.localeCompare(b.title, "pt-BR", { sensitivity: "base" }));
   const obsoletos = documentos.filter((d) => d.status !== "active");
 
   return (

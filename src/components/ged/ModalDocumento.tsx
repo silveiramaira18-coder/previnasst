@@ -58,7 +58,7 @@ export function ModalDocumento({
       if (!tituloFinal) throw new Error("Informe o título do documento.");
       await anexarDocumento(escopo, {
         doc_type: form.doc_type,
-        title: tituloFinal.slice(0, 150),
+        title: tituloFinal.toUpperCase().slice(0, 150),
         issue_date: form.issue_date || null,
         expiration_date: form.expiration_date || null,
         arquivo,
@@ -115,7 +115,7 @@ export function ModalDocumento({
               <Label htmlFor="ged-titulo">Título / nome do documento</Label>
               <Input
                 id="ged-titulo"
-                className="h-12"
+                className="h-12 uppercase"
                 maxLength={150}
                 placeholder="Ex.: PGR 2026 — Obra Central"
                 value={form.title}

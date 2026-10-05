@@ -52,7 +52,11 @@ export function ComboboxGed({
       <PopoverContent align="start" className="w-[--radix-popover-trigger-width] p-0">
         <Command>
           <CommandInput placeholder={busca} />
-          <CommandList className="max-h-72">
+          <CommandList
+            className="max-h-[280px] overflow-y-auto overscroll-contain"
+            onWheel={(e) => e.stopPropagation()}
+            onTouchMove={(e) => e.stopPropagation()}
+          >
             <CommandEmpty>Nenhuma opção encontrada.</CommandEmpty>
             {grupos.map((grupo, indice) => (
               <CommandGroup key={grupo.titulo ?? indice} heading={grupo.titulo}>
