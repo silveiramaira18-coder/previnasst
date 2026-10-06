@@ -149,7 +149,7 @@ export function situacaoDocumento(validade: string | null): Situacao {
   if (dias <= 30)
     return {
       nivel: "atencao",
-      rotulo: dias === 0 ? "Atenção: Vence hoje" : `Atenção: Vence em ${dias} ${dias === 1 ? "dia" : "dias"}`,
+      rotulo: dias === 0 ? "ATENÇÃO: Vence hoje" : `ATENÇÃO: Vence em ${dias} ${dias === 1 ? "dia" : "dias"}`,
       dias,
     };
   return { nivel: "valido", rotulo: "Válido", dias };
