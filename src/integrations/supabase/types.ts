@@ -682,6 +682,7 @@ export type Database = {
           id: string
           inspecao_id: string | null
           item_inspecao_id: string | null
+          motivo_rejeicao: string | null
           numero: string
           obra_id: string | null
           observacao: string | null
@@ -709,6 +710,7 @@ export type Database = {
           id?: string
           inspecao_id?: string | null
           item_inspecao_id?: string | null
+          motivo_rejeicao?: string | null
           numero?: string
           obra_id?: string | null
           observacao?: string | null
@@ -736,6 +738,7 @@ export type Database = {
           id?: string
           inspecao_id?: string | null
           item_inspecao_id?: string | null
+          motivo_rejeicao?: string | null
           numero?: string
           obra_id?: string | null
           observacao?: string | null
@@ -767,6 +770,38 @@ export type Database = {
             columns: ["obra_id"]
             isOneToOne: false
             referencedRelation: "obras"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      nc_links: {
+        Row: {
+          created_at: string
+          expires_at: string
+          nao_conformidade_id: string
+          token: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string
+          nao_conformidade_id: string
+          token?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          nao_conformidade_id?: string
+          token?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nc_links_nao_conformidade_id_fkey"
+            columns: ["nao_conformidade_id"]
+            isOneToOne: false
+            referencedRelation: "nao_conformidades"
             referencedColumns: ["id"]
           },
         ]
