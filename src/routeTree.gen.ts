@@ -26,6 +26,7 @@ import { Route as SuporteRouteImport } from './routes/suporte'
 import { Route as AdminDashboardV2RouteImport } from './routes/admin_.dashboard-v2'
 import { Route as InspecoesIndexRouteImport } from './routes/inspecoes.index'
 import { Route as InspecoesIdRouteImport } from './routes/inspecoes.$id'
+import { Route as RespostaTokenRouteImport } from './routes/resposta.$token'
 import { Route as ApiPublicHooksAlertasValidadeRouteImport } from './routes/api/public/hooks/alertas-validade'
 import { Route as ApiPublicHooksCobrancaNcsRouteImport } from './routes/api/public/hooks/cobranca-ncs'
 
@@ -114,6 +115,11 @@ const InspecoesIdRoute = InspecoesIdRouteImport.update({
   path: '/inspecoes/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RespostaTokenRoute = RespostaTokenRouteImport.update({
+  id: '/resposta/$token',
+  path: '/resposta/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicHooksAlertasValidadeRoute =
   ApiPublicHooksAlertasValidadeRouteImport.update({
     id: '/api/public/hooks/alertas-validade',
@@ -144,6 +150,7 @@ export interface FileRoutesByFullPath {
   '/suporte': typeof SuporteRoute
   '/admin/dashboard-v2': typeof AdminDashboardV2Route
   '/inspecoes/$id': typeof InspecoesIdRoute
+  '/resposta/$token': typeof RespostaTokenRoute
   '/inspecoes/': typeof InspecoesIndexRoute
   '/api/public/hooks/alertas-validade': typeof ApiPublicHooksAlertasValidadeRoute
   '/api/public/hooks/cobranca-ncs': typeof ApiPublicHooksCobrancaNcsRoute
@@ -165,6 +172,7 @@ export interface FileRoutesByTo {
   '/suporte': typeof SuporteRoute
   '/admin/dashboard-v2': typeof AdminDashboardV2Route
   '/inspecoes/$id': typeof InspecoesIdRoute
+  '/resposta/$token': typeof RespostaTokenRoute
   '/inspecoes': typeof InspecoesIndexRoute
   '/api/public/hooks/alertas-validade': typeof ApiPublicHooksAlertasValidadeRoute
   '/api/public/hooks/cobranca-ncs': typeof ApiPublicHooksCobrancaNcsRoute
@@ -187,6 +195,7 @@ export interface FileRoutesById {
   '/suporte': typeof SuporteRoute
   '/admin_/dashboard-v2': typeof AdminDashboardV2Route
   '/inspecoes/$id': typeof InspecoesIdRoute
+  '/resposta/$token': typeof RespostaTokenRoute
   '/inspecoes/': typeof InspecoesIndexRoute
   '/api/public/hooks/alertas-validade': typeof ApiPublicHooksAlertasValidadeRoute
   '/api/public/hooks/cobranca-ncs': typeof ApiPublicHooksCobrancaNcsRoute
@@ -210,6 +219,7 @@ export interface FileRouteTypes {
     | '/suporte'
     | '/admin/dashboard-v2'
     | '/inspecoes/$id'
+    | '/resposta/$token'
     | '/inspecoes/'
     | '/api/public/hooks/alertas-validade'
     | '/api/public/hooks/cobranca-ncs'
@@ -231,6 +241,7 @@ export interface FileRouteTypes {
     | '/suporte'
     | '/admin/dashboard-v2'
     | '/inspecoes/$id'
+    | '/resposta/$token'
     | '/inspecoes'
     | '/api/public/hooks/alertas-validade'
     | '/api/public/hooks/cobranca-ncs'
@@ -252,6 +263,7 @@ export interface FileRouteTypes {
     | '/suporte'
     | '/admin_/dashboard-v2'
     | '/inspecoes/$id'
+    | '/resposta/$token'
     | '/inspecoes/'
     | '/api/public/hooks/alertas-validade'
     | '/api/public/hooks/cobranca-ncs'
@@ -274,6 +286,7 @@ export interface RootRouteChildren {
   SuporteRoute: typeof SuporteRoute
   AdminDashboardV2Route: typeof AdminDashboardV2Route
   InspecoesIdRoute: typeof InspecoesIdRoute
+  RespostaTokenRoute: typeof RespostaTokenRoute
   InspecoesIndexRoute: typeof InspecoesIndexRoute
   ApiPublicHooksAlertasValidadeRoute: typeof ApiPublicHooksAlertasValidadeRoute
   ApiPublicHooksCobrancaNcsRoute: typeof ApiPublicHooksCobrancaNcsRoute
@@ -400,6 +413,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof InspecoesIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/resposta/$token': {
+      id: '/resposta/$token'
+      path: '/resposta/$token'
+      fullPath: '/resposta/$token'
+      preLoaderRoute: typeof RespostaTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/alertas-validade': {
       id: '/api/public/hooks/alertas-validade'
       path: '/api/public/hooks/alertas-validade'
@@ -434,6 +454,7 @@ const rootRouteChildren: RootRouteChildren = {
   SuporteRoute: SuporteRoute,
   AdminDashboardV2Route: AdminDashboardV2Route,
   InspecoesIdRoute: InspecoesIdRoute,
+  RespostaTokenRoute: RespostaTokenRoute,
   InspecoesIndexRoute: InspecoesIndexRoute,
   ApiPublicHooksAlertasValidadeRoute: ApiPublicHooksAlertasValidadeRoute,
   ApiPublicHooksCobrancaNcsRoute: ApiPublicHooksCobrancaNcsRoute,
