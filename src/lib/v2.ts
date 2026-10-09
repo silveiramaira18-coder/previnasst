@@ -15,6 +15,7 @@ export const COLUNAS_V2 = [
 export type ColunaV2 = (typeof COLUNAS_V2)[number]["chave"];
 
 export type PlanoAcao = NaoConformidade & {
+  motivo_rejeicao?: string | null;
   itens_inspecao?: { local: string | null; normas_regulamentadoras: string[] | null } | null;
   obras?: { nome: string } | null;
 };
