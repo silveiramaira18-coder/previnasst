@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, ArrowRight, Images } from "lucide-react";
+import { useServerFn } from "@tanstack/react-start";
+import { AlarmClock, ArrowLeft, ArrowRight, Check, Copy, Images, Mail, Share2, X } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -19,12 +20,18 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { formatarData } from "@/lib/db";
+import { Textarea } from "@/components/ui/textarea";
+import { enviarCobrancaNC, gerarLinkNC } from "@/lib/portal.functions";
+import { formatarData, ncVencida } from "@/lib/db";
 import {
   COLUNAS_V2,
   colunaDaNC,
+  aprovarPlano,
   listarPlanosAcao,
   moverPlano,
+  rejeitarPlano,
+  STATUS_VALIDACAO,
+  venceEm48h,
   type ColunaV2,
   type PlanoAcao,
 } from "@/lib/v2";
@@ -65,13 +72,18 @@ function CardPlano({
   onMover: (destino: ColunaV2) => void;
   onAbrir: () => void;
 }) {
+  const reenviar = useServerFn(enviarCobrancaNC);
+  const [enviando, setEnviando] = useState(false);
   const coluna = colunaDaNC(nc);
   const indice = ordem.indexOf(coluna);
   const anterior = ordem[indice - 1];
   const proxima = ordem[indice + 1];
 
   return (
-    <Card className="border-l-4" style={{ borderLeftColor: "var(--color-border)" }}>
+    <Card
+      className="border-l-4"
+      style={{ borderLeftColor: ncVencida(nc) ? "var(--color-destructive)" : venceEm48h(nc) ? "var(--color-warning, orange)" : "var(--color-border)" }}
+    >
       <CardContent className="space-y-2 p-3">
         <button type="button" className="w-full space-y-2 text-left" onClick={onAbrir}>
           <div className="flex flex-wrap items-center gap-2">
@@ -86,6 +98,28 @@ function CardPlano({
           <p className="text-xs text-muted-foreground">Prazo: {formatarData(nc.prazo)}</p>
           <PrazoBadge nc={nc} />
         </button>
+        {coluna !== "concluido" ? (
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            className="w-full"
+            disabled={enviando}
+            onClick={async () => {
+              setEnviando(true);
+              try {
+                await reenviar({ data: { ncId: nc.id, origem: window.location.origin } });
+                toast.success("Cobrança reenviada ao responsável");
+              } catch (e) {
+                toast.error("Não foi possível reenviar", { description: (e as Error).message });
+              } finally {
+                setEnviando(false);
+              }
+            }}
+          >
+            <Mail className="size-4" /> {enviando ? "Enviando..." : "Reenviar cobrança"}
+          </Button>
+        ) : null}
         <div className="flex gap-2">
           <Button
             type="button"
@@ -117,6 +151,13 @@ function PlanoAcaoPage() {
   const qc = useQueryClient();
   const [busca, setBusca] = useState("");
   const [detalhe, setDetalhe] = useState<PlanoAcao | null>(null);
+  const [severidade, setSeveridade] = useState("todas");
+  const [obra, setObra] = useState("todas");
+  const [soAtrasadas, setSoAtrasadas] = useState(false);
+  const [motivo, setMotivo] = useState("");
+  const [rejeitando, setRejeitando] = useState(false);
+  const [link, setLink] = useState<string | null>(null);
+  const gerarLink = useServerFn(gerarLinkNC);
 
   const { data: planos = [], isLoading } = useQuery({
     queryKey: ["planos-acao"],
@@ -135,15 +176,42 @@ function PlanoAcaoPage() {
     onError: (e: Error) => toast.error("Não foi possível atualizar", { description: e.message }),
   });
 
+  const decidir = useMutation({
+    mutationFn: async (acao: "aprovar" | "rejeitar") => {
+      if (!detalhe) return;
+      if (acao === "aprovar") await aprovarPlano(detalhe.id);
+      else {
+        if (!motivo.trim()) throw new Error("Informe o motivo da recusa.");
+        await rejeitarPlano(detalhe.id, motivo.trim());
+      }
+    },
+    onSuccess: (_d, acao) => {
+      qc.invalidateQueries({ queryKey: ["planos-acao"] });
+      qc.invalidateQueries({ queryKey: ["ncs-todas"] });
+      toast.success(acao === "aprovar" ? "Plano aprovado e concluído" : "Ajuste solicitado ao responsável");
+      setDetalhe(null);
+      setMotivo("");
+      setRejeitando(false);
+    },
+    onError: (e: Error) => toast.error("Não foi possível salvar", { description: e.message }),
+  });
+
+  const nomeObra = (p: PlanoAcao) => p.obras?.nome ?? p.inspecoes?.obras?.nome ?? "Obra não informada";
+  const obras = [...new Set(planos.map(nomeObra))].sort((a, b) => a.localeCompare(b, "pt-BR"));
+  const atrasadas = planos.filter((p) => ncVencida(p)).length;
+  const proximas = planos.filter((p) => venceEm48h(p)).length;
+
   const termo = busca.trim().toLowerCase();
-  const filtrados = termo
-    ? planos.filter(
-        (p) =>
-          p.numero.toLowerCase().includes(termo) ||
-          (p.descricao ?? "").toLowerCase().includes(termo) ||
-          (p.obras?.nome ?? "").toLowerCase().includes(termo),
-      )
-    : planos;
+  const filtrados = planos.filter(
+    (p) =>
+      (!termo ||
+        p.numero.toLowerCase().includes(termo) ||
+        (p.descricao ?? "").toLowerCase().includes(termo) ||
+        nomeObra(p).toLowerCase().includes(termo)) &&
+      (severidade === "todas" || (p.severidade ?? "").toLowerCase().startsWith(severidade)) &&
+      (obra === "todas" || nomeObra(p) === obra) &&
+      (!soAtrasadas || ncVencida(p)),
+  );
 
   return (
     <div className="space-y-6">
@@ -152,12 +220,45 @@ function PlanoAcaoPage() {
         description="Acompanhe cada não conformidade por etapa até a validação final."
       />
 
-      <Input
-        className="h-12 max-w-md"
-        placeholder="Buscar por código, descrição ou obra"
-        value={busca}
-        onChange={(e) => setBusca(e.target.value)}
-      />
+      <div className="grid gap-3 sm:grid-cols-2">
+        <button
+          type="button"
+          onClick={() => setSoAtrasadas((v) => !v)}
+          className={`flex items-center gap-3 rounded-xl border p-4 text-left ${soAtrasadas ? "border-destructive bg-destructive/10" : ""}`}
+        >
+          <AlarmClock className="size-6 text-destructive" />
+          <div>
+            <p className="text-2xl font-bold">{atrasadas}</p>
+            <p className="text-sm text-muted-foreground">Pendências atrasadas {soAtrasadas ? "(filtrando)" : "— toque para filtrar"}</p>
+          </div>
+        </button>
+        <div className="flex items-center gap-3 rounded-xl border p-4">
+          <AlarmClock className="size-6 text-warning" />
+          <div>
+            <p className="text-2xl font-bold">{proximas}</p>
+            <p className="text-sm text-muted-foreground">Vencem nas próximas 48 horas</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex flex-wrap gap-2">
+        <Input
+          className="h-12 max-w-md"
+          placeholder="Buscar por código, descrição ou obra"
+          value={busca}
+          onChange={(e) => setBusca(e.target.value)}
+        />
+        <select className="h-12 rounded-md border bg-background px-3 text-sm" value={severidade} onChange={(e) => setSeveridade(e.target.value)} aria-label="Severidade">
+          <option value="todas">Todas as severidades</option>
+          <option value="crít">Crítico</option>
+          <option value="méd">Médio</option>
+          <option value="baix">Baixo</option>
+        </select>
+        <select className="h-12 max-w-xs rounded-md border bg-background px-3 text-sm" value={obra} onChange={(e) => setObra(e.target.value)} aria-label="Obra">
+          <option value="todas">Todas as obras</option>
+          {obras.map((o) => <option key={o} value={o}>{o}</option>)}
+        </select>
+      </div>
 
       {isLoading ? (
         <p className="text-sm text-muted-foreground">Carregando planos de ação...</p>
@@ -193,7 +294,17 @@ function PlanoAcaoPage() {
         </div>
       )}
 
-      <Dialog open={!!detalhe} onOpenChange={(v) => !v && setDetalhe(null)}>
+      <Dialog
+        open={!!detalhe}
+        onOpenChange={(v) => {
+          if (!v) {
+            setDetalhe(null);
+            setLink(null);
+            setRejeitando(false);
+            setMotivo("");
+          }
+        }}
+      >
         <DialogContent className="max-h-[90vh] max-w-3xl overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex flex-wrap items-center gap-2">
@@ -209,9 +320,72 @@ function PlanoAcaoPage() {
                   Prazo {formatarData(detalhe.prazo)} · Responsável{" "}
                   {detalhe.responsaveis?.join(", ") || detalhe.responsavel || "—"}
                 </p>
+                <p className="text-xs text-muted-foreground">
+                  Setor: {detalhe.itens_inspecao?.local || "—"} · NR:{" "}
+                  {detalhe.itens_inspecao?.normas_regulamentadoras?.join(", ") || "—"}
+                </p>
+                {detalhe.motivo_rejeicao && detalhe.status !== "Concluída" ? (
+                  <p className="rounded-lg bg-destructive/10 p-2 text-xs text-destructive">
+                    Último ajuste solicitado: {detalhe.motivo_rejeicao}
+                  </p>
+                ) : null}
               </div>
 
               <ComparativoFotos ncId={detalhe.id} itemId={detalhe.item_inspecao_id} />
+
+              {detalhe.status === STATUS_VALIDACAO ? (
+                <div className="space-y-3 rounded-xl border p-3">
+                  <p className="text-sm font-semibold">Validar a correção enviada</p>
+                  {rejeitando ? (
+                    <Textarea placeholder="Motivo da recusa (obrigatório)" value={motivo} onChange={(e) => setMotivo(e.target.value)} />
+                  ) : null}
+                  <div className="flex flex-wrap gap-2">
+                    <Button className="h-12 flex-1" disabled={decidir.isPending} onClick={() => decidir.mutate("aprovar")}>
+                      <Check className="size-4" /> Aprovar e concluir
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      className="h-12 flex-1"
+                      disabled={decidir.isPending}
+                      onClick={() => (rejeitando ? decidir.mutate("rejeitar") : setRejeitando(true))}
+                    >
+                      <X className="size-4" /> {rejeitando ? "Confirmar recusa" : "Rejeitar e solicitar ajuste"}
+                    </Button>
+                  </div>
+                </div>
+              ) : null}
+
+              {detalhe.status !== "Concluída" ? (
+                <div className="space-y-2 rounded-xl border p-3">
+                  <p className="text-sm font-semibold">Compartilhar ação com o responsável da obra</p>
+                  {link ? (
+                    <div className="flex gap-2">
+                      <Input readOnly value={link} onFocus={(e) => e.target.select()} />
+                      <Button variant="outline" onClick={() => { navigator.clipboard.writeText(link); toast.success("Link copiado"); }}>
+                        <Copy className="size-4" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <Button
+                      variant="outline"
+                      className="h-12 w-full"
+                      onClick={async () => {
+                        try {
+                          const r = await gerarLink({ data: { ncId: detalhe.id, origem: window.location.origin } });
+                          setLink(r.url);
+                        } catch (e) {
+                          toast.error("Não foi possível gerar o link", { description: (e as Error).message });
+                        }
+                      }}
+                    >
+                      <Share2 className="size-4" /> Gerar link de resposta
+                    </Button>
+                  )}
+                  <p className="text-xs text-muted-foreground">
+                    Quem abrir o link vê a foto do problema e envia a foto da correção, sem precisar entrar no sistema.
+                  </p>
+                </div>
+              ) : null}
 
               <div className="rounded-xl border p-3">
                 <FotoManager
