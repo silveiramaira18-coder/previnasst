@@ -12,6 +12,7 @@ import {
   XCircle,
   CheckCircle2,
 } from "lucide-react";
+import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -33,6 +34,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { useFeatureAccess } from "@/hooks/useFeatureAccess";
+import { enviarCobrancaNC } from "@/lib/portal.functions";
 import { supabase } from "@/integrations/supabase/client";
 import {
   
@@ -111,6 +113,7 @@ function FormularioNC({
   const qc = useQueryClient();
   const hoje = hojeISO();
   const { v2 } = useFeatureAccess();
+  const notificarNC = useServerFn(enviarCobrancaNC);
   const [erroFotos, setErroFotos] = useState(false);
   const [form, setForm] = useState({
     categoria: nc?.categoria ?? item.categoria ?? "",
@@ -192,6 +195,13 @@ function FormularioNC({
           .select("id")
           .single();
         if (error) throw new Error(error.message);
+
+        // Aviso automático ao responsável com link para enviar a foto da correção.
+        if (criada) {
+          notificarNC({ data: { ncId: criada.id, origem: window.location.origin } }).catch(() =>
+            toast.warning("NC salva, mas o e-mail ao responsável não pôde ser enviado."),
+          );
+        }
 
         // Fluxo V2 (admin): já abre o plano de ação pré-preenchido da NC.
         if (v2 && criada) {
