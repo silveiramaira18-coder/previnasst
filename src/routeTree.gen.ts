@@ -23,6 +23,7 @@ import { Route as PerfilRouteImport } from './routes/perfil'
 import { Route as PlanoAcaoRouteImport } from './routes/plano-acao'
 import { Route as RelatoriosRouteImport } from './routes/relatorios'
 import { Route as SuporteRouteImport } from './routes/suporte'
+import { Route as AdminActionPlansRouteImport } from './routes/admin_.action-plans'
 import { Route as AdminDashboardV2RouteImport } from './routes/admin_.dashboard-v2'
 import { Route as InspecoesIndexRouteImport } from './routes/inspecoes.index'
 import { Route as InspecoesIdRouteImport } from './routes/inspecoes.$id'
@@ -100,6 +101,11 @@ const SuporteRoute = SuporteRouteImport.update({
   path: '/suporte',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminActionPlansRoute = AdminActionPlansRouteImport.update({
+  id: '/admin_/action-plans',
+  path: '/admin/action-plans',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminDashboardV2Route = AdminDashboardV2RouteImport.update({
   id: '/admin_/dashboard-v2',
   path: '/admin/dashboard-v2',
@@ -148,6 +154,7 @@ export interface FileRoutesByFullPath {
   '/plano-acao': typeof PlanoAcaoRoute
   '/relatorios': typeof RelatoriosRoute
   '/suporte': typeof SuporteRoute
+  '/admin/action-plans': typeof AdminActionPlansRoute
   '/admin/dashboard-v2': typeof AdminDashboardV2Route
   '/inspecoes/$id': typeof InspecoesIdRoute
   '/resposta/$token': typeof RespostaTokenRoute
@@ -170,6 +177,7 @@ export interface FileRoutesByTo {
   '/plano-acao': typeof PlanoAcaoRoute
   '/relatorios': typeof RelatoriosRoute
   '/suporte': typeof SuporteRoute
+  '/admin/action-plans': typeof AdminActionPlansRoute
   '/admin/dashboard-v2': typeof AdminDashboardV2Route
   '/inspecoes/$id': typeof InspecoesIdRoute
   '/resposta/$token': typeof RespostaTokenRoute
@@ -193,6 +201,7 @@ export interface FileRoutesById {
   '/plano-acao': typeof PlanoAcaoRoute
   '/relatorios': typeof RelatoriosRoute
   '/suporte': typeof SuporteRoute
+  '/admin_/action-plans': typeof AdminActionPlansRoute
   '/admin_/dashboard-v2': typeof AdminDashboardV2Route
   '/inspecoes/$id': typeof InspecoesIdRoute
   '/resposta/$token': typeof RespostaTokenRoute
@@ -217,6 +226,7 @@ export interface FileRouteTypes {
     | '/plano-acao'
     | '/relatorios'
     | '/suporte'
+    | '/admin/action-plans'
     | '/admin/dashboard-v2'
     | '/inspecoes/$id'
     | '/resposta/$token'
@@ -239,6 +249,7 @@ export interface FileRouteTypes {
     | '/plano-acao'
     | '/relatorios'
     | '/suporte'
+    | '/admin/action-plans'
     | '/admin/dashboard-v2'
     | '/inspecoes/$id'
     | '/resposta/$token'
@@ -261,6 +272,7 @@ export interface FileRouteTypes {
     | '/plano-acao'
     | '/relatorios'
     | '/suporte'
+    | '/admin_/action-plans'
     | '/admin_/dashboard-v2'
     | '/inspecoes/$id'
     | '/resposta/$token'
@@ -284,6 +296,7 @@ export interface RootRouteChildren {
   PlanoAcaoRoute: typeof PlanoAcaoRoute
   RelatoriosRoute: typeof RelatoriosRoute
   SuporteRoute: typeof SuporteRoute
+  AdminActionPlansRoute: typeof AdminActionPlansRoute
   AdminDashboardV2Route: typeof AdminDashboardV2Route
   InspecoesIdRoute: typeof InspecoesIdRoute
   RespostaTokenRoute: typeof RespostaTokenRoute
@@ -392,6 +405,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SuporteRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin_/action-plans': {
+      id: '/admin_/action-plans'
+      path: '/admin/action-plans'
+      fullPath: '/admin/action-plans'
+      preLoaderRoute: typeof AdminActionPlansRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin_/dashboard-v2': {
       id: '/admin_/dashboard-v2'
       path: '/admin/dashboard-v2'
@@ -452,6 +472,7 @@ const rootRouteChildren: RootRouteChildren = {
   PlanoAcaoRoute: PlanoAcaoRoute,
   RelatoriosRoute: RelatoriosRoute,
   SuporteRoute: SuporteRoute,
+  AdminActionPlansRoute: AdminActionPlansRoute,
   AdminDashboardV2Route: AdminDashboardV2Route,
   InspecoesIdRoute: InspecoesIdRoute,
   RespostaTokenRoute: RespostaTokenRoute,

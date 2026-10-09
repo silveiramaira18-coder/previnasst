@@ -15,6 +15,7 @@ export const COLUNAS_V2 = [
 export type ColunaV2 = (typeof COLUNAS_V2)[number]["chave"];
 
 export type PlanoAcao = NaoConformidade & {
+  motivo_rejeicao?: string | null;
   itens_inspecao?: { local: string | null; normas_regulamentadoras: string[] | null } | null;
   obras?: { nome: string } | null;
 };
@@ -173,3 +174,28 @@ export async function carregarIndicadoresV2(): Promise<IndicadoresV2> {
     porMes,
   };
 }
+
+/* ---------------- Validação do plano (aprovar / rejeitar) ---------------- */
+
+export async function aprovarPlano(id: string) {
+  const { error } = await supabase
+    .from("nao_conformidades")
+    .update({ status: "Concluída", data_conclusao: hojeISO(), motivo_rejeicao: null })
+    .eq("id", id);
+  if (error) throw new Error(error.message);
+}
+
+export async function rejeitarPlano(id: string, motivo: string) {
+  const { error } = await supabase
+    .from("nao_conformidades")
+    .update({ status: "Em andamento", data_conclusao: null, motivo_rejeicao: motivo })
+    .eq("id", id);
+  if (error) throw new Error(error.message);
+}
+
+/** Vence nas próximas 48 horas (hoje, amanhã ou depois de amanhã) e ainda aberta. */
+export const venceEm48h = (nc: { prazo: string | null; status: string }) => {
+  if (!nc.prazo || ncConcluida(nc) || ncVencida(nc)) return false;
+  const dias = (Date.parse(`${nc.prazo}T00:00:00Z`) - Date.parse(`${hojeISO()}T00:00:00Z`)) / 86_400_000;
+  return dias >= 0 && dias <= 2;
+};

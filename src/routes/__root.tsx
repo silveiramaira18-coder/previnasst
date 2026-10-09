@@ -152,7 +152,7 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
-  if (pathname === "/auth") {
+  if (pathname === "/auth" || pathname.startsWith("/resposta/")) {
     return (
       <QueryClientProvider client={queryClient}>
         <TemaProvider>
