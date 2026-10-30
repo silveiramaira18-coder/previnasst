@@ -16,6 +16,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ChecklistsRouteImport } from './routes/checklists'
 import { Route as ConfiguracoesRouteImport } from './routes/configuracoes'
 import { Route as DocumentosRouteImport } from './routes/documentos'
+import { Route as ListaPresencaRouteImport } from './routes/lista-presenca'
 import { Route as NaoConformidadesRouteImport } from './routes/nao-conformidades'
 import { Route as NovaInspecaoRouteImport } from './routes/nova-inspecao'
 import { Route as ObrasRouteImport } from './routes/obras'
@@ -64,6 +65,11 @@ const ConfiguracoesRoute = ConfiguracoesRouteImport.update({
 const DocumentosRoute = DocumentosRouteImport.update({
   id: '/documentos',
   path: '/documentos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ListaPresencaRoute = ListaPresencaRouteImport.update({
+  id: '/lista-presenca',
+  path: '/lista-presenca',
   getParentRoute: () => rootRouteImport,
 } as any)
 const NaoConformidadesRoute = NaoConformidadesRouteImport.update({
@@ -147,6 +153,7 @@ export interface FileRoutesByFullPath {
   '/checklists': typeof ChecklistsRoute
   '/configuracoes': typeof ConfiguracoesRoute
   '/documentos': typeof DocumentosRoute
+  '/lista-presenca': typeof ListaPresencaRoute
   '/nao-conformidades': typeof NaoConformidadesRoute
   '/nova-inspecao': typeof NovaInspecaoRoute
   '/obras': typeof ObrasRoute
@@ -170,6 +177,7 @@ export interface FileRoutesByTo {
   '/checklists': typeof ChecklistsRoute
   '/configuracoes': typeof ConfiguracoesRoute
   '/documentos': typeof DocumentosRoute
+  '/lista-presenca': typeof ListaPresencaRoute
   '/nao-conformidades': typeof NaoConformidadesRoute
   '/nova-inspecao': typeof NovaInspecaoRoute
   '/obras': typeof ObrasRoute
@@ -194,6 +202,7 @@ export interface FileRoutesById {
   '/checklists': typeof ChecklistsRoute
   '/configuracoes': typeof ConfiguracoesRoute
   '/documentos': typeof DocumentosRoute
+  '/lista-presenca': typeof ListaPresencaRoute
   '/nao-conformidades': typeof NaoConformidadesRoute
   '/nova-inspecao': typeof NovaInspecaoRoute
   '/obras': typeof ObrasRoute
@@ -219,6 +228,7 @@ export interface FileRouteTypes {
     | '/checklists'
     | '/configuracoes'
     | '/documentos'
+    | '/lista-presenca'
     | '/nao-conformidades'
     | '/nova-inspecao'
     | '/obras'
@@ -242,6 +252,7 @@ export interface FileRouteTypes {
     | '/checklists'
     | '/configuracoes'
     | '/documentos'
+    | '/lista-presenca'
     | '/nao-conformidades'
     | '/nova-inspecao'
     | '/obras'
@@ -265,6 +276,7 @@ export interface FileRouteTypes {
     | '/checklists'
     | '/configuracoes'
     | '/documentos'
+    | '/lista-presenca'
     | '/nao-conformidades'
     | '/nova-inspecao'
     | '/obras'
@@ -289,6 +301,7 @@ export interface RootRouteChildren {
   ChecklistsRoute: typeof ChecklistsRoute
   ConfiguracoesRoute: typeof ConfiguracoesRoute
   DocumentosRoute: typeof DocumentosRoute
+  ListaPresencaRoute: typeof ListaPresencaRoute
   NaoConformidadesRoute: typeof NaoConformidadesRoute
   NovaInspecaoRoute: typeof NovaInspecaoRoute
   ObrasRoute: typeof ObrasRoute
@@ -354,6 +367,13 @@ declare module '@tanstack/react-router' {
       path: '/documentos'
       fullPath: '/documentos'
       preLoaderRoute: typeof DocumentosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/lista-presenca': {
+      id: '/lista-presenca'
+      path: '/lista-presenca'
+      fullPath: '/lista-presenca'
+      preLoaderRoute: typeof ListaPresencaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/nao-conformidades': {
@@ -465,6 +485,7 @@ const rootRouteChildren: RootRouteChildren = {
   ChecklistsRoute: ChecklistsRoute,
   ConfiguracoesRoute: ConfiguracoesRoute,
   DocumentosRoute: DocumentosRoute,
+  ListaPresencaRoute: ListaPresencaRoute,
   NaoConformidadesRoute: NaoConformidadesRoute,
   NovaInspecaoRoute: NovaInspecaoRoute,
   ObrasRoute: ObrasRoute,
