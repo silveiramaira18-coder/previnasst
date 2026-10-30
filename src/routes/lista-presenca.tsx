@@ -147,7 +147,6 @@ function PaginaListaPresenca() {
     mutationFn: (id: string) => excluirLista(id),
     onSuccess: () => {
       toast.success("Lista excluída.");
-      setExcluindo(null);
       queryClient.invalidateQueries({ queryKey: ["listas-presenca"] });
     },
     onError: (e: Error) => toast.error(e.message),
@@ -240,15 +239,6 @@ function PaginaListaPresenca() {
       )}
 
       <DialogoVisualizacao lista={visualizando} onFechar={() => setVisualizando(null)} />
-
-      <ConfirmacaoExclusao
-        aberto={!!excluindo}
-        titulo="Excluir lista de presença"
-        descricao={`A lista "${excluindo?.tema ?? ""}" e todos os participantes serão removidos definitivamente.`}
-        onCancelar={() => setExcluindo(null)}
-        onConfirmar={() => excluindo && mutExcluir.mutate(excluindo.id)}
-        carregando={mutExcluir.isPending}
-      />
     </div>
   );
 }
