@@ -137,7 +137,6 @@ function PaginaListaPresenca() {
   const { perfil, adminPrincipal, isLoading: carregandoPerfil } = usePerfil();
   const [aberta, setAberta] = useState(false);
   const [visualizando, setVisualizando] = useState<ListaPresenca | null>(null);
-  const [excluindo, setExcluindo] = useState<ListaPresenca | null>(null);
 
   const { data: listas = [], isLoading } = useQuery({
     queryKey: ["listas-presenca"],
