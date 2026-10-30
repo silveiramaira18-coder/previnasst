@@ -3,6 +3,7 @@ import {
   LayoutDashboard,
   Building2,
   CameraIcon,
+  ClipboardCheck,
   ClipboardList,
   ListChecks,
   TriangleAlert,
@@ -48,6 +49,7 @@ const items = [
   },
   { title: "Não Conformidades", to: "/nao-conformidades", icon: TriangleAlert },
   { title: "Gestão Documental", to: "/documentos", icon: FolderOpen },
+  { title: "Lista de Presença", to: "/lista-presenca", icon: ClipboardCheck },
   { title: "Plano de Ação", to: "/plano-acao", icon: KanbanSquare, somenteAdminPrincipal: true },
   {
     title: "Dashboard de Tendências",

@@ -665,6 +665,90 @@ export type Database = {
           },
         ]
       }
+      lista_presenca_participantes: {
+        Row: {
+          created_at: string
+          employee_id: string | null
+          funcao: string | null
+          id: string
+          lista_id: string
+          nome: string
+          ordem: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          employee_id?: string | null
+          funcao?: string | null
+          id?: string
+          lista_id: string
+          nome: string
+          ordem?: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          employee_id?: string | null
+          funcao?: string | null
+          id?: string
+          lista_id?: string
+          nome?: string
+          ordem?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lista_presenca_participantes_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lista_presenca_participantes_lista_id_fkey"
+            columns: ["lista_id"]
+            isOneToOne: false
+            referencedRelation: "listas_presenca"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      listas_presenca: {
+        Row: {
+          carga_horaria: string | null
+          created_at: string
+          data: string | null
+          empresa: string | null
+          horario: string | null
+          id: string
+          local: string | null
+          tema: string
+          user_id: string
+        }
+        Insert: {
+          carga_horaria?: string | null
+          created_at?: string
+          data?: string | null
+          empresa?: string | null
+          horario?: string | null
+          id?: string
+          local?: string | null
+          tema: string
+          user_id: string
+        }
+        Update: {
+          carga_horaria?: string | null
+          created_at?: string
+          data?: string | null
+          empresa?: string | null
+          horario?: string | null
+          id?: string
+          local?: string | null
+          tema?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       nao_conformidades: {
         Row: {
           acao_imediata: boolean

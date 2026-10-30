@@ -57,6 +57,13 @@
       "when": 1791299637313,
       "tag": "0007_nc_portal_links",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1793377688108,
+      "tag": "0008_create_listas_presenca",
+      "breakpoints": true
     }
   ]
 }
