@@ -218,15 +218,19 @@ function PaginaListaPresenca() {
                     <Users className="size-4" /> Abrir
                   </Button>
                   {podeExcluir(lista) && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="text-destructive"
-                      onClick={() => setExcluindo(lista)}
-                      aria-label="Excluir lista"
+                    <ConfirmacaoExclusao
+                      nome={`a lista "${lista.tema}" e todos os participantes`}
+                      onConfirmar={() => mutExcluir.mutateAsync(lista.id).then(() => undefined)}
                     >
-                      <Trash2 className="size-4" />
-                    </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="text-destructive"
+                        aria-label="Excluir lista"
+                      >
+                        <Trash2 className="size-4" />
+                      </Button>
+                    </ConfirmacaoExclusao>
                   )}
                 </div>
               </CardHeader>

@@ -3,6 +3,7 @@ import {
   LayoutDashboard,
   Building2,
   CameraIcon,
+  ClipboardCheck,
   ClipboardList,
   ListChecks,
   TriangleAlert,
