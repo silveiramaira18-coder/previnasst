@@ -53,7 +53,7 @@ export function ComboboxGed({
         <Command>
           <CommandInput placeholder={busca} />
           <CommandList
-            className="max-h-[280px] overflow-y-auto overscroll-contain"
+            className="max-h-[250px] overflow-y-auto overscroll-contain"
             onWheel={(e) => e.stopPropagation()}
             onTouchMove={(e) => e.stopPropagation()}
           >

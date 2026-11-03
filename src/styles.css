@@ -72,6 +72,10 @@
 }
 
 :root {
+  --paper: #ffffff;
+  --paper-ink: #202020;
+  --paper-border: #757575;
+  --paper-muted: #eeeeee;
   --radius: 0.625rem;
   --background: oklch(0.978 0.005 240);
   --foreground: oklch(0.22 0.03 252);
@@ -168,3 +172,6 @@
     letter-spacing: -0.01em;
   }
 }
+
+.signature-canvas { background: var(--paper); color: var(--paper-ink); touch-action: none; width: 100%; height: 220px; }
+.signature-image { background: var(--paper); }
