@@ -380,7 +380,7 @@ export async function listarFuncoesPersonalizadas(contractorId: string | null) {
 }
 
 export async function adicionarFuncaoPersonalizada(contractorId: string | null, name: string) {
-  const nome = name.trim().replace(/\s+/g, " ").slice(0, 80);
+  const nome = name.trim().replace(/\s+/g, " ").slice(0, 80).toUpperCase();
   if (nome.length < 2) throw new Error("Informe uma função com pelo menos 2 caracteres.");
   const { error } = await supabase.from("company_job_roles").insert({
     contractor_id: contractorId,

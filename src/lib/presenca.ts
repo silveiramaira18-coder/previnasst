@@ -10,6 +10,11 @@ export type ListaPresenca = {
   horario: string | null;
   carga_horaria: string | null;
   tema: string;
+  company_id: string | null;
+  nome_treinamento: string | null;
+  horario_inicial: string | null;
+  horario_final: string | null;
+  modo_assinatura: "digital" | "manual";
   created_at: string;
 };
 
@@ -20,6 +25,8 @@ export type Participante = {
   ordem: number;
   nome: string;
   funcao: string | null;
+  assinatura: string | null;
+  assinatura_data: string | null;
 };
 
 export type NovaLista = {
@@ -29,9 +36,14 @@ export type NovaLista = {
   horario: string;
   carga_horaria: string;
   tema: string;
+  nome_treinamento: string;
+  horario_inicial: string;
+  horario_final: string;
+  modo_assinatura: "digital" | "manual";
 };
 
 export type NovoParticipante = {
+  id?: string;
   nome: string;
   funcao: string;
   employee_id?: string | null;
@@ -40,56 +52,44 @@ export type NovoParticipante = {
 export async function listarListas(): Promise<ListaPresenca[]> {
   const { data, error } = await supabase
     .from("listas_presenca")
-    .select("id, user_id, local, data, empresa, horario, carga_horaria, tema, created_at")
-    .order("data", { ascending: false })
-    .order("created_at", { ascending: false });
+    .select("*");
   if (error) throw new Error(error.message);
-  return (data ?? []) as ListaPresenca[];
+  return ((data ?? []) as ListaPresenca[]).sort((a, b) => ordenarAZ(a.nome_treinamento ?? a.tema, b.nome_treinamento ?? b.tema));
 }
 
 export async function listarParticipantes(listaId: string): Promise<Participante[]> {
   const { data, error } = await supabase
     .from("lista_presenca_participantes")
-    .select("id, lista_id, employee_id, ordem, nome, funcao")
+    .select("id, lista_id, employee_id, ordem, nome, funcao, assinatura, assinatura_data")
     .eq("lista_id", listaId)
     .order("ordem");
   if (error) throw new Error(error.message);
-  return (data ?? []) as Participante[];
+  return ordenarParticipantes((data ?? []) as Participante[]);
 }
 
 export async function criarLista(dados: NovaLista, participantes: NovoParticipante[]): Promise<string> {
-  const { data: sessao } = await supabase.auth.getUser();
-  const userId = sessao.user?.id;
-  if (!userId) throw new Error("Sessão expirada. Entre novamente.");
+  return salvarLista(null, dados, participantes);
+}
 
-  const { data: lista, error } = await supabase
-    .from("listas_presenca")
-    .insert({
-      user_id: userId,
-      local: dados.local.trim() || null,
-      data: dados.data || null,
-      empresa: dados.empresa.trim().toUpperCase() || null,
-      horario: dados.horario.trim() || null,
-      carga_horaria: dados.carga_horaria.trim() || null,
-      tema: dados.tema.trim().toUpperCase(),
-    })
-    .select("id")
-    .single();
+export async function salvarLista(id: string | null, dados: NovaLista, participantes: NovoParticipante[]): Promise<string> {
+  const { data, error } = await supabase.rpc("salvar_lista_treinamento", {
+    ...(id ? { p_id: id } : { p_id: null as unknown as string }),
+    p_dados: { ...dados },
+    p_participantes: ordenarParticipantes(participantes).map((p, i) => ({ ...p, ordem: i + 1 })),
+  });
   if (error) throw new Error(error.message);
+  return data;
+}
 
-  if (participantes.length > 0) {
-    const linhas = participantes.map((p, i) => ({
-      lista_id: lista.id,
-      user_id: userId,
-      employee_id: p.employee_id ?? null,
-      ordem: i + 1,
-      nome: p.nome.trim().toUpperCase(),
-      funcao: p.funcao.trim().toUpperCase() || null,
-    }));
-    const { error: erroPart } = await supabase.from("lista_presenca_participantes").insert(linhas);
-    if (erroPart) throw new Error(erroPart.message);
-  }
-  return lista.id as string;
+export async function salvarAssinatura(id: string, imagem: string) {
+  if (!/^data:image\/png;base64,/.test(imagem) || imagem.length > 800_000) throw new Error("Assinatura inválida.");
+  const { error } = await supabase.from("lista_presenca_participantes").update({ assinatura: imagem, assinatura_data: new Date().toISOString() }).eq("id", id);
+  if (error) throw new Error(error.message);
+}
+
+export async function alterarModoAssinatura(id: string, modo: "digital" | "manual") {
+  const { error } = await supabase.from("listas_presenca").update({ modo_assinatura: modo }).eq("id", id);
+  if (error) throw new Error(error.message);
 }
 
 export async function excluirLista(id: string) {

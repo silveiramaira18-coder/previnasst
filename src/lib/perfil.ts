@@ -77,6 +77,7 @@ export type Perfil = {
   cargo: string | null;
   telefone: string | null;
   avatar_url: string | null;
+  empresa_logo: string | null;
   email: string | null;
   papel: Papel;
   adminPrincipal: boolean;
@@ -90,7 +91,7 @@ export async function carregarPerfil(): Promise<Perfil | null> {
   const [{ data: perfil }, { data: papeis }] = await Promise.all([
     supabase
       .from("profiles")
-      .select("id, nome, empresa, cargo, telefone, avatar_url")
+      .select("id, nome, empresa, cargo, telefone, avatar_url, empresa_logo")
       .eq("id", user.id)
       .maybeSingle(),
     supabase.from("user_roles").select("role").eq("user_id", user.id),
@@ -111,6 +112,7 @@ export async function carregarPerfil(): Promise<Perfil | null> {
     cargo: perfil?.cargo ?? null,
     telefone: perfil?.telefone ?? null,
     avatar_url: perfil?.avatar_url ?? null,
+    empresa_logo: perfil?.empresa_logo ?? null,
     email: user.email ?? null,
     papel,
     adminPrincipal,
