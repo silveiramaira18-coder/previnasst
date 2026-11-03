@@ -667,6 +667,8 @@ export type Database = {
       }
       lista_presenca_participantes: {
         Row: {
+          assinatura: string | null
+          assinatura_data: string | null
           created_at: string
           employee_id: string | null
           funcao: string | null
@@ -677,6 +679,8 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          assinatura?: string | null
+          assinatura_data?: string | null
           created_at?: string
           employee_id?: string | null
           funcao?: string | null
@@ -687,6 +691,8 @@ export type Database = {
           user_id: string
         }
         Update: {
+          assinatura?: string | null
+          assinatura_data?: string | null
           created_at?: string
           employee_id?: string | null
           funcao?: string | null
@@ -716,38 +722,61 @@ export type Database = {
       listas_presenca: {
         Row: {
           carga_horaria: string | null
+          company_id: string | null
           created_at: string
           data: string | null
           empresa: string | null
           horario: string | null
+          horario_final: string | null
+          horario_inicial: string | null
           id: string
           local: string | null
+          modo_assinatura: string
+          nome_treinamento: string | null
           tema: string
           user_id: string
         }
         Insert: {
           carga_horaria?: string | null
+          company_id?: string | null
           created_at?: string
           data?: string | null
           empresa?: string | null
           horario?: string | null
+          horario_final?: string | null
+          horario_inicial?: string | null
           id?: string
           local?: string | null
+          modo_assinatura?: string
+          nome_treinamento?: string | null
           tema: string
           user_id: string
         }
         Update: {
           carga_horaria?: string | null
+          company_id?: string | null
           created_at?: string
           data?: string | null
           empresa?: string | null
           horario?: string | null
+          horario_final?: string | null
+          horario_inicial?: string | null
           id?: string
           local?: string | null
+          modo_assinatura?: string
+          nome_treinamento?: string | null
           tema?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "listas_presenca_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       nao_conformidades: {
         Row: {
@@ -973,6 +1002,7 @@ export type Database = {
           cargo: string | null
           data_criacao: string
           empresa: string | null
+          empresa_logo: string | null
           id: string
           nome: string | null
           telefone: string | null
@@ -982,6 +1012,7 @@ export type Database = {
           cargo?: string | null
           data_criacao?: string
           empresa?: string | null
+          empresa_logo?: string | null
           id: string
           nome?: string | null
           telefone?: string | null
@@ -991,6 +1022,7 @@ export type Database = {
           cargo?: string | null
           data_criacao?: string
           empresa?: string | null
+          empresa_logo?: string | null
           id?: string
           nome?: string | null
           telefone?: string | null
@@ -1076,6 +1108,10 @@ export type Database = {
         Returns: boolean
       }
       is_admin_principal: { Args: { _user_id: string }; Returns: boolean }
+      salvar_lista_treinamento: {
+        Args: { p_dados: Json; p_id: string; p_participantes: Json }
+        Returns: string
+      }
     }
     Enums: {
       app_role: "admin" | "inspetor" | "responsavel"
