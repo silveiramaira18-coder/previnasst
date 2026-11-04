@@ -15,7 +15,7 @@ import { calcularCargaHoraria } from "@/lib/presenca-regras";
 import { usePerfil } from "@/lib/perfil";
 import { LogoEmpresa } from "./LogoEmpresa";
 
-export function FormularioLista({ lista, iniciais = [], empresaPadrao, logo, onSalvo }: { lista?: ListaPresenca | null; iniciais?: NovoParticipante[]; empresaPadrao: string; logo?: string | null; onSalvo: () => void }) {
+export function FormularioLista({ lista, iniciais = [], empresaPadrao, logo, onSalvo }: { lista?: ListaPresenca | null; iniciais?: NovoParticipante[]; empresaPadrao: string; logo?: string | null | undefined; onSalvo: () => void }) {
   const qc = useQueryClient();
   const { perfil } = usePerfil();
   const [local, setLocal] = useState(lista?.local ?? "");
