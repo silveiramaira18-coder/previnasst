@@ -16,7 +16,7 @@ export function useLogoEmpresa(owner?: string) {
   } });
 }
 
-export function LogoEmpresa({ url }: { url?: string | null }) { return url ? <img src={url} alt="Logotipo da empresa" className="mx-auto mb-4 h-20 max-w-56 object-contain" /> : null; }
+export function LogoEmpresa({ url }: { url?: string | null | undefined }) { return url ? <img src={url} alt="Logotipo da empresa" className="mx-auto mb-4 h-20 max-w-56 object-contain" /> : null; }
 
 export function CadastroLogo({ onSalvo }: { onSalvo: () => void }) {
   const { perfil } = usePerfil();
