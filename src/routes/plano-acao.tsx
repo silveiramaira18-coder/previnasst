@@ -74,6 +74,7 @@ function CardPlano({
 }) {
   const reenviar = useServerFn(enviarCobrancaNC);
   const [enviando, setEnviando] = useState(false);
+  const [statusEmail, setStatusEmail] = useState("Envio indisponível — domínio não configurado");
   const coluna = colunaDaNC(nc);
   const indice = ordem.indexOf(coluna);
   const anterior = ordem[indice - 1];
@@ -107,10 +108,13 @@ function CardPlano({
             disabled={enviando}
             onClick={async () => {
               setEnviando(true);
+              setStatusEmail("Enviando…");
               try {
                 await reenviar({ data: { ncId: nc.id, origem: window.location.origin } });
                 toast.success("Cobrança reenviada ao responsável");
+                setStatusEmail("Enviado");
               } catch (e) {
+                setStatusEmail((e as Error).message);
                 toast.error("Não foi possível reenviar", { description: (e as Error).message });
               } finally {
                 setEnviando(false);
@@ -120,6 +124,7 @@ function CardPlano({
             <Mail className="size-4" /> {enviando ? "Enviando..." : "Reenviar cobrança"}
           </Button>
         ) : null}
+        {coluna !== "concluido" && <p role="status" className="break-words text-xs text-muted-foreground">{statusEmail}</p>}
         <div className="flex gap-2">
           <Button
             type="button"

@@ -6,11 +6,13 @@
 - [x] Conferir e preservar recursos GED: ficha de emergência, dashboard, faixas de validade e agendamentos ativos; entrega de e-mail continua em modo teste.
 
 # Isolamento por empresa
-- [ ] Organizações, vínculos por convite e seleção segura da empresa ativa, preservando dados existentes.
-- [ ] Restringir registros, relacionamentos e arquivos por empresa; manter administradores globais.
-- [ ] Disponibilizar convites e aceite no perfil, com aviso sobre envio de e-mail em modo teste.
-- [ ] Testar acesso entre empresas, membros, administradores e fluxo autenticado.
+- [x] Organizações, vínculos por convite e seleção segura da empresa ativa, preservando dados existentes.
+- [x] Restringir registros, relacionamentos e arquivos por empresa; manter administradores globais.
+- [x] Disponibilizar convites e aceite no perfil, com aviso de envio bloqueado sem domínio.
+- [x] Testes de escopo offline, painel autenticado, criação de convite e rejeição de outro destinatário; nenhum erro na prévia.
+- [ ] Teste completo entre duas contas comuns: requer sessões autorizadas de dois membros de empresas diferentes; não foi verificado.
 
 # E-mails de produção
-- [ ] Substituir o envio em modo teste após configuração e verificação de domínio próprio.
-- [ ] Mostrar o status real de cada notificação, sem confundir enviado com entregue.
+- [x] Desativar os envios de teste; convites e cobranças mostram bloqueio por falta de domínio.
+- [ ] Ativar serviço de produção: aguarda aquisição/configuração e verificação de domínio próprio.
+- [ ] Histórico real de status de todas as notificações: aguarda serviço de produção ativo; não implementado.
