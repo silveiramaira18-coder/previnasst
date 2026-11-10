@@ -25,6 +25,9 @@ export const Route = createFileRoute("/api/public/hooks/alertas-validade")({
         if (!segredo || request.headers.get("x-cron-secret") !== segredo)
           return json({ error: "Não autorizado" }, 401);
 
+        return json({ enviados: 0, status: "blocked", motivo: "Domínio de envio não configurado" }, 503);
+
+        /* Legacy test delivery disabled until production sender verification.
         const lovableKey = process.env["LOVABLE_API_KEY"];
         const resendKey = process.env["RESEND_API_KEY"];
         if (!lovableKey || !resendKey) return json({ error: "E-mail não configurado" }, 500);

@@ -49,6 +49,10 @@ export const enviarCobrancaNC = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ ncId: z.string().uuid(), origem: z.string().optional() }).parse(d))
   .handler(async ({ data, context }) => {
+    const { data: registro, error: erroAcesso } = await context.supabase.from("nao_conformidades").select("id").eq("id", data.ncId).maybeSingle();
+    if (erroAcesso || !registro) throw new Error("Não conformidade não encontrada.");
+    throw new Error("Não enviado — domínio de envio não configurado.");
+    /* Legacy test delivery is disabled until a verified production sender is configured.
     const sb = context.supabase as Sb;
     const token = await obterToken(sb, data.ncId, context.userId);
     const url = `${origemSegura(data.origem)}/resposta/${token}`;
@@ -103,6 +107,7 @@ export const enviarCobrancaNC = createServerFn({ method: "POST" })
     if (!r.ok) throw new Error(`Falha no envio do e-mail (${r.status}).`);
     await sb.from("nao_conformidades").update({ ultimo_email_cobranca: new Date().toISOString() }).eq("id", data.ncId);
     return { ok: true, url };
+    */
   });
 
 async function ncDoToken(token: string) {
