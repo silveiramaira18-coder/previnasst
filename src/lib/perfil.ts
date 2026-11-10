@@ -100,6 +100,7 @@ export async function carregarPerfil(): Promise<Perfil | null> {
 
   const adminPrincipal = ehEmailAdmin(user.email);
   const { data: companyId } = await supabase.rpc("active_company_id");
+  if (companyId) sessionStorage.setItem(`previna-company:${user.id}`, companyId);
   const { data: company } = companyId ? await supabase.from("companies").select("name").eq("id", companyId).maybeSingle() : { data: null };
   const lista = (papeis ?? []).map((p) => p.role as Papel);
   const papel: Papel = adminPrincipal

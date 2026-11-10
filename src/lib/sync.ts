@@ -4,12 +4,16 @@
  */
 import { supabase } from "@/integrations/supabase/client";
 import { BUCKET, type FotoTabela } from "@/lib/fotos";
+import { escopoLocal } from "@/lib/company";
+import { pertenceAoEscopo } from "@/lib/company-regras";
 
 const DB = "previna-sst-sync";
 const STORE = "fotos-pendentes";
 
 export type FotoPendente = {
   id: string;
+  userId?: string;
+  companyId?: string;
   tabela: FotoTabela;
   coluna: string;
   valor: string;
@@ -77,10 +81,12 @@ export async function enfileirarFotos(
   valor: string,
   arquivos: File[],
 ) {
+  const escopo = await escopoLocal();
   for (const arquivo of arquivos) {
     const comprimido = await compactarFoto(arquivo);
     const item: FotoPendente = {
       id: crypto.randomUUID(),
+      ...escopo,
       tabela,
       coluna,
       valor,
@@ -97,7 +103,8 @@ export async function enfileirarFotos(
 export async function listarPendentes(): Promise<FotoPendente[]> {
   try {
     const itens = await transacao<FotoPendente[]>("readonly", (s) => s.getAll() as never);
-    return itens ?? [];
+    const escopo = await escopoLocal();
+    return (itens ?? []).filter(item => pertenceAoEscopo(escopo.userId, escopo.companyId, item));
   } catch {
     return [];
   }
@@ -124,7 +131,7 @@ export async function sincronizarFila(): Promise<number> {
 
     for (const item of pendentes) {
       const ext = item.nome.split(".").pop() ?? "jpg";
-      const caminho = `${userId}/${item.valor}/${crypto.randomUUID()}.${ext}`;
+      const caminho = `companies/${item.companyId}/${userId}/${item.valor}/${crypto.randomUUID()}.${ext}`;
       const { error: upErr } = await supabase.storage
         .from(BUCKET)
         .upload(caminho, item.blob, { contentType: item.tipo });
@@ -135,6 +142,7 @@ export async function sincronizarFila(): Promise<number> {
         url: caminho,
         nome_arquivo: item.nome,
         user_id: userId,
+        company_id: item.companyId,
       } as never);
       if (dbErr) continue;
 
