@@ -10,3 +10,7 @@
 - [ ] Restringir registros, relacionamentos e arquivos por empresa; manter administradores globais.
 - [ ] Disponibilizar convites e aceite no perfil, com aviso sobre envio de e-mail em modo teste.
 - [ ] Testar acesso entre empresas, membros, administradores e fluxo autenticado.
+
+# E-mails de produção
+- [ ] Substituir o envio em modo teste após configuração e verificação de domínio próprio.
+- [ ] Mostrar o status real de cada notificação, sem confundir enviado com entregue.
