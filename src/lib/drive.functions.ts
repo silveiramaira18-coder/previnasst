@@ -22,9 +22,12 @@ export const enviarRelatorioParaDrive = createServerFn({ method: "POST" })
     if (pdfBase64.length > 30_000_000) throw new Error("Relatório muito grande para envio.");
     return { nomeArquivo, empresa, pdfBase64 };
   })
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
     const { garantirPasta, enviarArquivo, buscarArquivo, PASTA_RELATORIOS } = await import("./drive.server");
-    const pastaEmpresa = await garantirPasta(nomePasta(data.empresa), PASTA_RELATORIOS);
+    const { data: companyId, error } = await context.supabase.rpc("active_company_id");
+    if (error || !companyId) throw new Error("Empresa não identificada.");
+    const { data: company } = await context.supabase.from("companies").select("name").eq("id", companyId).single();
+    const pastaEmpresa = await garantirPasta(`${companyId} - ${nomePasta(company?.name ?? "")}`, PASTA_RELATORIOS);
     const bytes = Uint8Array.from(atob(data.pdfBase64), (c) => c.charCodeAt(0));
     const existente = await buscarArquivo(data.nomeArquivo, pastaEmpresa);
     const arquivo = await enviarArquivo({

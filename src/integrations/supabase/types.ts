@@ -1458,6 +1458,7 @@ export type Database = {
       }
       can_manage_company: { Args: { p_company: string }; Returns: boolean }
       can_read_company: { Args: { p_company: string }; Returns: boolean }
+      company_logo_for_owner: { Args: { p_owner: string }; Returns: string }
       create_company_invitation: {
         Args: { p_email: string }
         Returns: {

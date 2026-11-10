@@ -152,7 +152,7 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
-  if (pathname === "/auth" || pathname.startsWith("/resposta/")) {
+  if (pathname === "/auth" || pathname === "/convite" || pathname.startsWith("/resposta/")) {
     return (
       <QueryClientProvider client={queryClient}>
         <TemaProvider>
@@ -225,6 +225,14 @@ function BotaoTema() {
 function AuthGate({ children }: { children: ReactNode }) {
   const { session, loading } = useAuth();
   const navigate = useNavigate();
+  const { queryClient } = Route.useRouteContext();
+
+  useEffect(() => {
+    const { data } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "SIGNED_OUT") queryClient.clear();
+    });
+    return () => data.subscription.unsubscribe();
+  }, [queryClient]);
 
   useEffect(() => {
     if (!loading && !session) navigate({ to: "/auth" });

@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { BUCKET, urlAssinada } from "@/lib/fotos";
 import { usePerfil } from "@/lib/perfil";
+import { caminhoEmpresa } from "@/lib/company";
 import { Button } from "@/components/ui/button";
 import { ImagePlus } from "lucide-react";
 import { useRef, useState } from "react";
@@ -10,9 +11,9 @@ import { toast } from "sonner";
 export function useLogoEmpresa(owner?: string) {
   const { perfil } = usePerfil();
   return useQuery({ queryKey: ["logo-empresa", owner ?? perfil?.id, perfil?.empresa_logo], enabled: !!(owner ?? perfil?.id), queryFn: async () => {
-    const { data, error } = await supabase.from("profiles").select("empresa_logo").eq("id", owner ?? perfil?.id ?? "").maybeSingle();
+    const { data, error } = await supabase.rpc("company_logo_for_owner", { p_owner: owner ?? perfil?.id ?? "" });
     if (error) throw error;
-    return data?.empresa_logo ? urlAssinada(data.empresa_logo) : null;
+    return data ? urlAssinada(data) : null;
   } });
 }
 
@@ -26,7 +27,7 @@ export function CadastroLogo({ onSalvo }: { onSalvo: () => void }) {
     if (!perfil) return;
     if (!["image/png", "image/jpeg", "image/webp"].includes(file.type) || file.size > 5 * 1024 * 1024) { toast.error("Selecione uma imagem PNG, JPG ou WebP de até 5 MB."); return; }
     setSalvando(true);
-    const caminho = `${perfil.id}/empresa/${crypto.randomUUID()}.${file.type.split("/")[1]}`;
+    const caminho = await caminhoEmpresa(perfil.id, `empresa/${crypto.randomUUID()}.${file.type.split("/")[1]}`);
     try {
       const { error: uploadError } = await supabase.storage.from(BUCKET).upload(caminho, file);
       if (uploadError) throw uploadError;

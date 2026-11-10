@@ -15,6 +15,7 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ChecklistsRouteImport } from './routes/checklists'
 import { Route as ConfiguracoesRouteImport } from './routes/configuracoes'
+import { Route as ConviteRouteImport } from './routes/convite'
 import { Route as DocumentosRouteImport } from './routes/documentos'
 import { Route as ListaPresencaRouteImport } from './routes/lista-presenca'
 import { Route as NaoConformidadesRouteImport } from './routes/nao-conformidades'
@@ -60,6 +61,11 @@ const ChecklistsRoute = ChecklistsRouteImport.update({
 const ConfiguracoesRoute = ConfiguracoesRouteImport.update({
   id: '/configuracoes',
   path: '/configuracoes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ConviteRoute = ConviteRouteImport.update({
+  id: '/convite',
+  path: '/convite',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DocumentosRoute = DocumentosRouteImport.update({
@@ -152,6 +158,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/checklists': typeof ChecklistsRoute
   '/configuracoes': typeof ConfiguracoesRoute
+  '/convite': typeof ConviteRoute
   '/documentos': typeof DocumentosRoute
   '/lista-presenca': typeof ListaPresencaRoute
   '/nao-conformidades': typeof NaoConformidadesRoute
@@ -176,6 +183,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/checklists': typeof ChecklistsRoute
   '/configuracoes': typeof ConfiguracoesRoute
+  '/convite': typeof ConviteRoute
   '/documentos': typeof DocumentosRoute
   '/lista-presenca': typeof ListaPresencaRoute
   '/nao-conformidades': typeof NaoConformidadesRoute
@@ -201,6 +209,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/checklists': typeof ChecklistsRoute
   '/configuracoes': typeof ConfiguracoesRoute
+  '/convite': typeof ConviteRoute
   '/documentos': typeof DocumentosRoute
   '/lista-presenca': typeof ListaPresencaRoute
   '/nao-conformidades': typeof NaoConformidadesRoute
@@ -227,6 +236,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/checklists'
     | '/configuracoes'
+    | '/convite'
     | '/documentos'
     | '/lista-presenca'
     | '/nao-conformidades'
@@ -251,6 +261,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/checklists'
     | '/configuracoes'
+    | '/convite'
     | '/documentos'
     | '/lista-presenca'
     | '/nao-conformidades'
@@ -275,6 +286,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/checklists'
     | '/configuracoes'
+    | '/convite'
     | '/documentos'
     | '/lista-presenca'
     | '/nao-conformidades'
@@ -300,6 +312,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   ChecklistsRoute: typeof ChecklistsRoute
   ConfiguracoesRoute: typeof ConfiguracoesRoute
+  ConviteRoute: typeof ConviteRoute
   DocumentosRoute: typeof DocumentosRoute
   ListaPresencaRoute: typeof ListaPresencaRoute
   NaoConformidadesRoute: typeof NaoConformidadesRoute
@@ -360,6 +373,13 @@ declare module '@tanstack/react-router' {
       path: '/configuracoes'
       fullPath: '/configuracoes'
       preLoaderRoute: typeof ConfiguracoesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/convite': {
+      id: '/convite'
+      path: '/convite'
+      fullPath: '/convite'
+      preLoaderRoute: typeof ConviteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/documentos': {
@@ -484,6 +504,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   ChecklistsRoute: ChecklistsRoute,
   ConfiguracoesRoute: ConfiguracoesRoute,
+  ConviteRoute: ConviteRoute,
   DocumentosRoute: DocumentosRoute,
   ListaPresencaRoute: ListaPresencaRoute,
   NaoConformidadesRoute: NaoConformidadesRoute,

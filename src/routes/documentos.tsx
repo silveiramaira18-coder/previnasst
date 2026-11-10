@@ -41,6 +41,7 @@ import {
 } from "@/lib/ged";
 import { usePerfil } from "@/lib/perfil";
 import { supabase } from "@/integrations/supabase/client";
+import { salvarPerfil } from "@/lib/perfil";
 
 export const Route = createFileRoute("/documentos")({
   head: () => ({
@@ -196,7 +197,11 @@ function GestaoDocumental() {
     const novo = rascunho.trim().slice(0, 150);
     if (!novo || novo === nomeEmpresaPropria || !perfil?.id) return;
     setNomeLocal(novo);
-    const { error } = await supabase.from("profiles").update({ empresa: novo }).eq("id", perfil.id);
+    const { error } = await supabase.rpc("can_manage_company", { p_company: perfil.company_id ?? "" }).then(async (r) => {
+      if (r.error || !r.data) return { error: new Error("Somente o proprietário ou administradores podem alterar o nome da empresa.") };
+      try { await salvarPerfil({ nome: perfil.nome ?? "", empresa: novo, telefone: perfil.telefone ?? "", cargo: perfil.cargo }); return { error: null }; }
+      catch(e) { return { error: e instanceof Error ? e : new Error("Não foi possível salvar.") }; }
+    });
     if (error) {
       setNomeLocal(null);
       toast.error("Não foi possível salvar o nome", { description: error.message });

@@ -163,12 +163,12 @@ export const enviarSolucaoPortal = createServerFn({ method: "POST" })
   )
   .handler(async ({ data }) => {
     const { admin, ncId } = await ncDoToken(data.token);
-    const { data: nc } = await admin.from("nao_conformidades").select("user_id, status").eq("id", ncId).single();
+    const { data: nc } = await admin.from("nao_conformidades").select("user_id, company_id, status").eq("id", ncId).single();
     if (!nc) throw new Error("Pendência não encontrada.");
     if (nc.status === "Concluída") throw new Error("Esta pendência já foi concluída.");
     const bytes = Uint8Array.from(atob(data.arquivoBase64), (c) => c.charCodeAt(0));
     const ext = (data.tipo.split("/")[1] ?? "jpg").replace(/[^a-z0-9]/g, "") || "jpg";
-    const caminho = `${nc.user_id}/${ncId}/${crypto.randomUUID()}.${ext}`;
+    const caminho = `companies/${nc.company_id}/${nc.user_id}/${ncId}/${crypto.randomUUID()}.${ext}`;
     const { error: up } = await admin.storage.from("fotos").upload(caminho, bytes, { contentType: data.tipo });
     if (up) throw new Error(up.message);
     const { error: ins } = await admin.from("fotos_nao_conformidade").insert({

@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { caminhoEmpresa } from "@/lib/company";
 
 export const BUCKET = "fotos";
 
@@ -62,7 +63,7 @@ export async function enviarFotos(
 
   for (const arquivo of arquivos) {
     const ext = arquivo.name.split(".").pop() ?? "jpg";
-    const caminho = `${userId}/${valor}/${crypto.randomUUID()}.${ext}`;
+    const caminho = await caminhoEmpresa(userId, `${valor}/${crypto.randomUUID()}.${ext}`);
     const { error: upErr } = await supabase.storage
       .from(BUCKET)
       .upload(caminho, arquivo, { contentType: arquivo.type || "image/jpeg" });
