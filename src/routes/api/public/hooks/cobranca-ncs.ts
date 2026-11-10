@@ -84,6 +84,8 @@ export const Route = createFileRoute("/api/public/hooks/cobranca-ncs")({
           });
         }
 
+        return new Response(JSON.stringify({ enviados: 0, status: "blocked", motivo: "Domínio de envio não configurado" }), { status: 503, headers: { "Content-Type": "application/json" } });
+        /* Legacy test delivery disabled until production sender verification.
         const supabase = createClient(
           process.env["SUPABASE_URL"]!,
           process.env["SUPABASE_SERVICE_ROLE_KEY"]!,

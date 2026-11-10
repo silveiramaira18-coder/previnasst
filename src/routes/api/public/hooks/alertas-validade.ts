@@ -113,6 +113,7 @@ export const Route = createFileRoute("/api/public/hooks/alertas-validade")({
           }
         }
         return json({ ok: true, documentos: docs.length, enviados });
+        */
       },
     },
   },
