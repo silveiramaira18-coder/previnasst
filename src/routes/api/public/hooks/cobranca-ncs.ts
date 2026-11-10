@@ -177,6 +177,7 @@ export const Route = createFileRoute("/api/public/hooks/cobranca-ncs")({
         return new Response(JSON.stringify({ ok: true, responsaveis: grupos.size, enviados }), {
           headers: { "Content-Type": "application/json" },
         });
+        */
       },
     },
   },
