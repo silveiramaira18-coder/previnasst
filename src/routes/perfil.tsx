@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { AvatarPerfil } from "@/components/AvatarPerfil";
+import { EmpresaPerfil } from "@/components/EmpresaPerfil";
 import { PageHeader } from "@/components/PageHeader";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -33,6 +34,8 @@ export const Route = createFileRoute("/perfil")({
           "Atualize seu nome, cargo, empresa, foto de perfil e senha de acesso ao Previna SST.",
       },
       { property: "og:title", content: "Meu Perfil — Previna SST" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
       {
         property: "og:description",
         content: "Gerencie seus dados de usuário e a segurança da sua conta no Previna SST.",
@@ -173,6 +176,7 @@ function PerfilPage() {
         }
       />
 
+      <EmpresaPerfil />
       <Card>
         <CardHeader>
           <CardTitle className="text-base">Dados pessoais</CardTitle>

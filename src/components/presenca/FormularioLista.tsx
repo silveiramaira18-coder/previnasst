@@ -30,10 +30,11 @@ export function FormularioLista({ lista, iniciais = [], empresaPadrao, logo, onS
   const [participantes, setParticipantes] = useState<NovoParticipante[]>(iniciais);
   const [manual, setManual] = useState("");
   const [funcao, setFuncao] = useState("");
-  const { data: colaboradores = [] } = useQuery({ queryKey: ["colaboradores-presenca", perfil?.id], queryFn: async () => (await listarColaboradores(null)).filter(c => c.user_id === (lista?.user_id ?? perfil?.id)) });
-  const { data: obras = [] } = useQuery({ queryKey: ["obras-presenca", perfil?.id], queryFn: async () => (await listarObras()).filter(o => o.user_id === (lista?.user_id ?? perfil?.id)).sort((a,b) => ordenarAZ(a.nome,b.nome)) });
+  const empresaId = lista?.company_id ?? perfil?.company_id;
+  const { data: colaboradores = [] } = useQuery({ queryKey: ["colaboradores-presenca", empresaId], enabled: !!empresaId, queryFn: async () => (await listarColaboradores(null)).filter(c => c.company_id === empresaId) });
+  const { data: obras = [] } = useQuery({ queryKey: ["obras-presenca", empresaId], enabled: !!empresaId, queryFn: async () => (await listarObras()).filter(o => o.company_id === empresaId).sort((a,b) => ordenarAZ(a.nome,b.nome)) });
   const { data: funcoes = [] } = useQuery({ queryKey: ["funcoes-personalizadas", null], queryFn: () => listarFuncoesPersonalizadas(null) });
-  const { data: listas = [] } = useQuery({ queryKey: ["nomes-treinamento", perfil?.id], queryFn: async () => { const { listarListas } = await import("@/lib/presenca"); return (await listarListas()).filter(l => l.user_id === perfil?.id); } });
+  const { data: listas = [] } = useQuery({ queryKey: ["nomes-treinamento", empresaId], queryFn: async () => { const { listarListas } = await import("@/lib/presenca"); return (await listarListas()).filter(l => l.company_id === empresaId); } });
   const opcoes = [...new Set([...TREINAMENTOS_NR.map(n => n.replace(/^Treinamento /, "")), "NR-02 - Inspeção Prévia (revogada)", "NR-27 - Registro Profissional do Técnico de Segurança (revogada)", "DDS - Diálogo Diário de Segurança", "DSS - Diálogo Semanal de Segurança", "Integração de Segurança de Terceiros", "Integração de Segurança", "Reorientação de Segurança", ...listas.map(l => l.nome_treinamento ?? l.tema)])].sort(ordenarAZ);
   const cargos = [...new Set([...FUNCOES_CONSTRUCAO, ...funcoes.map(f => f.name)])].sort(ordenarAZ);
   const salvar = useMutation({ mutationFn: async () => {

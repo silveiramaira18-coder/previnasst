@@ -87,6 +87,7 @@ export type Terceirizada = {
   contact_email: string | null;
   is_active: boolean;
   user_id?: string | null;
+  company_id?: string | null;
 };
 
 export type Colaborador = {
@@ -97,6 +98,7 @@ export type Colaborador = {
   role_title: string | null;
   type: string;
   user_id?: string | null;
+  company_id?: string | null;
   is_active?: boolean | null;
 } & InfoAdicional;
 
@@ -195,7 +197,7 @@ export function contagemAlertas(docs: Documento[]) {
 export async function listarTerceirizadas() {
   const { data, error } = await supabase
     .from("contractors")
-    .select("id, name, cnpj, contact_email, is_active, user_id")
+    .select("id, name, cnpj, contact_email, is_active, user_id, company_id")
     .order("name");
   if (error) throw new Error(error.message);
   return (data ?? []) as Terceirizada[];
@@ -236,7 +238,7 @@ export async function excluirTerceirizada(id: string) {
 export async function listarColaboradores(contractorId: string | null) {
   let consulta = supabase
     .from("employees")
-    .select("id, contractor_id, name, cpf, role_title, type, user_id, is_active, phone, emergency_contact_name, emergency_phone, medical_notes, blood_type, notes")
+    .select("id, contractor_id, name, cpf, role_title, type, user_id, company_id, is_active, phone, emergency_contact_name, emergency_phone, medical_notes, blood_type, notes")
     .order("name");
   consulta = contractorId ? consulta.eq("contractor_id", contractorId) : consulta.is("contractor_id", null);
   const { data, error } = await consulta;
@@ -369,7 +371,7 @@ export async function listarFuncoesPersonalizadas(contractorId: string | null) {
   let consulta = supabase
     .from("company_job_roles")
     .select("id, name")
-    .eq("user_id", userId)
+    .eq("company_id", await (await import("@/lib/company")).empresaAtivaId())
     .order("name");
   consulta = contractorId
     ? consulta.eq("contractor_id", contractorId)
@@ -453,7 +455,7 @@ export async function listarDocumentosColaborador(employeeId: string) {
 
 async function enviarArquivo(arquivo: File, userId: string) {
   const ext = arquivo.name.split(".").pop() ?? "pdf";
-  const caminho = `${userId}/ged/${crypto.randomUUID()}.${ext}`;
+  const caminho = await (await import("@/lib/company")).caminhoEmpresa(userId, `ged/${crypto.randomUUID()}.${ext}`);
   const { error } = await supabase.storage
     .from(BUCKET_DOCS)
     .upload(caminho, arquivo, { contentType: arquivo.type || "application/pdf" });

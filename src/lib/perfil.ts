@@ -72,6 +72,7 @@ export type Permissao = keyof (typeof permissoes)["admin"];
 
 export type Perfil = {
   id: string;
+  company_id: string | null;
   nome: string | null;
   empresa: string | null;
   cargo: string | null;
@@ -98,6 +99,8 @@ export async function carregarPerfil(): Promise<Perfil | null> {
   ]);
 
   const adminPrincipal = ehEmailAdmin(user.email);
+  const { data: companyId } = await supabase.rpc("active_company_id");
+  const { data: company } = companyId ? await supabase.from("companies").select("name").eq("id", companyId).maybeSingle() : { data: null };
   const lista = (papeis ?? []).map((p) => p.role as Papel);
   const papel: Papel = adminPrincipal
     ? "admin"
@@ -107,8 +110,9 @@ export async function carregarPerfil(): Promise<Perfil | null> {
 
   return {
     id: user.id,
+    company_id: companyId ?? null,
     nome: perfil?.nome ?? (user.user_metadata?.['nome'] as string | undefined) ?? null,
-    empresa: perfil?.empresa ?? null,
+    empresa: company?.name ?? perfil?.empresa ?? null,
     cargo: perfil?.cargo ?? null,
     telefone: perfil?.telefone ?? null,
     avatar_url: perfil?.avatar_url ?? null,
@@ -143,6 +147,14 @@ export async function salvarPerfil(dados: {
   if (!id) throw new Error("Sessão expirada. Entre novamente.");
   const { error } = await supabase.from("profiles").upsert({ id, ...dados });
   if (error) throw new Error(error.message);
+  const companyId = await supabase.rpc("active_company_id");
+  if (companyId.data) {
+    const { data: pode } = await supabase.rpc("can_manage_company", { p_company: companyId.data });
+    if (pode) {
+      const { error: erroEmpresa } = await supabase.from("companies").update({ name: dados.empresa.trim() || "Minha Empresa" }).eq("id", companyId.data);
+      if (erroEmpresa) throw new Error(erroEmpresa.message);
+    }
+  }
 }
 
 export async function alterarSenha(novaSenha: string) {

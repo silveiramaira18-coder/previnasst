@@ -12,3 +12,6 @@
 - Presence lists save their header and participant changes atomically through a SECURITY INVOKER database function; unchanged participant IDs retain collected signatures.
 - Company logos use a separate profile field and private photo storage, never the personal avatar; exports resolve a signed image for the list's owner.
 - Presence calculation/export rules live in a pure module with executable tests; PDF/print and signature capture run only in browser event handlers or effects.
+- Tenant identity comes from protected company memberships and server-stored active company context; never infer membership from names or editable profile fields.
+- Tenant RLS and relationship triggers govern every operational table and private asset; preserve author-only mutations and global administrator access.
+- Company selection and invitation acceptance reload the document to discard previous tenant caches and form state; offline photos must retain their originating user and company.

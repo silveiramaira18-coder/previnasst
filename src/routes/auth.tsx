@@ -23,6 +23,8 @@ export const Route = createFileRoute("/auth")({
           "Acesse o Previna SST para registrar inspeções de segurança do trabalho, fotos e não conformidades.",
       },
       { property: "og:title", content: "Entrar — Previna SST" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
       {
         property: "og:description",
         content: "Acesse sua conta Previna SST e gerencie inspeções de segurança do trabalho.",
@@ -44,8 +46,16 @@ function AuthPage() {
   const [verSenha, setVerSenha] = useState(false);
   const [verSenha2, setVerSenha2] = useState(false);
 
+  const destino = () => {
+    const token = sessionStorage.getItem("previna-convite");
+    if (token && /^[a-f0-9]{64}$/.test(token)) {
+      sessionStorage.removeItem("previna-convite");
+      window.location.assign(`/convite?token=${token}`);
+    } else void navigate({ to: "/" });
+  };
+
   useEffect(() => {
-    if (!loading && session) navigate({ to: "/" });
+    if (!loading && session) destino();
   }, [loading, session, navigate]);
 
   const emailNormalizado = () => email.trim().toLowerCase();
@@ -59,7 +69,7 @@ function AuthPage() {
     });
     setEnviando(false);
     if (error) toast.error("Não foi possível entrar", { description: error.message });
-    else navigate({ to: "/" });
+    else destino();
   };
 
   const cadastrar = async (e: React.FormEvent) => {
