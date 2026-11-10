@@ -78,6 +78,13 @@
       "when": 1794239174414,
       "tag": "0010_company_tenant_isolation",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1794318227184,
+      "tag": "0011_company_presence_and_invitation_hardening",
+      "breakpoints": true
     }
   ]
 }
