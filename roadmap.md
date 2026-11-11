@@ -16,3 +16,7 @@
 - [x] Desativar os envios de teste; convites e cobranças mostram bloqueio por falta de domínio.
 - [ ] Ativar serviço de produção: aguarda aquisição/configuração e verificação de domínio próprio.
 - [ ] Histórico real de status de todas as notificações: aguarda serviço de produção ativo; não implementado.
+
+# Filtros da Lista de Treinamento
+- [x] Filtros por obra, nome do treinamento e período (de/até), com contagem e limpeza.
+- [x] Regras testadas e fluxo autenticado conferido com listas de teste criadas e excluídas.
