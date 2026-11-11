@@ -1,19 +1,22 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { CalendarDays, ClipboardList, Printer, Plus, Trash2, Users, Pencil, Download, PenLine } from "lucide-react";
-import { useState } from "react";
+import { CalendarDays, ClipboardList, Printer, Plus, Trash2, Users, Pencil, Download, PenLine, X } from "lucide-react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/PageHeader";
 import { ConfirmacaoExclusao } from "@/components/ged/ConfirmacaoExclusao";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FormularioLista } from "@/components/presenca/FormularioLista";
 import { AssinaturaParticipante } from "@/components/presenca/AssinaturaParticipante";
 import { CadastroLogo, LogoEmpresa, useLogoEmpresa } from "@/components/presenca/LogoEmpresa";
 import { usePerfil } from "@/lib/perfil";
 import { excluirLista, listarListas, listarParticipantes, alterarModoAssinatura, type ListaPresenca, type Participante } from "@/lib/presenca";
-import { podeEditarLista } from "@/lib/presenca-regras";
+import { FILTRO_LISTAS_VAZIO, TODAS_OBRAS, filtrarListas, obrasDasListas, podeEditarLista, type FiltroListas } from "@/lib/presenca-regras";
 import { baixarPdfLista, imprimirLista } from "@/lib/presenca-export";
 
 export const Route = createFileRoute("/lista-presenca")({

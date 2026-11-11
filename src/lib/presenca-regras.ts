@@ -20,3 +20,29 @@ export function linhasExportacao<T extends { nome: string; funcao: string | null
 export function podeEditarLista(userId: string | undefined, owner: string, admin: boolean) {
   return !!userId && (userId === owner || admin);
 }
+
+export const TODAS_OBRAS = "todas";
+
+export type FiltroListas = { obra: string; busca: string; de: string; ate: string };
+
+export const FILTRO_LISTAS_VAZIO: FiltroListas = { obra: TODAS_OBRAS, busca: "", de: "", ate: "" };
+
+const normalizar = (v: string) => v.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+const ordenar = (a: string, b: string) => a.localeCompare(b, "pt-BR", { sensitivity: "base" });
+
+/** Mantém somente as listas que atendem a todos os filtros preenchidos. */
+export function filtrarListas<T extends { local: string | null; data: string | null; nome_treinamento: string | null; tema: string }>(listas: T[], filtro: FiltroListas): T[] {
+  const busca = normalizar(filtro.busca);
+  return listas.filter(lista => {
+    if (filtro.obra !== TODAS_OBRAS && normalizar(lista.local ?? "") !== normalizar(filtro.obra)) return false;
+    if (busca && !normalizar(`${lista.nome_treinamento ?? ""} ${lista.tema}`).includes(busca)) return false;
+    if (filtro.de && (!lista.data || lista.data < filtro.de)) return false;
+    if (filtro.ate && (!lista.data || lista.data > filtro.ate)) return false;
+    return true;
+  });
+}
+
+/** Obras (locais) já usadas nas listas, sem repetição e em ordem alfabética. */
+export function obrasDasListas<T extends { local: string | null }>(listas: T[]): string[] {
+  return [...new Set(listas.map(l => (l.local ?? "").trim()).filter(Boolean))].sort(ordenar);
+}
