@@ -6,6 +6,8 @@ const expect = (actual: unknown) => ({ toBe: (expected: unknown) => assert.equal
 
 describe("Regras de listas de treinamento", () => {
   test("07:30 a 11:30 corresponde a 4h", () => expect(calcularCargaHoraria("07:30", "11:30")).toBe("4h"));
+  test("dia todo 07:00 a 17:00 desconta 1h de almoço", () => expect(calcularCargaHoraria("07:00", "17:00")).toBe("9h"));
+  test("período que não abrange o almoço inteiro não desconta", () => expect(calcularCargaHoraria("08:00", "12:30")).toBe("4h 30min"));
   test("preserva minutos", () => expect(calcularCargaHoraria("07:30", "09:45")).toBe("2h 15min"));
   test("não calcula horários inválidos ou fim anterior", () => { expect(calcularCargaHoraria("", "11:30")).toBe(""); expect(calcularCargaHoraria("12:00", "11:00")).toBe(""); });
   test("PDF usa prefixo solicitado e nome higienizado", () => expect(nomePdfTreinamento('DDS - DIÁLOGO / SEGURANÇA')).toBe("Lista de Treinamento - DDS - DIALOGO SEGURANCA.pdf"));

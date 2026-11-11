@@ -2,7 +2,8 @@ export function calcularCargaHoraria(inicio: string, fim: string): string {
   const hora = (v: string) => /^([01]\d|2[0-3]):[0-5]\d$/.test(v) ? Number(v.slice(0, 2)) * 60 + Number(v.slice(3)) : null;
   const a = hora(inicio), b = hora(fim);
   if (a === null || b === null || b < a) return "";
-  const minutos = b - a;
+  // Desconta 1h de almoço quando o período abrange todo o intervalo 12:00–13:00.
+  const minutos = b - a - (a <= 720 && b >= 780 ? 60 : 0);
   return `${Math.floor(minutos / 60)}h${minutos % 60 ? ` ${minutos % 60}min` : ""}`;
 }
 
