@@ -15,6 +15,10 @@ export type ListaPresenca = {
   horario_inicial: string | null;
   horario_final: string | null;
   modo_assinatura: "digital" | "manual";
+  instrutor_nome: string | null;
+  instrutor_cargo: string | null;
+  instrutor_assinatura: string | null;
+  instrutor_assinatura_data: string | null;
   created_at: string;
 };
 
@@ -40,6 +44,8 @@ export type NovaLista = {
   horario_inicial: string;
   horario_final: string;
   modo_assinatura: "digital" | "manual";
+  instrutor_nome: string;
+  instrutor_cargo: string;
 };
 
 export type NovoParticipante = {
@@ -84,6 +90,12 @@ export async function salvarLista(id: string | null, dados: NovaLista, participa
 export async function salvarAssinatura(id: string, imagem: string) {
   if (!/^data:image\/png;base64,/.test(imagem) || imagem.length > 800_000) throw new Error("Assinatura inválida.");
   const { error } = await supabase.from("lista_presenca_participantes").update({ assinatura: imagem, assinatura_data: new Date().toISOString() }).eq("id", id);
+  if (error) throw new Error(error.message);
+}
+
+export async function salvarAssinaturaInstrutor(id: string, imagem: string) {
+  if (!/^data:image\/png;base64,/.test(imagem) || imagem.length > 800_000) throw new Error("Assinatura inválida.");
+  const { error } = await supabase.from("listas_presenca").update({ instrutor_assinatura: imagem, instrutor_assinatura_data: new Date().toISOString() }).eq("id", id);
   if (error) throw new Error(error.message);
 }
 

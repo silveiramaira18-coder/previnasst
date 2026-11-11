@@ -85,6 +85,13 @@
       "when": 1794318227184,
       "tag": "0011_company_presence_and_invitation_hardening",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1794410792458,
+      "tag": "0012_presence_instructor_signature",
+      "breakpoints": true
     }
   ]
 }

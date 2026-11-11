@@ -1,6 +1,6 @@
 import { describe, it as test } from "node:test";
 import assert from "node:assert/strict";
-import { calcularCargaHoraria, linhasExportacao, nomePdfTreinamento, podeEditarLista, FILTRO_LISTAS_VAZIO, TODAS_OBRAS, filtrarListas, obrasDasListas } from "./presenca-regras";
+import { calcularCargaHoraria, linhasExportacao, nomePdfTreinamento, podeEditarLista, FILTRO_LISTAS_VAZIO, TODAS_OBRAS, filtrarListas, obrasDasListas, assinaturaInstrutor } from "./presenca-regras";
 
 const expect = (actual: unknown) => ({ toBe: (expected: unknown) => assert.equal(actual, expected), toBeNull: () => assert.equal(actual, null), toEqual: (expected: unknown) => assert.deepEqual(actual, expected) });
 
@@ -30,4 +30,8 @@ describe("Regras de listas de treinamento", () => {
   test("filtros combinados de obra e nome somam", () => expect(filtrarListas(amostra, { obra: "Condomínio Aurora", busca: "altura", de: "", ate: "" }).length).toBe(1));
   test("obras do filtro saem sem repetição, sem vazias e em ordem alfabética", () => expect(obrasDasListas([...amostra, lista("Outra", "Condomínio Aurora", "2026-07-01"), lista("Sem Local", null, "2026-07-01")])).toEqual(["Condomínio Aurora", "Obra Beta"]));
   test("todas as obras é o valor inicial do filtro", () => expect(FILTRO_LISTAS_VAZIO.obra).toBe(TODAS_OBRAS));
+  test("folha em branco não leva a assinatura do instrutor", () => expect(assinaturaInstrutor({ instrutor_assinatura: "imagem" }, true, "digital")).toBeNull());
+  test("modo manual deixa a linha do instrutor vazia", () => expect(assinaturaInstrutor({ instrutor_assinatura: "imagem" }, false, "manual")).toBeNull());
+  test("folha completa digital conserva a assinatura do instrutor", () => expect(assinaturaInstrutor({ instrutor_assinatura: "imagem" }, false, "digital")).toBe("imagem"));
+  test("instrutor sem assinatura exporta linha vazia", () => expect(assinaturaInstrutor({}, false, "digital")).toBeNull());
 });

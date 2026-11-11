@@ -992,6 +992,10 @@ export type Database = {
           horario_final: string | null
           horario_inicial: string | null
           id: string
+          instrutor_assinatura: string | null
+          instrutor_assinatura_data: string | null
+          instrutor_cargo: string | null
+          instrutor_nome: string | null
           local: string | null
           modo_assinatura: string
           nome_treinamento: string | null
@@ -1008,6 +1012,10 @@ export type Database = {
           horario_final?: string | null
           horario_inicial?: string | null
           id?: string
+          instrutor_assinatura?: string | null
+          instrutor_assinatura_data?: string | null
+          instrutor_cargo?: string | null
+          instrutor_nome?: string | null
           local?: string | null
           modo_assinatura?: string
           nome_treinamento?: string | null
@@ -1024,6 +1032,10 @@ export type Database = {
           horario_final?: string | null
           horario_inicial?: string | null
           id?: string
+          instrutor_assinatura?: string | null
+          instrutor_assinatura_data?: string | null
+          instrutor_cargo?: string | null
+          instrutor_nome?: string | null
           local?: string | null
           modo_assinatura?: string
           nome_treinamento?: string | null

@@ -46,3 +46,9 @@ export function filtrarListas<T extends { local: string | null; data: string | n
 export function obrasDasListas<T extends { local: string | null }>(listas: T[]): string[] {
   return [...new Set(listas.map(l => (l.local ?? "").trim()).filter(Boolean))].sort(ordenar);
 }
+
+/** Assinatura digital do instrutor exibida na exportação: folha em branco e modo manual deixam a linha vazia. */
+export function assinaturaInstrutor(lista: { instrutor_assinatura?: string | null }, branco: boolean, modo: "digital" | "manual"): string | null {
+  if (branco || modo !== "digital") return null;
+  return lista.instrutor_assinatura ?? null;
+}
