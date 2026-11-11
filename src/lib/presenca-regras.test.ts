@@ -2,7 +2,7 @@ import { describe, it as test } from "node:test";
 import assert from "node:assert/strict";
 import { calcularCargaHoraria, linhasExportacao, nomePdfTreinamento, podeEditarLista, FILTRO_LISTAS_VAZIO, TODAS_OBRAS, filtrarListas, obrasDasListas } from "./presenca-regras";
 
-const expect = (actual: unknown) => ({ toBe: (expected: unknown) => assert.equal(actual, expected), toBeNull: () => assert.equal(actual, null) });
+const expect = (actual: unknown) => ({ toBe: (expected: unknown) => assert.equal(actual, expected), toBeNull: () => assert.equal(actual, null), toEqual: (expected: unknown) => assert.deepEqual(actual, expected) });
 
 describe("Regras de listas de treinamento", () => {
   test("07:30 a 11:30 corresponde a 4h", () => expect(calcularCargaHoraria("07:30", "11:30")).toBe("4h"));
