@@ -20,3 +20,8 @@
 # Filtros da Lista de Treinamento
 - [x] Filtros por obra, nome do treinamento e período (de/até), com contagem e limpeza.
 - [x] Regras testadas e fluxo autenticado conferido com listas de teste criadas e excluídas.
+
+# Assinatura do Instrutor
+- [x] Nome e cargo do responsável por ministrar no cadastro/edição da lista.
+- [x] Assinatura digital do instrutor na tela e bloco no rodapé do PDF e da impressão, com linha vazia na folha em branco e no modo manual.
+- [x] Regra de exportação testada e PDF conferido em imagem (nome, cargo e assinatura dentro da caixa).
