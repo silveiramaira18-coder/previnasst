@@ -13,9 +13,10 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FormularioLista } from "@/components/presenca/FormularioLista";
 import { AssinaturaParticipante } from "@/components/presenca/AssinaturaParticipante";
+import { DialogoAssinatura } from "@/components/presenca/DialogoAssinatura";
 import { CadastroLogo, LogoEmpresa, useLogoEmpresa } from "@/components/presenca/LogoEmpresa";
 import { usePerfil } from "@/lib/perfil";
-import { excluirLista, listarListas, listarParticipantes, alterarModoAssinatura, type ListaPresenca, type Participante } from "@/lib/presenca";
+import { excluirLista, listarListas, listarParticipantes, alterarModoAssinatura, salvarAssinaturaInstrutor, type ListaPresenca, type Participante } from "@/lib/presenca";
 import { FILTRO_LISTAS_VAZIO, TODAS_OBRAS, filtrarListas, obrasDasListas, podeEditarLista, type FiltroListas } from "@/lib/presenca-regras";
 import { baixarPdfLista, imprimirLista } from "@/lib/presenca-export";
 
@@ -72,6 +73,7 @@ function Visualizacao({ inicial, onFechar, onAtualizado }: { inicial: ListaPrese
   const [lista, setLista] = useState(inicial);
   const [editando, setEditando] = useState(false);
   const [assinando, setAssinando] = useState<Participante | null>(null);
+  const [assinandoInstrutor, setAssinandoInstrutor] = useState(false);
   const [ocupado, setOcupado] = useState(false);
   const { data: logo } = useLogoEmpresa(lista.user_id);
   const { data: participantes = [], isLoading, error } = useQuery({ queryKey: ["participantes-lista", lista.id], queryFn: () => listarParticipantes(lista.id) });
